@@ -1,10 +1,16 @@
 # GoraGO2
 Equipe
+
 Alex Silva
+
 Bruno Gabriel Ribeiro
+
 Eduardo Sales
+
 Fabricio Teodoro
+
 Mauro Yida
+
 
 ##Tema
 VAN?
