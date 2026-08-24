@@ -1,7 +1,7 @@
-# 📋 Problemas de Gestão em Transporte por Van — Base de Pesquisa do Projeto BEMFA
+# 📋 Problemas de Gestão em Transporte por Van — Base de Pesquisa do Projeto (Grupo 1 - Bemfa)
 
-> Documento de apoio à justificativa do projeto interdisciplinar do grupo **BEMFA**.
-> Reúne 10 fontes (artigos, TCCs e sistemas) que documentam problemas reais na gestão de transporte de passageiros — a maioria em transporte escolar/van — e aponta, pra cada uma, o que o nosso sistema pode contemplar pra resolver essa lacuna.
+> Documento de apoio à justificativa do projeto interdisciplinar do grupo 1, intitulado ficticiamente de **"Bemfa"**.
+> Reúne 10 fontes (artigos, TCCs e sistemas) que documentam problemas reais na gestão de transporte de passageiros — a maioria em transporte escolar/van — e aponta, pra cada uma, o que o sistema proposto pelo nosso grupo pode agregar pra resolver essa dor.
 
 ---
 
@@ -10,7 +10,7 @@
 1. [Sobre este documento](#-sobre-este-documento)
 2. [Os 10 problemas identificados](#-os-10-problemas-identificados)
 3. [Tabela-resumo](#-tabela-resumo)
-4. [Conclusão — o gap que o BEMFA pode preencher](#-conclusão--o-gap-que-o-bemfa-pode-preencher)
+4. [Conclusão — o gap que o nosso projeto pode preencher](#-conclusão--o-gap-que-o-nosso-projeto-pode-preencher)
 
 ---
 
@@ -20,7 +20,7 @@ A gestão de vans (escolares, fretadas ou de fretamento privado) ainda é, na pr
 
 Cada item abaixo segue o mesmo formato:
 - **Problemas identificados** → o que a fonte aponta como dor real, documentada.
-- **O que o nosso sistema pode contemplar** → como o BEMFA pode usar esse achado pra justificar uma funcionalidade.
+- **O que o nosso sistema pode contemplar** → como nós, da Bemfa pode usar esse achado pra justificar uma funcionalidade.
 
 ---
 
@@ -110,7 +110,7 @@ Cada item abaixo segue o mesmo formato:
 - **Não ajuda a planejar rota nem mostrar vaga disponível** — só localização.
 
 **O que o nosso sistema pode contemplar:**
-- Deixar claro, na documentação do projeto, que rastreamento é *complementar*, não substitui gestão de vaga/ocupação — esse é o diferencial do BEMFA.
+- Deixar claro, na documentação do projeto, que rastreamento é *complementar*, não substitui gestão de vaga/ocupação — esse é o diferencial da solução proposta pela Bemfa.
 
 ---
 
@@ -136,7 +136,7 @@ Cada item abaixo segue o mesmo formato:
 - Falta de otimização de rota — o problema é resolvido com um algoritmo guloso (heurística do vizinho mais próximo).
 
 **O que o nosso sistema pode contemplar:**
-- É o artigo mais parecido com o "dono de van autônomo" que o BEMFA provavelmente vai atender — reforça a dor de sobrecarga operacional de quem toca a van sozinho, sem equipe de apoio.
+- É o artigo mais parecido com o "dono de van autônomo" que a nossa solução pretende atender — reforça a dor de sobrecarga operacional de quem toca a van sozinho, sem equipe de apoio.
 - Sugestão automática de rota como funcionalidade que reduz carga mental do motorista.
 
 ---
@@ -150,7 +150,7 @@ Cada item abaixo segue o mesmo formato:
 - Ainda não existe controle sistematizado de embarque/desembarque nominal por aluno (é isso que o CEATE do artigo tenta resolver).
 
 **O que o nosso sistema pode contemplar:**
-- Módulo de controle de embarque/desembarque nominal, permitindo cruzar presença no transporte com frequência escolar — útil se o BEMFA quiser atacar também o recorte de transporte escolar público, além do privado.
+- Módulo de controle de embarque/desembarque nominal, permitindo cruzar presença no transporte com frequência escolar — útil se o escopo do nosso projeto quiser atacar também o recorte de transporte escolar público, além do privado.
 
 ---
 
@@ -171,7 +171,7 @@ Cada item abaixo segue o mesmo formato:
 
 ---
 
-## ✅ Conclusão — o gap que o BEMFA pode preencher
+## ✅ Conclusão — o gap que o nosso projeto pode preencher
 
 Juntando os 10 pontos:
 
