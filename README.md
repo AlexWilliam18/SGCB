@@ -82,6 +82,7 @@ Cada item abaixo segue o mesmo formato:
 **Problemas identificados:**
 - Em sistemas com reserva prévia de assento (uma vaga por passageiro), horário de pico lota e horário fraco fica com vaga sobrando.
 - Sem um método de despacho que combine bem a demanda com a capacidade disponível, ninguém redistribui a capacidade do veículo entre os horários — o artigo mostra isso comparando com o método manual hoje usado numa linha real em Xangai, que desperdiça capacidade por não considerar troca de veículo por tamanho.
+
 **O que o nosso sistema pode contemplar:**
 - Lógica de alocação de vaga que considera o horário, não só a rota — mesmo que de forma mais simples que o algoritmo de casamento (bipartite matching) do artigo.
 ---
