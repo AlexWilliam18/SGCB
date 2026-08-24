@@ -76,16 +76,14 @@ Cada item abaixo segue o mesmo formato:
 
 ---
 
-### 5. Joint optimization of bus scheduling and seat allocation for reservation-based travel (2024)
-🔗 https://www.sciencedirect.com/science/article/abs/pii/S0968090X24001529
-
+### 5. Optimizing Multi-Vehicle Demand-Responsive Bus Dispatching: A Real-Time Reservation-Based Approach (2023)
+🔗 https://www.mdpi.com/2071-1050/15/7/5909
+ 
 **Problemas identificados:**
-- Em sistemas com reserva prévia de assento, horário de pico lota e horário fraco fica com vaga sobrando.
-- Ninguém redistribui a capacidade do veículo entre os horários.
-
+- Em sistemas com reserva prévia de assento (uma vaga por passageiro), horário de pico lota e horário fraco fica com vaga sobrando.
+- Sem um método de despacho que combine bem a demanda com a capacidade disponível, ninguém redistribui a capacidade do veículo entre os horários — o artigo mostra isso comparando com o método manual/guloso hoje usado numa linha real em Xangai, que desperdiça capacidade por não considerar troca de veículo por tamanho.
 **O que o nosso sistema pode contemplar:**
-- Lógica de alocação de vaga que considera o horário, não só a rota — mesmo que de forma mais simples que o modelo matemático do artigo.
-
+- Lógica de alocação de vaga que considera o horário, não só a rota — mesmo que de forma mais simples que o algoritmo de casamento (bipartite matching) do artigo.
 ---
 
 ### 6. BusKá — Sistema Integrado para Planejamento, Execução e Monitoramento do Transporte Escolar Público (2026) ⭐
