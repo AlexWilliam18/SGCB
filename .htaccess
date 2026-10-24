@@ -1,0 +1,5 @@
+# Reescreve todas as requisições para public/, a única pasta acessível pelo navegador.
+# Assim config/, src/, includes/, database/ e tests/ nunca são servidos diretamente.
+RewriteEngine On
+RewriteCond %{REQUEST_URI} !/public/
+RewriteRule ^(.*)$ public/$1 [L]
