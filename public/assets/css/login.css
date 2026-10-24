@@ -397,6 +397,19 @@ dialog p {
     margin-bottom: 8px
 }
 
+/* Cores das amostras (antes eram style="--swatch:..." inline no HTML) */
+.swatch-verde {
+    --swatch: #1b4332
+}
+
+.swatch-areia {
+    --swatch: #e7e2d6
+}
+
+.swatch-texto {
+    --swatch: #121212
+}
+
 @media(max-width:900px) {
     .account {
         padding: 36px
