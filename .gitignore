@@ -1,0 +1,13 @@
+# Configuração local (credenciais do banco) — use config/config.example.php como modelo
+config/config.php
+
+# Arquivos enviados pelos usuários (mantém só a proteção e o marcador da pasta)
+public/uploads/*
+!public/uploads/.htaccess
+!public/uploads/.gitkeep
+
+# Sistema operacional / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

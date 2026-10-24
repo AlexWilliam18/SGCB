@@ -1,0 +1,7 @@
+# Pasta de arquivos enviados pelos usuários: nunca executar scripts aqui.
+<FilesMatch "\.(php|phtml|phar)$">
+    Require all denied
+</FilesMatch>
+
+# Impede a listagem do conteúdo da pasta.
+Options -Indexes
