@@ -1,0 +1,475 @@
+:root {
+    --ink: #121212;
+    --green: #1b4332;
+    --border: #e8e6e0;
+    --muted: #5d625e
+}
+
+* {
+    box-sizing: border-box
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding: 32px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(180deg, rgba(231, 226, 214, .6), #e7e2d6), #f8f7f4;
+    color: var(--ink);
+    font-family: Figtree, Arial, sans-serif
+}
+
+button,
+input {
+    font: inherit
+}
+
+button,
+a,
+input {
+    -webkit-tap-highlight-color: transparent
+}
+
+button {
+    cursor: pointer
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+    outline: 3px solid #609b7d;
+    outline-offset: 4px
+}
+
+.login-card {
+    width: 100%;
+    max-width: 1080px;
+    min-height: 589px;
+    display: grid;
+    grid-template-columns: 10fr 11fr;
+    overflow: hidden;
+    border-radius: 32px;
+    background: #fff;
+    box-shadow: 0 30px 70px -25px rgba(60, 50, 30, .45)
+}
+
+.welcome {
+    position: relative;
+    min-height: 589px;
+    display: grid;
+    place-items: center;
+    overflow: hidden
+}
+
+.welcome-background {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover
+}
+
+.photo-shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(10, 20, 15, .25), rgba(10, 20, 15, .35))
+}
+
+.welcome-photo {
+    position: absolute;
+    left: calc(50% - 289.64px);
+    bottom: 0;
+    width: 547px;
+    height: 1048px;
+    object-fit: cover
+}
+
+.welcome-panel {
+    position: relative;
+    width: 340px;
+    max-width: calc(100% - 48px);
+    padding: 32px;
+    border: 2px solid rgba(255, 255, 255, .8);
+    border-radius: 32px;
+    background: rgba(255, 255, 255, .4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    text-align: center
+}
+
+.wordmark {
+    margin: 0;
+    font-family: 'Libre Caslon Text', Georgia, serif;
+    font-size: 36px;
+    line-height: 40px;
+    letter-spacing: .9px
+}
+
+.welcome h2 {
+    margin: 32px 0 0;
+    font-size: 36px;
+    line-height: 40px;
+    font-weight: 800
+}
+
+.welcome-description {
+    margin: 16px 0 0;
+    font-size: 15px;
+    line-height: 28px
+}
+
+.instagram {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+    padding: 12px 24px;
+    border: 1px solid rgba(18, 18, 18, .7);
+    border-radius: 100px;
+    font-size: 15px;
+    line-height: 22.5px;
+    color: var(--ink);
+    text-decoration: none;
+    white-space: nowrap
+}
+
+.instagram:hover {
+    background: rgba(255, 255, 255, .3)
+}
+
+.account {
+    padding: 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0
+}
+
+.eyebrow {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 16px;
+    letter-spacing: 2.4px;
+    text-transform: uppercase
+}
+
+h1 {
+    margin: 12px 0 0;
+    font-size: 36px;
+    line-height: 40px;
+    letter-spacing: -.9px;
+    font-weight: 800
+}
+
+.subtitle {
+    margin: 8px 0 0;
+    font-size: 16px;
+    line-height: 24px
+}
+
+#login-form {
+    margin-top: 36px
+}
+
+.field-label {
+    display: block;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+    margin-bottom: 8px
+}
+
+input:not([type=checkbox]) {
+    display: block;
+    width: 100%;
+    height: 48px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+    padding: 0 16px;
+    font-size: 15px;
+    color: var(--ink)
+}
+
+input::placeholder {
+    color: var(--ink);
+    opacity: 1
+}
+
+.password-label {
+    margin-top: 20px
+}
+
+.password-field {
+    position: relative
+}
+
+.password-field input {
+    padding-right: 48px
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 4px;
+    width: 36px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 8px
+}
+
+.password-toggle:hover {
+    background: #f8f7f4
+}
+
+.form-options {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 12px;
+    line-height: 16px
+}
+
+.remember {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    cursor: pointer
+}
+
+.remember input {
+    position: absolute;
+    left: 0;
+    width: 13px;
+    height: 13px;
+    opacity: 0;
+    margin: 0
+}
+
+.checkbox-art {
+    display: grid;
+    place-items: center;
+    width: 13px;
+    height: 13px;
+    border: 1px solid #767676;
+    border-radius: 2px;
+    background: #fff
+}
+
+.checkbox-art img {
+    visibility: hidden
+}
+
+.remember input:checked+.checkbox-art {
+    background: #155dfc;
+    border-color: #155dfc
+}
+
+.remember input:checked+.checkbox-art img {
+    visibility: visible
+}
+
+.remember input:focus-visible+.checkbox-art {
+    outline: 3px solid #609b7d;
+    outline-offset: 3px
+}
+
+.text-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font-size: 12px;
+    line-height: 16px
+}
+
+.text-button:hover {
+    text-decoration: underline
+}
+
+.submit-button {
+    display: block;
+    width: 100%;
+    height: 56px;
+    margin-top: 24px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--green);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 20px;
+    letter-spacing: .35px;
+    text-transform: uppercase;
+    box-shadow: 0 10px 15px -3px #0000001a, 0 4px 6px -4px #0000001a;
+    transition: background .15s, transform .15s
+}
+
+.submit-button:hover {
+    background: #2e5440
+}
+
+.submit-button:active {
+    transform: translateY(1px)
+}
+
+.development-note {
+    margin: 20px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 16.5px
+}
+
+.library-link {
+    align-self: flex-start;
+    margin-top: 12px;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: #2e5440;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-size: 11px;
+    line-height: 16.5px;
+    font-weight: 600
+}
+
+.form-message {
+    margin: 12px 0 0;
+    color: #a32929;
+    font-size: 12px;
+    line-height: 18px
+}
+
+.form-message[hidden] {
+    display: none
+}
+
+dialog {
+    width: min(460px, calc(100% - 32px));
+    padding: 32px;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    color: var(--ink);
+    box-shadow: 0 30px 70px -25px #0008
+}
+
+dialog::backdrop {
+    background: rgba(10, 20, 15, .45);
+    backdrop-filter: blur(4px)
+}
+
+dialog h2 {
+    margin: 0;
+    font-size: 26px
+}
+
+dialog p {
+    line-height: 1.6
+}
+
+.swatches {
+    display: flex;
+    gap: 12px;
+    margin: 24px 0
+}
+
+.swatches span {
+    flex: 1;
+    font-size: 11px
+}
+
+.swatches span::before {
+    content: '';
+    display: block;
+    height: 48px;
+    border-radius: 8px;
+    background: var(--swatch);
+    margin-bottom: 8px
+}
+
+@media(max-width:900px) {
+    .account {
+        padding: 36px
+    }
+
+    .welcome-panel {
+        padding: 24px
+    }
+
+    .welcome h2 {
+        font-size: 30px
+    }
+
+    .wordmark {
+        font-size: 32px
+    }
+
+    .welcome-description {
+        font-size: 14px
+    }
+
+    .development-note {
+        max-width: 100%
+    }
+}
+
+@media(max-width:680px) {
+    body {
+        padding: 20px
+    }
+
+    .login-card {
+        grid-template-columns: 1fr;
+        max-width: 480px;
+        border-radius: 24px
+    }
+
+    .welcome {
+        min-height: 380px
+    }
+
+    .welcome-panel {
+        width: 340px;
+        padding: 24px
+    }
+
+    .welcome h2 {
+        margin-top: 20px
+    }
+
+    .welcome-description {
+        margin-top: 12px;
+        line-height: 24px
+    }
+
+    .instagram {
+        margin-top: 16px;
+        padding: 8px 20px
+    }
+
+    .account {
+        padding: 32px 24px
+    }
+
+    h1 {
+        font-size: 32px
+    }
+
+    .eyebrow {
+        font-size: 11px
+    }
+
+    #login-form {
+        margin-top: 28px
+    }
+}
