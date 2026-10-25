@@ -1,0 +1,485 @@
+/*
+ * produtos.css — estilos da listagem de produtos (public/admin/produtos/index.php).
+ * Complementa o dashboard.css (menu lateral, cabeçalho, cartões) e o clientes.css
+ * (filtros, tabela, paginação e diálogo de detalhes, reaproveitados aqui).
+ *
+ * Organização:
+ *   1. Área principal e título
+ *   2. Filtros
+ *   3. Tabela de produtos
+ *   4. Diálogo de detalhes do produto
+ *   5. Diálogo "Cadastre nova Categoria"
+ *   6. Responsivo
+ */
+
+/* ==========================================================================
+   1. Área principal e título
+   ========================================================================== */
+
+/* Área principal da listagem */
+.products-main {
+    padding: 32px;
+    outline: none
+}
+
+/* Botões "+ Categoria" e "Novo produto" lado a lado */
+.intro-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-shrink: 0
+}
+
+/* Botão branco "+ Categoria" (abre o diálogo de categoria) */
+.category-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: white;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap
+}
+
+.category-button:hover {
+    background: var(--paper)
+}
+
+/* Botão "Novo produto" um pouco mais escuro que o "Novo cliente" */
+.products-page .new-client {
+    background: #264636
+}
+
+/* ==========================================================================
+   2. Filtros
+   ========================================================================== */
+
+/* Cartão de filtros em uma linha só (quebra abaixo de 1350px) */
+.products-page .filter-card {
+    margin-top: 0;
+    gap: 22px;
+    padding: 20px;
+    flex-wrap: nowrap
+}
+
+/* Pesquisa ocupa o espaço que sobrar */
+.products-page .search-field {
+    flex: 1 1 auto;
+    min-width: 180px;
+    gap: 18px
+}
+
+/* Largura das seleções de status e categoria */
+.products-page .product-status {
+    width: 205px
+}
+
+.products-page .product-category {
+    width: 203px
+}
+
+.products-page .clear-filters {
+    margin-left: 0;
+    flex-shrink: 0
+}
+
+/* Espaço acima dos avisos (erro ao carregar, categoria/produto cadastrado) */
+.products-main>.data-notice {
+    margin-top: 16px
+}
+
+/* Aviso verde de sucesso */
+.category-success {
+    background: #eaf6ed;
+    border-color: #a7cbb2;
+    color: #1b4332
+}
+
+/* ==========================================================================
+   3. Tabela de produtos
+   ========================================================================== */
+
+/* Largura mínima: abaixo disso a tabela rola na horizontal */
+.products-table {
+    min-width: 1000px;
+    table-layout: fixed
+}
+
+/* Textos longos quebram dentro da célula */
+.products-table td {
+    overflow-wrap: anywhere
+}
+
+/* Código do produto em letra pequena abaixo do nome */
+.product-code {
+    display: block;
+    font-size: 10px;
+    line-height: 16px;
+    color: var(--muted);
+    font-weight: 400
+}
+
+/* Etiqueta de status: verde (ativo) e amarela (inativo) */
+.product-status-badge {
+    display: inline-block;
+    border-radius: 6px;
+    padding: 2px 7px;
+    background: #eaf2ec;
+    color: #235338;
+    font-size: 11px;
+    font-weight: 600
+}
+
+.product-status-badge.inactive {
+    background: #f7efe1;
+    color: #805619
+}
+
+/* Números de estoque com algarismos de mesma largura (alinham na coluna) */
+.stock-number {
+    font-variant-numeric: tabular-nums
+}
+
+/* Linha de "carregando" / "nenhum produto" centralizada */
+.products-table .clients-empty {
+    text-align: center
+}
+
+.products-table .clients-empty>div {
+    width: auto;
+    max-width: none
+}
+
+/* Contorno de foco quando a área da tabela recebe o teclado (para rolar) */
+.products-page .table-scroll:focus-visible {
+    outline: 2px solid #b58b36;
+    outline-offset: -2px
+}
+
+/* ==========================================================================
+   4. Diálogo de detalhes do produto
+   ========================================================================== */
+
+/* Descrição do produto (mantém as quebras de linha digitadas) */
+.product-description {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 21px;
+    margin-top: 20px
+}
+
+/* Observação sobre o cálculo do estoque */
+.product-stock-note {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 19px;
+    margin-top: 20px
+}
+
+/* ==========================================================================
+   5. Diálogo "Cadastre nova Categoria"
+   ========================================================================== */
+
+/* Caixa do diálogo */
+.category-dialog {
+    width: 356px;
+    max-width: calc(100% - 32px);
+    min-height: 216px;
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    padding: 23px 29px 23px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: white;
+    color: var(--ink);
+    overflow: auto
+}
+
+/* Fundo escurecido e desfocado atrás do diálogo */
+.category-dialog::backdrop {
+    background: rgba(18, 18, 18, .18);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px)
+}
+
+/* Título */
+.category-dialog h2 {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 24px;
+    text-align: center;
+    white-space: nowrap;
+    color: #000
+}
+
+/* Rótulo e campo "Nome" */
+.category-dialog label {
+    display: block;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    color: #121212b3;
+    font-size: 14px;
+    line-height: 17px
+}
+
+.category-dialog input {
+    display: block;
+    width: calc(100% + 8px);
+    height: 44px;
+    margin: 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: white;
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    padding: 0 18px
+}
+
+.category-dialog input::placeholder {
+    color: #121212b3;
+    opacity: 1
+}
+
+/* Campo com erro em vermelho */
+.category-dialog input[aria-invalid=true] {
+    border-color: #a7342c
+}
+
+/* Botões Cancelar e Salvar */
+.category-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 27px;
+    transform: translateX(4px)
+}
+
+.category-actions button {
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px
+}
+
+.category-cancel {
+    border: 1px solid var(--line);
+    background: white;
+    color: var(--ink)
+}
+
+.category-save {
+    width: 133px;
+    flex-shrink: 0;
+    border: 0;
+    background: #264636;
+    color: white;
+    box-shadow: 0 8px 18px #14291e99
+}
+
+.category-save:hover:not(:disabled) {
+    background: var(--forest-light)
+}
+
+.category-cancel:hover:not(:disabled) {
+    background: var(--paper)
+}
+
+/* Botões desabilitados enquanto prepara/salva */
+.category-actions button:disabled {
+    cursor: default;
+    opacity: .65
+}
+
+/* Mensagem de erro do campo */
+.category-dialog .category-error {
+    color: #a7342c;
+    font-size: 12px;
+    line-height: 17px;
+    margin: 7px 0 0
+}
+
+/* Aviso geral do diálogo e link "Tentar novamente" */
+.category-message {
+    margin-top: 10px;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--muted)
+}
+
+.category-message button {
+    margin-top: 6px;
+    padding: 3px 0;
+    border: 0;
+    background: none;
+    text-decoration: underline;
+    color: var(--forest);
+    font-size: 12px
+}
+
+/* Trava a rolagem da página com o diálogo aberto */
+.category-open {
+    overflow: hidden
+}
+
+/* ==========================================================================
+   6. Responsivo
+   ========================================================================== */
+
+/* Telas largas: ajuste fino do espaçamento dos filtros */
+@media(min-width:1351px) {
+    .products-page .filter-card {
+        padding-right: 38px
+    }
+
+    .products-page .search-field {
+        margin-right: 4px
+    }
+}
+
+/* Até 1350px: pesquisa em uma linha, seleções e "Limpar" na linha de baixo */
+@media(max-width:1350px) {
+    .products-page .filter-card {
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-top: 20px
+    }
+
+    .products-page .search-field {
+        flex-basis: 100%
+    }
+
+    .products-page .product-status,
+    .products-page .product-category {
+        flex: 1;
+        min-width: 160px;
+        width: auto
+    }
+
+    .products-page .page-intro {
+        flex-wrap: wrap;
+        gap: 16px
+    }
+
+    .products-page .page-intro p {
+        max-width: none
+    }
+}
+
+@media(max-width:1200px) {
+    .products-main {
+        padding: 24px
+    }
+}
+
+/* Celular: um filtro por linha e botões do título à direita */
+@media(max-width:760px) {
+    .products-main {
+        padding: 20px
+    }
+
+    .products-page .page-intro h2 {
+        font-size: 26px;
+        line-height: 32px
+    }
+
+    .products-page .page-intro p {
+        font-size: 14px;
+        line-height: 22px
+    }
+
+    .products-page .search-field {
+        min-width: 0
+    }
+
+    .products-page .product-status,
+    .products-page .product-category {
+        min-width: 0;
+        flex: 1 1 100%
+    }
+
+    .products-page .clear-filters {
+        margin-left: auto
+    }
+
+    .products-page .intro-actions {
+        width: 100%;
+        justify-content: flex-end;
+        flex-wrap: wrap
+    }
+
+    .products-page .new-client {
+        width: auto
+    }
+
+    .products-page .table-footer {
+        flex-wrap: wrap;
+        align-items: flex-start
+    }
+
+    .products-page .table-footer>p {
+        flex-basis: 100%
+    }
+
+    .products-page .pagination {
+        margin-left: auto
+    }
+}
+
+/* Telas bem estreitas: diálogo de categoria mais compacto */
+@media(max-width:370px) {
+    .category-dialog {
+        padding-left: 20px;
+        padding-right: 20px
+    }
+
+    .category-dialog input {
+        width: 100%
+    }
+
+    .category-dialog h2 {
+        font-size: 18px
+    }
+
+    .category-actions {
+        gap: 12px
+    }
+}
+
+@media(max-width:460px) {
+    .products-main {
+        padding: 16px
+    }
+
+    .products-page .filter-card {
+        padding: 18px
+    }
+
+    .products-page .search-field {
+        gap: 12px
+    }
+
+    .products-page .search-field input {
+        padding-left: 14px
+    }
+
+    .products-page .products-table .clients-empty {
+        text-align: left
+    }
+
+    .products-page .products-table .clients-empty>div {
+        width: calc(100vw - 34px);
+        padding: 0 16px
+    }
+}
