@@ -27,13 +27,16 @@ $css    = $css ?? [];
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&family=Libre+Caslon+Text&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&family=Libre+Caslon+Text:wght@400;700&display=swap"
     rel="stylesheet">
 <?php
 // Folhas de estilo da página. BASE_URL deixa o caminho absoluto a partir da raiz do site,
 // então funciona tanto em public/ quanto em public/admin/<modulo>/.
-foreach ($css as $arquivoCss): ?>
-  <link rel="stylesheet" href="<?= htmlspecialchars(BASE_URL . 'assets/css/' . $arquivoCss) ?>">
+// "?v=" recebe a data de modificação do arquivo: quando o CSS muda, a URL muda e o
+// navegador baixa a versão nova em vez de usar a do cache.
+foreach ($css as $arquivoCss):
+  $versaoCss = @filemtime(__DIR__ . '/../public/assets/css/' . $arquivoCss) ?: 0; ?>
+  <link rel="stylesheet" href="<?= htmlspecialchars(BASE_URL . 'assets/css/' . $arquivoCss . '?v=' . $versaoCss) ?>">
 <?php endforeach; ?>
 </head>
 

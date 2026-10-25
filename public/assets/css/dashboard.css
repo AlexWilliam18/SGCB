@@ -1,0 +1,1107 @@
+/*
+ * dashboard.css — estilos da área administrativa do SGCB (public/admin/dashboard.php).
+ *
+ * Organização:
+ *   1. Variáveis e base
+ *   2. Menu lateral
+ *   3. Cabeçalho e área de trabalho
+ *   4. Cartões de indicadores
+ *   5. Gráficos
+ *   6. Rankings
+ *   7. Tabela de locações recentes
+ *   8. Avisos, diálogo e botões
+ *   9. Responsivo
+ */
+
+/* ==========================================================================
+   1. Variáveis e base
+   ========================================================================== */
+
+/* Paleta da identidade Casa Barretto */
+:root {
+  --forest: #1b4332;
+  --forest-light: #2e5440;
+  --paper: #f8f7f4;
+  --line: #e8e6e0;
+  --ink: #121212;
+  --muted: #5d625e;
+  --gold: #e8bd62;
+}
+
+/* Reset: medidas incluem borda e padding */
+* {
+  box-sizing: border-box;
+}
+
+/* Página: fundo areia claro e fonte Figtree */
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Figtree, Arial, sans-serif;
+  font-size: 14px;
+}
+
+/* Remove o destaque azul de toque no celular */
+button,
+a,
+input {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Botões herdam a fonte da página */
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+/* Contorno de foco visível (navegação por teclado) */
+button:focus-visible,
+a:focus-visible,
+main:focus-visible {
+  outline: 3px solid #b58b36;
+  outline-offset: 4px;
+}
+
+button:disabled {
+  cursor: wait;
+}
+
+/* Garante que o atributo hidden sempre esconda, mesmo com display definido */
+[hidden] {
+  display: none !important;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h2 {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 22.5px;
+}
+
+/* Texto só para leitores de tela */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Link "Ir para o painel": escondido acima da tela, aparece ao receber foco */
+.skip-link {
+  position: fixed;
+  top: -80px;
+  left: 20px;
+  z-index: 100;
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ==========================================================================
+   2. Menu lateral
+   ========================================================================== */
+
+/* Barra fixa à esquerda, verde da marca */
+.sidebar {
+  width: 270px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  background: var(--forest);
+  color: #fff;
+  overflow-y: auto;
+}
+
+/* Bloco do logotipo, com linha divisória embaixo */
+.brand-wrap {
+  position: relative;
+  margin: 0 18px;
+  padding: 32px 12px 20px;
+  border-bottom: 1px solid #ffffff1a;
+  min-height: 121px;
+}
+
+.brand {
+  display: inline-flex;
+  flex-direction: column;
+  text-decoration: none;
+}
+
+/* "CASA BARRETTO" na fonte serifada do logotipo */
+.brand-name {
+  font-family: 'Libre Caslon Text', Georgia, serif;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 23.1px;
+  letter-spacing: 1.1px;
+}
+
+.brand-description {
+  margin-top: 6px;
+  font-size: 10px;
+  line-height: 15px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: #ffffffcc;
+}
+
+/* Lista de links do menu */
+.navigation {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 8px;
+  padding: 28px 18px 24px;
+}
+
+/* Item do menu (link ou botão): ícone + texto */
+.nav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: #ffffffcc;
+  text-decoration: none;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 22.5px;
+  white-space: nowrap;
+}
+
+/* Ícone do item: não encolhe e mantém a proporção da imagem */
+.nav-link img {
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+/* Item ativo ou com o mouse em cima: fundo claro translúcido */
+.nav-link.active,
+.nav-link:hover {
+  background: #ffffff26;
+  color: #fff;
+}
+
+/* Marcador dourado à esquerda do item ativo */
+.nav-link.active:before {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: calc(50% - 10px);
+  height: 20px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--gold);
+}
+
+.nav-link[data-module] {
+  color: #fff;
+}
+
+/* Rodapé do menu: perfil do usuário e botão Sair */
+.user-box {
+  border-top: 1px solid #ffffff1a;
+  padding: 16px 18px 20px;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  text-align: left;
+  color: #fff;
+  border-radius: 8px;
+}
+
+/* Círculo com a inicial do nome */
+.avatar {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #ffffff26;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-info strong {
+  font-size: 14px;
+  line-height: 17.5px;
+  font-weight: 700;
+}
+
+.user-info > span {
+  font-size: 10px;
+  line-height: 15px;
+  color: #ffffffb3;
+}
+
+/* Botão Sair com contorno */
+.logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 44px;
+  border: 1px solid #fff3;
+  border-radius: 12px;
+  margin-top: 12px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.logout:hover {
+  background: #ffffff1a;
+}
+
+/* ==========================================================================
+   3. Cabeçalho e área de trabalho
+   ========================================================================== */
+
+/* Conteúdo à direita do menu fixo */
+.workspace {
+  margin-left: 270px;
+  min-height: 100vh;
+}
+
+/* Cabeçalho: título da página e data */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--line);
+  min-height: 76.5px;
+}
+
+.page-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.page-heading h1 {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 27.5px;
+}
+
+.page-heading p {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+/* Pílula com o ícone de calendário e a data de hoje */
+.date-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: #fff;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+/* Área principal com os blocos do painel empilhados */
+.dashboard {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  outline: none;
+}
+
+/* ==========================================================================
+   4. Cartões de indicadores
+   ========================================================================== */
+
+/* Quatro cartões lado a lado */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  position: relative;
+  min-width: 0;
+  min-height: 146.5px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 20px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 6px 24px -16px #14291e40;
+}
+
+/* Círculo decorativo no canto inferior direito do cartão */
+.stat-card:after {
+  content: '';
+  position: absolute;
+  right: -14px;
+  bottom: -22px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #2646361a;
+  pointer-events: none;
+}
+
+.stat-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.stat-heading h2 {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16.5px;
+  letter-spacing: .275px;
+  text-transform: uppercase;
+}
+
+/* Quadrado verde-claro que envolve o ícone do cartão */
+.stat-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  background: #2646361a;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+/* Número grande do indicador */
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 32px;
+  margin-top: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-caption {
+  font-size: 11px;
+  line-height: 16.5px;
+  color: var(--muted);
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   5. Gráficos de barras (faturamento e quantidade de locações)
+   ========================================================================== */
+
+/* Duas colunas para gráficos e rankings */
+.charts-grid,
+.rankings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* Cartão branco genérico */
+.card {
+  min-width: 0;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+}
+
+.chart-card,
+.ranking-card {
+  padding: 20px;
+  box-shadow: 0 6px 12px #14291e40;
+}
+
+.chart-card {
+  height: 320.5px;
+}
+
+/* Título do cartão à esquerda e legenda ("Últimos 12 meses") à direita */
+.card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 22.5px;
+}
+
+.card-heading > span {
+  font-size: 11px;
+  line-height: 16.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Gráfico: eixo vertical + área de plotagem */
+.chart {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  height: 256px;
+  padding-top: 16px;
+}
+
+.chart-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 15px;
+  min-width: 17px;
+}
+
+.chart-plot {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Linhas horizontais de referência */
+.gridlines {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.gridlines i {
+  display: block;
+  border-top: 1px solid var(--line);
+  height: 1px;
+}
+
+.gridlines i:last-child {
+  visibility: hidden;
+}
+
+/* Barras alinhadas pela base */
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  position: absolute;
+  inset: 0;
+}
+
+.bar-slot {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+/* Barra: altura vem da variável --bar-height (definida no dashboard.js) */
+.chart-bar {
+  width: 100%;
+  height: var(--bar-height);
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: var(--forest-light);
+  position: relative;
+  border-radius: 3px 3px 0 0;
+}
+
+.chart-bar:hover,
+.chart-bar:focus-visible {
+  background: var(--forest);
+  z-index: 4;
+}
+
+/* Balão com o valor, mostrado ao passar o mouse ou focar a barra */
+.bar-label {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 220px;
+  background: var(--forest);
+  color: #fff;
+  padding: 7px 10px;
+  border-radius: 6px;
+  line-height: 16px;
+  font-size: 11px;
+  text-align: center;
+  display: none;
+  pointer-events: none;
+}
+
+.chart-bar:hover .bar-label,
+.chart-bar:focus-visible .bar-label {
+  display: block;
+}
+
+/* Nome do mês abaixo da barra */
+.month-label {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--muted);
+}
+
+/* Reserva espaço para os nomes dos meses quando existem */
+.chart:has(.month-label) {
+  height: 240px;
+}
+
+/* ==========================================================================
+   6. Rankings (produtos e clientes com mais locações)
+   ========================================================================== */
+
+.ranking-card {
+  min-height: 176.5px;
+}
+
+.ranking-content {
+  min-height: 112px;
+  display: grid;
+  align-items: center;
+}
+
+/* Mensagem de "carregando" / "sem dados" */
+.ranking-empty {
+  padding: 20px 0;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--muted);
+}
+
+.ranking-list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Linha do ranking: posição, nome, quantidade e barra de progresso */
+.ranking-item {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.ranking-position {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.ranking-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranking-count {
+  font-weight: 700;
+  color: var(--forest-light);
+  white-space: nowrap;
+}
+
+/* Trilho e preenchimento proporcional (--rank-width vem do dashboard.js) */
+.ranking-track {
+  grid-column: 2 / 4;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--paper);
+  margin-top: -7px;
+  overflow: hidden;
+}
+
+.ranking-track > span {
+  display: block;
+  background: var(--forest-light);
+  height: 100%;
+  border-radius: 4px;
+  width: var(--rank-width);
+}
+
+/* ==========================================================================
+   7. Tabela das locações mais recentes
+   ========================================================================== */
+
+.recent-card {
+  overflow: hidden;
+  box-shadow: 0 6px 24px -16px #14291e40;
+}
+
+.recent-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  min-height: 80px;
+}
+
+/* Botão com contorno ("Ver todas") */
+.outline-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  white-space: nowrap;
+  background: #fff;
+}
+
+.outline-button:hover {
+  background: var(--paper);
+}
+
+/* Rolagem horizontal da tabela em telas estreitas */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  min-width: 650px;
+  border-collapse: collapse;
+  text-align: left;
+  table-layout: fixed;
+}
+
+th {
+  background: var(--paper);
+  padding: 12px 16px;
+  font-size: 10px;
+  line-height: 13.333px;
+  font-weight: 700;
+  letter-spacing: .25px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+td {
+  border-top: 1px solid var(--line);
+  padding: 16px;
+  font-size: 12px;
+  line-height: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Largura de cada coluna */
+.col-contract { width: 19%; }
+.col-client   { width: 16%; }
+.col-start    { width: 13.7%; }
+.col-end      { width: 10.5%; }
+.col-days     { width: 11.8%; }
+.col-value    { width: 14%; }
+.col-status   { width: 15%; }
+
+/* Linha única de "carregando" / "nenhuma locação" */
+.empty-row td {
+  height: 96px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: normal;
+}
+
+.contract-link {
+  font-weight: 700;
+  color: var(--forest-light);
+  text-underline-offset: 3px;
+}
+
+/* Etiquetas de status do contrato (verde = ativo/pendente) */
+.status {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #edf3ef;
+  color: var(--forest-light);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.status-cancelado  { background: #fbeceb; color: #973f36; }
+.status-reservado  { background: #faf2df; color: #7e622c; }
+.status-finalizado { background: #edf0f3; color: #53616e; }
+
+/* ==========================================================================
+   8. Avisos, diálogo e botões
+   ========================================================================== */
+
+/* Faixa amarela de aviso (falha ao carregar dados) */
+.data-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid #dfc69b;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: #fff9eb;
+  font-size: 12px;
+  line-height: 18px;
+  color: #705324;
+}
+
+.data-notice button {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border: 1px solid #dcc398;
+  border-radius: 8px;
+  background: #fff;
+  color: #705324;
+  font-weight: 600;
+}
+
+.source-note {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 16px;
+}
+
+/* Diálogo de informação (módulo em desenvolvimento, perfil) */
+.info-dialog {
+  width: min(440px, calc(100% - 32px));
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  color: var(--ink);
+  box-shadow: 0 20px 80px #0003;
+}
+
+/* Fundo escurecido e desfocado atrás do diálogo */
+.info-dialog::backdrop {
+  background: #14291e80;
+  backdrop-filter: blur(3px);
+}
+
+.info-dialog h2 {
+  font-size: 22px;
+  line-height: 28px;
+}
+
+.info-dialog p {
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--muted);
+  margin-top: 12px;
+}
+
+/* Botão principal verde */
+.primary-button {
+  border: 0;
+  border-radius: 12px;
+  width: 100%;
+  height: 44px;
+  background: var(--forest);
+  color: white;
+  font-weight: 700;
+  margin-top: 24px;
+}
+
+/* Controles do menu no celular: escondidos no desktop */
+.menu-toggle,
+.close-menu,
+.nav-backdrop {
+  display: none;
+}
+
+/* ==========================================================================
+   9. Responsivo
+   ========================================================================== */
+
+/* Telas muito largas: limita a largura do painel */
+@media (min-width: 1552px) {
+  .dashboard {
+    max-width: 1600px;
+  }
+}
+
+/* Notebooks: cartões de indicadores em 2 colunas e espaçamentos menores */
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .page-header {
+    padding: 16px 24px;
+  }
+
+  .dashboard {
+    padding: 24px;
+  }
+
+  .card-heading > span {
+    font-size: 10px;
+  }
+
+  .card-heading h2 {
+    font-size: 14px;
+  }
+}
+
+/* Tablets: gráficos e rankings em uma coluna */
+@media (max-width: 900px) {
+  .charts-grid,
+  .rankings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-heading p {
+    max-width: 200px;
+  }
+}
+
+/* Celulares: menu vira gaveta (abre pelo botão ☰, ver painel.js) */
+@media (max-width: 760px) {
+  .sidebar {
+    visibility: hidden;
+    transform: translateX(-100%);
+    transition: transform .2s, visibility .2s;
+  }
+
+  .workspace {
+    margin-left: 0;
+  }
+
+  .page-header {
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .page-heading h1 {
+    font-size: 20px;
+    white-space: nowrap;
+  }
+
+  .page-heading p {
+    max-width: none;
+    font-size: 11px;
+  }
+
+  .date-pill {
+    grid-column: 2;
+    justify-self: start;
+    margin: 0;
+  }
+
+  .dashboard {
+    padding: 20px;
+  }
+
+  /* Botão ☰ (três traços) */
+  .menu-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    width: 36px;
+    height: 40px;
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px;
+    flex-shrink: 0;
+  }
+
+  .menu-toggle span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--forest);
+  }
+
+  /* Botão × dentro do menu aberto */
+  .close-menu {
+    display: block;
+    position: absolute;
+    right: 4px;
+    top: 25px;
+    background: none;
+    border: 0;
+    color: white;
+    font-size: 26px;
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Menu aberto: trava a rolagem da página e mostra a gaveta */
+  .nav-open {
+    overflow: hidden;
+  }
+
+  .nav-open .sidebar {
+    visibility: visible;
+    transform: translateX(0);
+  }
+
+  /* Fundo escuro clicável atrás do menu aberto */
+  .nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 29;
+    background: #14291e80;
+    border: 0;
+    padding: 0;
+  }
+
+  .stat-card {
+    padding: 16px;
+    min-height: 142px;
+  }
+
+  .stat-heading h2 {
+    font-size: 10px;
+    line-height: 15px;
+  }
+
+  .stat-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .stat-value {
+    font-size: 23px;
+  }
+
+  .stat-caption {
+    font-size: 10px;
+  }
+}
+
+/* Celulares pequenos: compacta cartões e espaçamentos */
+@media (max-width: 460px) {
+  .stats-grid {
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 14px;
+  }
+
+  .stat-heading {
+    min-height: 32px;
+  }
+
+  .stat-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    overflow-wrap: anywhere;
+  }
+
+  .stat-caption {
+    max-width: 115px;
+  }
+
+  .chart-card,
+  .ranking-card {
+    padding: 18px;
+  }
+
+  .card-heading h2 {
+    font-size: 13px;
+  }
+
+  .card-heading > span {
+    font-size: 10px;
+  }
+
+  .data-notice {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dashboard {
+    padding: 16px;
+  }
+
+  .chart-bars {
+    gap: 4px;
+  }
+}
+
+/* Usuários que preferem menos movimento: sem transições */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *:before,
+  *:after {
+    transition: none !important;
+  }
+}
