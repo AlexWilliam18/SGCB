@@ -3,12 +3,12 @@
  * login.php — tela de login da área administrativa do SGCB (http://localhost/SGCB/login.php).
  *
  * Finalidade: exibir o formulário de acesso e autenticar o usuário contra a tabela usuarios.
- *             Login válido → redireciona para public/dashboard.php (tela inicial do CRUD).
+ *             Login válido → redireciona para public/admin/dashboard.php (tela inicial do CRUD).
  * Depende de: src/bootstrap.php (BASE_URL, sessão, Autenticacao), includes/head.php, includes/footer.php,
  *             public/assets/css/login.css, public/assets/js/login.js,
  *             imagens de public/assets/img/login/ e public/assets/img/logo/.
  * Usado por:  public/index.php e Autenticacao::exigirLogin() (redirecionam para cá).
- * Observação: não usa includes/nav-admin.php, porque a tela de login não tem menu.
+ * Observação: não usa includes/nav.php, porque a tela de login não tem menu.
  *             Credenciais iniciais: as do seed database/seeds/001_usuario_admin.sql.
  */
 
@@ -17,7 +17,7 @@ require __DIR__ . '/../src/bootstrap.php';
 
 // Quem já está logado não precisa ver o login de novo.
 if (Autenticacao::usuario() !== null) {
-    header('Location: ' . BASE_URL . 'dashboard.php');
+    header('Location: ' . BASE_URL . 'admin/dashboard.php');
     exit;
 }
 
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             if (Autenticacao::entrar($email, $senha)) {
-                header('Location: ' . BASE_URL . 'dashboard.php');
+                header('Location: ' . BASE_URL . 'admin/dashboard.php');
                 exit;
             }
             // Mensagem genérica: não revela se o e-mail existe.
