@@ -41,6 +41,12 @@
     }
   }
 
+  // Lê o corpo da resposta como JSON. Se o servidor devolver HTML (ex.: página 404 enquanto a
+  // API não existe), retorna null em vez de deixar o erro "Unexpected token '<'" chegar à tela.
+  function readJson(response) {
+    return response.json().catch(() => null);
+  }
+
   // Busca categorias, fornecedores e o token CSRF. Só libera o "Salvar" se houver
   // usuário responsável, pelo menos uma categoria e um fornecedor ativos.
   async function loadOptions() {
@@ -51,8 +57,9 @@
     $('retry-options').disabled = true;
     try {
       const response = await fetch('/api/produtos/opcoes', { cache: 'no-store', signal: controller.signal });
-      const data = await response.json();
-      if (!response.ok) throw Error(data.error || 'Não foi possível carregar as opções.');
+      const data = await readJson(response);
+      if (!response.ok || !data)
+        throw Error(data?.error || 'Não foi possível carregar as opções. Verifique a conexão com o banco e tente novamente.');
       if (!Array.isArray(data.categorias) || !Array.isArray(data.fornecedores) || !data.csrf_token)
         throw Error('O servidor retornou opções inválidas.');
       csrf = data.csrf_token;
@@ -174,13 +181,15 @@
         body: JSON.stringify(data),
         signal: controller.signal,
       });
-      const result = await response.json();
+      const result = (await readJson(response)) || {};
       if (!response.ok) {
         // A API pode devolver erros por campo em "fields"; 403 = token CSRF inválido/expirado.
         Object.entries(result.fields || {}).forEach(([key, value]) => fieldError(key, value));
         if (response.status === 403) ready = false;
         throw Error(result.error || 'Não foi possível salvar o produto.');
       }
+      // Resposta 2xx sem JSON: não dá para confirmar o cadastro (cai no aviso do catch).
+      if (!result.nome) throw Error();
       // Sucesso: grava o aviso que a listagem (produtos.js) mostra e volta para ela.
       dirty = false;
       leaving = true;
