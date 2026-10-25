@@ -6,10 +6,16 @@ const remember = document.getElementById('remember');
 const message = document.getElementById('form-message');
 const toggle = document.getElementById('password-toggle');
 
-
+// Preenche o e-mail lembrado, a não ser que o PHP já tenha devolvido o e-mail digitado (após um erro).
 try {
-  email.value = localStorage.getItem('casaBarretto.rememberedEmail') || '';
+  if (!email.value) email.value = localStorage.getItem('casaBarretto.rememberedEmail') || '';
 } catch (_) { /* The form remains usable when browser storage is unavailable. */ }
+
+// Erro vindo do servidor: marca o campo de senha como inválido para leitores de tela.
+if (!message.hidden) {
+  password.setAttribute('aria-invalid', 'true');
+  password.setAttribute('aria-describedby', 'form-message');
+}
 
 toggle.addEventListener('click', () => {
   const visible = password.type === 'password';
@@ -18,21 +24,13 @@ toggle.addEventListener('click', () => {
   toggle.setAttribute('aria-pressed', String(visible));
 });
 
-document.getElementById('login-form').addEventListener('submit', event => {
-  event.preventDefault();
- 
-  if (email.value.trim().toLowerCase() !== 'admin@casabarretto.local' || password.value !== 'admin123') {
-    message.textContent = 'E-mail ou senha inválidos. Utilize as credenciais de desenvolvimento indicadas abaixo.';
-    message.hidden = false;
-    password.setAttribute('aria-invalid', 'true');
-    password.setAttribute('aria-describedby', 'form-message');
-    return;
-  }
+// A autenticação é feita no PHP (public/login.php); aqui só guardamos o "Lembrar de mim"
+// e deixamos o formulário seguir com o POST normalmente.
+document.getElementById('login-form').addEventListener('submit', () => {
   try {
     if (remember.checked) localStorage.setItem('casaBarretto.rememberedEmail', email.value.trim());
     else localStorage.removeItem('casaBarretto.rememberedEmail');
   } catch (_) { /* Storage is optional. */ }
-  window.location.assign('DashBoard.html');
 });
 
 [email, password].forEach(input => input.addEventListener('input', () => {

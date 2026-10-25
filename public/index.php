@@ -2,13 +2,13 @@
 /**
  * index.php — ponto de entrada do SGCB (http://localhost/SGCB/).
  *
- * Finalidade: redirecionar quem acessa a raiz do sistema para a tela de login.
- * Depende de: src/bootstrap.php (constante BASE_URL).
+ * Finalidade: mandar quem acessa a raiz para o dashboard (se logado) ou para o login.
+ * Depende de: src/bootstrap.php (BASE_URL, sessão, Autenticacao).
  * Usado por:  o Apache, como página padrão da pasta public/ (o .htaccess da raiz aponta para ela).
  */
 
 require __DIR__ . '/../src/bootstrap.php';
 
-// Sem autenticação ainda, todo acesso à raiz vai para o login.
-header('Location: ' . BASE_URL . 'login.php');
+$destino = Autenticacao::usuario() !== null ? 'admin/dashboard.php' : 'login.php';
+header('Location: ' . BASE_URL . $destino);
 exit;

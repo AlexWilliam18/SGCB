@@ -9,7 +9,7 @@
 --
 -- Credenciais iniciais:
 --   E-mail: admin@casabarretto.local
---   Senha:  Admin@123
+--   Senha:  mudar123
 --
 -- ATENÇÃO — a senha acima é pública (está no repositório). O usuário é criado com
 -- deve_alterar_senha = TRUE para forçar a troca no primeiro acesso. Nunca use
@@ -29,15 +29,15 @@ INSERT INTO cargos (codigo, nome, nivel, descricao, ativo)
 VALUES ('ADMIN', 'Administrador', 100, 'Acesso total ao sistema', TRUE)
 ON DUPLICATE KEY UPDATE id = id;
 
--- Usuário admin padrão. O hash foi gerado com password_hash('Admin@123', PASSWORD_BCRYPT)
--- e é validado no login com password_verify(). Para trocar a senha inicial, gere um
--- novo hash com: php -r "echo password_hash('NovaSenha', PASSWORD_BCRYPT);"
+-- Usuário admin padrão. A senha fica em texto puro aqui e é convertida para hash bcrypt
+-- (password_hash) no primeiro login, por src/Auth/Autenticacao.php. Se preferir já gravar o hash,
+-- gere com: php -r "echo password_hash('mudar123', PASSWORD_BCRYPT);" (validado com password_verify()).
 -- O cargo é buscado pelo código, para não depender do id gerado pelo AUTO_INCREMENT.
 INSERT INTO usuarios (cargo_id, nome, email, senha_hash, ativo, deve_alterar_senha)
 SELECT c.id,
        'Administrador',
        'admin@casabarretto.local',
-       '$2y$10$vHbt451mKfp1IA8xsh.ape0RgAKA.rnDsojGoQEHh8KJ2mg2.awc6',
+       'mudar123',
        TRUE,
        TRUE
   FROM cargos c

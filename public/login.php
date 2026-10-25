@@ -2,20 +2,51 @@
 /**
  * login.php — tela de login da área administrativa do SGCB (http://localhost/SGCB/login.php).
  *
- * Finalidade: exibir o formulário de acesso (front-end). A autenticação real ainda não existe.
- * Depende de: src/bootstrap.php (BASE_URL), includes/head.php, includes/footer.php,
+ * Finalidade: exibir o formulário de acesso e autenticar o usuário contra a tabela usuarios.
+ *             Login válido → redireciona para public/dashboard.php (tela inicial do CRUD).
+ * Depende de: src/bootstrap.php (BASE_URL, sessão, Autenticacao), includes/head.php, includes/footer.php,
  *             public/assets/css/login.css, public/assets/js/login.js,
  *             imagens de public/assets/img/login/ e public/assets/img/logo/.
- * Usado por:  public/index.php (redireciona a raiz do sistema para cá).
+ * Usado por:  public/index.php e Autenticacao::exigirLogin() (redirecionam para cá).
  * Observação: não usa includes/nav-admin.php, porque a tela de login não tem menu.
+ *             Credenciais iniciais: as do seed database/seeds/001_usuario_admin.sql.
  */
 
-// Bootstrap: carrega a configuração (BASE_URL) antes de qualquer saída.
+// Bootstrap: carrega a configuração, a sessão e as classes antes de qualquer saída.
 require __DIR__ . '/../src/bootstrap.php';
+
+// Quem já está logado não precisa ver o login de novo.
+if (Autenticacao::usuario() !== null) {
+    header('Location: ' . BASE_URL . 'dashboard.php');
+    exit;
+}
+
+$erro  = null; // mensagem de erro exibida no formulário
+$email = '';   // e-mail digitado, para não obrigar a redigitar após um erro
 
 // Envio do formulário (method="post" para esta mesma página).
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // TODO: autenticação (tarefa feature/login-back)
+    $email = trim((string) ($_POST['email'] ?? ''));
+    $senha = (string) ($_POST['password'] ?? '');
+
+    if (!Autenticacao::csrfValido($_POST['csrf'] ?? null)) {
+        $erro = 'Sessão expirada. Tente entrar novamente.';
+    } elseif ($email === '' || $senha === '') {
+        $erro = 'Informe o e-mail e a senha.';
+    } else {
+        try {
+            if (Autenticacao::entrar($email, $senha)) {
+                header('Location: ' . BASE_URL . 'dashboard.php');
+                exit;
+            }
+            // Mensagem genérica: não revela se o e-mail existe.
+            $erro = 'E-mail ou senha inválidos.';
+        } catch (PDOException $e) {
+            // Banco fora do ar ou config/config.php com credenciais erradas.
+            error_log('SGCB login: ' . $e->getMessage());
+            $erro = 'Não foi possível conectar ao banco de dados. Tente novamente em instantes.';
+        }
+    }
 }
 
 // Variáveis lidas por includes/head.php e includes/footer.php.
@@ -49,12 +80,12 @@ require __DIR__ . '/../includes/head.php';
       <p class="eyebrow">Área administrativa</p>
       <h1 id="login-title">Entrar na conta</h1>
       <p class="subtitle">Informe seus dados para continuar.</p>
-      <!-- Hoje o login.js intercepta o envio e valida as credenciais de desenvolvimento;
-           o POST para esta página passa a valer quando a autenticação for implementada. -->
+      <!-- POST para esta mesma página; a validação é feita no PHP (topo do arquivo) contra o banco. -->
       <form id="login-form" method="post" action="<?= htmlspecialchars(BASE_URL . 'login.php') ?>">
+        <input type="hidden" name="csrf" value="<?= htmlspecialchars(Autenticacao::tokenCsrf()) ?>">
         <label class="field-label" for="email">E-mail</label>
-        <input id="email" name="email" type="email" autocomplete="username" placeholder="ronaldo@casabarretto.local"
-          required>
+        <input id="email" name="email" type="email" autocomplete="username" placeholder="admin@casabarretto.local"
+          value="<?= htmlspecialchars($email) ?>" required>
         <label class="field-label password-label" for="password">Senha</label>
         <div class="password-field">
           <input id="password" name="password" type="password" autocomplete="current-password" required>
@@ -66,10 +97,10 @@ require __DIR__ . '/../includes/head.php';
                 src="<?= $img ?>login/check.svg" alt="" width="11" height="11"></span>Lembrar de mim</label>
           <button class="text-button" id="forgot-password" type="button">Esqueceu a senha?</button>
         </div>
-        <p id="form-message" class="form-message" role="alert" hidden></p>
+        <!-- Erro do servidor (e-mail/senha inválidos, banco fora do ar...) -->
+        <p id="form-message" class="form-message" role="alert"<?= $erro === null ? ' hidden' : '' ?>><?= htmlspecialchars((string) $erro) ?></p>
         <button class="submit-button" type="submit">Entrar</button>
       </form>
-      <p class="development-note">Ambiente de desenvolvimento: admin@casabarretto.local / admin123</p>
       <button class="library-link" id="open-library" type="button">Ver biblioteca de componentes</button>
     </section>
   </main>

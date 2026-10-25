@@ -14,8 +14,10 @@ $js = $js ?? [];
 
 // Scripts da página com caminho montado a partir da BASE_URL (funciona em qualquer nível de pasta).
 // "defer" mantém o mesmo comportamento do arquivo original: o script roda após o HTML ser lido.
-foreach ($js as $arquivoJs): ?>
-  <script src="<?= htmlspecialchars(BASE_URL . 'assets/js/' . $arquivoJs) ?>" defer></script>
+// "?v=" (data de modificação do arquivo) evita que o navegador use um JS antigo do cache.
+foreach ($js as $arquivoJs):
+  $versaoJs = @filemtime(__DIR__ . '/../public/assets/js/' . $arquivoJs) ?: 0; ?>
+  <script src="<?= htmlspecialchars(BASE_URL . 'assets/js/' . $arquivoJs . '?v=' . $versaoJs) ?>" defer></script>
 <?php endforeach; ?>
 </body>
 

@@ -1,3 +1,21 @@
+/*
+ * login.css — estilos da tela de login do SGCB (public/login.php).
+ *
+ * Organização:
+ *   1. Variáveis e base
+ *   2. Cartão de login
+ *   3. Painel de boas-vindas (lado esquerdo, com foto)
+ *   4. Painel da conta (lado direito, formulário)
+ *   5. Campos, "Lembrar de mim" e botões
+ *   6. Diálogos ("Esqueceu a senha?" e biblioteca de componentes)
+ *   7. Responsivo
+ */
+
+/* ==========================================================================
+   1. Variáveis e base
+   ========================================================================== */
+
+/* Paleta da identidade Casa Barretto */
 :root {
     --ink: #121212;
     --green: #1b4332;
@@ -5,10 +23,12 @@
     --muted: #5d625e
 }
 
+/* Reset: medidas incluem borda e padding */
 * {
     box-sizing: border-box
 }
 
+/* Página: cartão centralizado sobre fundo areia em degradê */
 body {
     margin: 0;
     min-height: 100vh;
@@ -21,11 +41,13 @@ body {
     font-family: Figtree, Arial, sans-serif
 }
 
+/* Botões e campos herdam a fonte da página */
 button,
 input {
     font: inherit
 }
 
+/* Remove o destaque azul de toque no celular */
 button,
 a,
 input {
@@ -36,6 +58,7 @@ button {
     cursor: pointer
 }
 
+/* Contorno de foco visível (navegação por teclado) */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible {
@@ -43,6 +66,11 @@ input:focus-visible {
     outline-offset: 4px
 }
 
+/* ==========================================================================
+   2. Cartão de login
+   ========================================================================== */
+
+/* Cartão branco com duas colunas: boas-vindas e formulário */
 .login-card {
     width: 100%;
     max-width: 1080px;
@@ -55,6 +83,11 @@ input:focus-visible {
     box-shadow: 0 30px 70px -25px rgba(60, 50, 30, .45)
 }
 
+/* ==========================================================================
+   3. Painel de boas-vindas (lado esquerdo, com foto)
+   ========================================================================== */
+
+/* Coluna da esquerda, com o painel de vidro centralizado */
 .welcome {
     position: relative;
     min-height: 589px;
@@ -63,6 +96,7 @@ input:focus-visible {
     overflow: hidden
 }
 
+/* Foto de fundo cobrindo toda a coluna */
 .welcome-background {
     position: absolute;
     inset: 0;
@@ -71,12 +105,14 @@ input:focus-visible {
     object-fit: cover
 }
 
+/* Película escura sobre a foto, para dar contraste ao painel */
 .photo-shade {
     position: absolute;
     inset: 0;
     background: linear-gradient(rgba(10, 20, 15, .25), rgba(10, 20, 15, .35))
 }
 
+/* Fachada da loja ancorada na base da coluna */
 .welcome-photo {
     position: absolute;
     left: calc(50% - 289.64px);
@@ -86,6 +122,7 @@ input:focus-visible {
     object-fit: cover
 }
 
+/* Painel translúcido com desfoque (efeito vidro) */
 .welcome-panel {
     position: relative;
     width: 340px;
@@ -99,6 +136,7 @@ input:focus-visible {
     text-align: center
 }
 
+/* "CASA BARRETTO" na fonte serifada do logotipo */
 .wordmark {
     margin: 0;
     font-family: 'Libre Caslon Text', Georgia, serif;
@@ -107,6 +145,7 @@ input:focus-visible {
     letter-spacing: .9px
 }
 
+/* Título "Bem-vindo!" */
 .welcome h2 {
     margin: 32px 0 0;
     font-size: 36px;
@@ -114,12 +153,14 @@ input:focus-visible {
     font-weight: 800
 }
 
+/* Texto de apresentação do sistema */
 .welcome-description {
     margin: 16px 0 0;
     font-size: 15px;
     line-height: 28px
 }
 
+/* Botão-pílula com o @ do Instagram */
 .instagram {
     display: inline-flex;
     align-items: center;
@@ -139,6 +180,11 @@ input:focus-visible {
     background: rgba(255, 255, 255, .3)
 }
 
+/* ==========================================================================
+   4. Painel da conta (lado direito, formulário)
+   ========================================================================== */
+
+/* Coluna da direita, com o conteúdo centralizado na vertical */
 .account {
     padding: 56px;
     display: flex;
@@ -147,6 +193,7 @@ input:focus-visible {
     min-width: 0
 }
 
+/* "ÁREA ADMINISTRATIVA": texto pequeno em caixa alta acima do título */
 .eyebrow {
     margin: 0;
     font-size: 12px;
@@ -156,6 +203,7 @@ input:focus-visible {
     text-transform: uppercase
 }
 
+/* Título "Entrar na conta" */
 h1 {
     margin: 12px 0 0;
     font-size: 36px;
@@ -164,16 +212,23 @@ h1 {
     font-weight: 800
 }
 
+/* Texto de apoio abaixo do título */
 .subtitle {
     margin: 8px 0 0;
     font-size: 16px;
     line-height: 24px
 }
 
+/* Espaço entre o cabeçalho e o formulário */
 #login-form {
     margin-top: 36px
 }
 
+/* ==========================================================================
+   5. Campos, "Lembrar de mim" e botões
+   ========================================================================== */
+
+/* Rótulo dos campos (E-mail, Senha) */
 .field-label {
     display: block;
     font-size: 12px;
@@ -182,6 +237,7 @@ h1 {
     margin-bottom: 8px
 }
 
+/* Campos de texto: altura, borda e cantos arredondados */
 input:not([type=checkbox]) {
     display: block;
     width: 100%;
@@ -194,23 +250,28 @@ input:not([type=checkbox]) {
     color: var(--ink)
 }
 
+/* Exemplo dentro do campo com a mesma cor do texto */
 input::placeholder {
     color: var(--ink);
     opacity: 1
 }
 
+/* Espaço acima do rótulo da senha */
 .password-label {
     margin-top: 20px
 }
 
+/* Campo de senha: serve de referência para o botão do olho */
 .password-field {
     position: relative
 }
 
+/* Espaço à direita para o texto não ficar embaixo do botão do olho */
 .password-field input {
     padding-right: 48px
 }
 
+/* Botão do olho (mostrar/ocultar senha) dentro do campo */
 .password-toggle {
     position: absolute;
     right: 8px;
@@ -228,6 +289,7 @@ input::placeholder {
     background: #f8f7f4
 }
 
+/* Linha com "Lembrar de mim" à esquerda e "Esqueceu a senha?" à direita */
 .form-options {
     margin-top: 16px;
     display: flex;
@@ -238,6 +300,7 @@ input::placeholder {
     line-height: 16px
 }
 
+/* "Lembrar de mim": caixa personalizada + texto */
 .remember {
     display: flex;
     align-items: center;
@@ -246,6 +309,7 @@ input::placeholder {
     cursor: pointer
 }
 
+/* Checkbox real invisível por cima da caixa desenhada (continua clicável e acessível) */
 .remember input {
     position: absolute;
     left: 0;
@@ -255,6 +319,7 @@ input::placeholder {
     margin: 0
 }
 
+/* Caixa desenhada no lugar do checkbox padrão */
 .checkbox-art {
     display: grid;
     place-items: center;
@@ -265,10 +330,12 @@ input::placeholder {
     background: #fff
 }
 
+/* Ícone de check: escondido até marcar */
 .checkbox-art img {
     visibility: hidden
 }
 
+/* Marcado: caixa azul com o check visível */
 .remember input:checked+.checkbox-art {
     background: #155dfc;
     border-color: #155dfc
@@ -278,11 +345,13 @@ input::placeholder {
     visibility: visible
 }
 
+/* Foco pelo teclado aparece na caixa desenhada */
 .remember input:focus-visible+.checkbox-art {
     outline: 3px solid #609b7d;
     outline-offset: 3px
 }
 
+/* Botão com aparência de texto ("Esqueceu a senha?") */
 .text-button {
     padding: 0;
     border: 0;
@@ -296,6 +365,7 @@ input::placeholder {
     text-decoration: underline
 }
 
+/* Botão principal verde ("Entrar") */
 .submit-button {
     display: block;
     width: 100%;
@@ -318,10 +388,12 @@ input::placeholder {
     background: #2e5440
 }
 
+/* Leve afundamento ao clicar */
 .submit-button:active {
     transform: translateY(1px)
 }
 
+/* Nota de rodapé do formulário (texto pequeno e discreto) */
 .development-note {
     margin: 20px 0 0;
     color: var(--muted);
@@ -329,6 +401,7 @@ input::placeholder {
     line-height: 16.5px
 }
 
+/* Link "Ver biblioteca de componentes" */
 .library-link {
     align-self: flex-start;
     margin-top: 12px;
@@ -343,6 +416,7 @@ input::placeholder {
     font-weight: 600
 }
 
+/* Mensagem de erro do login (e-mail ou senha inválidos) */
 .form-message {
     margin: 12px 0 0;
     color: #a32929;
@@ -354,6 +428,11 @@ input::placeholder {
     display: none
 }
 
+/* ==========================================================================
+   6. Diálogos ("Esqueceu a senha?" e biblioteca de componentes)
+   ========================================================================== */
+
+/* Caixa do diálogo */
 dialog {
     width: min(460px, calc(100% - 32px));
     padding: 32px;
@@ -363,6 +442,7 @@ dialog {
     box-shadow: 0 30px 70px -25px #0008
 }
 
+/* Fundo escurecido e desfocado atrás do diálogo */
 dialog::backdrop {
     background: rgba(10, 20, 15, .45);
     backdrop-filter: blur(4px)
@@ -377,6 +457,7 @@ dialog p {
     line-height: 1.6
 }
 
+/* Amostras de cores da biblioteca de componentes */
 .swatches {
     display: flex;
     gap: 12px;
@@ -388,6 +469,7 @@ dialog p {
     font-size: 11px
 }
 
+/* Retângulo colorido de cada amostra (cor vem de --swatch) */
 .swatches span::before {
     content: '';
     display: block;
@@ -410,6 +492,11 @@ dialog p {
     --swatch: #121212
 }
 
+/* ==========================================================================
+   7. Responsivo
+   ========================================================================== */
+
+/* Tablets: reduz espaçamentos e tamanhos de texto */
 @media(max-width:900px) {
     .account {
         padding: 36px
@@ -436,6 +523,7 @@ dialog p {
     }
 }
 
+/* Celulares: cartão em uma coluna só (boas-vindas em cima, formulário embaixo) */
 @media(max-width:680px) {
     body {
         padding: 20px
