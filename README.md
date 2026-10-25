@@ -2,13 +2,33 @@
 
 Sistema web para a **Casa Barretto** gerenciar a locação de contêineres: clientes, produtos (modelos e unidades físicas), contratos de locação, manutenções e financeiro.
 
-Projeto Integrador desenvolvido pela equipe:
+Projeto Integrador desenvolvido pela equipe **Bemfa Developers**:
 
-- Alex Silva
-- Bruno Gabriel Ribeiro
-- Eduardo Sales
-- Fabricio Teodoro
-- Mauro Yida
+<p align="center">
+  <img src="docs/img/bemfa.png" alt="Logo Bemfa Developers" width="100%" height="252">
+</p>
+
+<!-- Integrantes: foto e nome levam ao LinkedIn de cada um.
+     As fotos são PNGs recortados em círculo (o GitHub não aplica CSS no README). -->
+<table align="center">
+  <tr>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/alex-silva-a758a6317/"><img src="docs/img/equipe/alex.png" width="90" alt="Foto de Alex Silva"><br><sub><b>Alex Silva</b></sub></a>
+    </td>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/bruno-gabriel-ribeiro-dos-santos-690031375/"><img src="docs/img/equipe/bruno.png" width="90" alt="Foto de Bruno Gabriel"><br><sub><b>Bruno Gabriel</b></sub></a>
+    </td>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/eduardoscouto/"><img src="docs/img/equipe/eduardo.png" width="90" alt="Foto de Eduardo Sales"><br><sub><b>Eduardo Sales</b></sub></a>
+    </td>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/fabr%C3%ADcio-teodoro-0242b0264/"><img src="docs/img/equipe/fabricio.png" width="90" alt="Foto de Fabricio Teodoro"><br><sub><b>Fabricio Teodoro</b></sub></a>
+    </td>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/mauroyida/"><img src="docs/img/equipe/mauro.png" width="90" alt="Foto de Mauro Yida"><br><sub><b>Mauro Yida</b></sub></a>
+    </td>
+  </tr>
+</table>
 
 ---
 
