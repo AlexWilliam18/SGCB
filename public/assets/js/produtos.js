@@ -324,7 +324,7 @@
     $('category-success').hidden = false;
     loadProducts();
   });
-  // Aviso de produto cadastrado, que a tela de cadastro de produto vai gravar no sessionStorage.
+  // Aviso de produto cadastrado, gravado no sessionStorage pelo cadastro-produto.js após salvar.
   try {
     const created = JSON.parse(sessionStorage.getItem('produto-criado') || 'null');
     if (created) {

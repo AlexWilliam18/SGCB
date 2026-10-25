@@ -70,12 +70,12 @@ Projeto Integrador desenvolvido pela equipe **Bemfa Developers**:
 | Cadastro de cliente | `public/admin/clientes/cadastro.php` | `/api/cadastros/opcoes` e `/api/clientes` (POST) — condições de pagamento e salvamento |
 | Listagem de produtos | `public/admin/produtos/index.php` | `/api/produtos` — lista, filtros por status/categoria, paginação, estoque e detalhes |
 | Nova categoria (diálogo da tela de Produtos) | `public/admin/produtos/index.php` | `/api/categorias/opcoes` e `/api/categorias` (POST) — token CSRF e salvamento |
+| Cadastro de produto | `public/admin/produtos/cadastro.php` | `/api/produtos/opcoes` e `/api/produtos` (POST) — categorias, fornecedores, token CSRF e salvamento (gera as unidades físicas) |
 
 Enquanto essas APIs não existem, as telas abrem normalmente e mostram um aviso de "não foi possível carregar".
 
 ### Ainda não iniciado
 
-- Tela de **cadastro de produto** (o botão "Novo produto" ainda abre o aviso "em desenvolvimento").
 - Módulos **Contratos de Locação**, **Manutenções** e **Financeiro** (já aparecem no menu como "em desenvolvimento").
 - Tela de **troca de senha obrigatória** no primeiro acesso (o banco já tem o campo `deve_alterar_senha`).
 - Recuperação de senha, "lembrar de mim" no servidor e permissões por cargo (as tabelas já existem).
@@ -85,7 +85,7 @@ Enquanto essas APIs não existem, as telas abrem normalmente e mostram um aviso 
 
 ## O que cada branch implementou
 
-Ordem cronológica. Da 1 à 7, todas foram integradas na `main` por Pull Request; a `feature/produto` (8) ainda está em andamento.
+Ordem cronológica. Os PRs #1 a #5 foram integrados na `main`; a partir do #6 os PRs vão para a `Develop`, que ainda não foi levada de volta para a `main`.
 
 | # | Branch | PR | O que entregou |
 |---|---|---|---|
@@ -96,7 +96,8 @@ Ordem cronológica. Da 1 à 7, todas foram integradas na `main` por Pull Request
 | 5 | `feature/database` | #6 | Banco de dados completo: migração com as 27 tabelas, seed do usuário administrador, view simples, view complexa e stored procedure (ver [Banco de dados](#banco-de-dados)). |
 | 6 | `feature/pagina_dashboard` | #7 | Autenticação real (`Conexao` PDO, classe `Autenticacao`, sessão, CSRF, logout), tela Visão Geral em `public/admin/dashboard.php`, `painel.js` (menu no celular, data, diálogos), ícones do menu e do dashboard, CSS do login e do dashboard comentados. Correções de caminho do login (commits seguintes). |
 | 7 | `feature/clientes` | #8 | Telas de Clientes (listagem e cadastro) em `public/admin/clientes/`, com CSS/JS próprios e imagens; menu centralizado em `includes/nav.php`; `head.php` passou a aceitar classe no `<body>` e fontes extras. |
-| 8 | `feature/produto` | — (em andamento) | Tela de Produtos (somente front-end) em `public/admin/produtos/index.php`: pesquisa, filtros de status e categoria, tabela com diária e estoque, paginação, diálogo "Dados do produto" e diálogo "Cadastre nova Categoria". Arquivos `produtos.css`, `produtos.js`, `categorias.js` e ícones em `img/produtos/`. |
+| 8 | `feature/produto` | #9 | Tela de Produtos (somente front-end) em `public/admin/produtos/index.php`: pesquisa, filtros de status e categoria, tabela com diária e estoque, paginação, diálogo "Dados do produto" e diálogo "Cadastre nova Categoria". Arquivos `produtos.css`, `produtos.js`, `categorias.js` e ícones em `img/produtos/`. |
+| 9 | Cadastro de produto | — (em andamento) | Tela de Cadastro de Produto (somente front-end) em `public/admin/produtos/cadastro.php`: dados do produto, informações de compra, valores de locação por período e estoque/limites. Arquivos `cadastro-produto.css` e `cadastro-produto.js`; o botão "Novo produto" da listagem abre essa tela. |
 
 ---
 
@@ -161,11 +162,11 @@ SGCB/
 │   ├── admin/                 # páginas que exigem login
 │   │   ├── dashboard.php      # Visão Geral
 │   │   ├── clientes/          # index.php (listagem) e cadastro.php
-│   │   ├── produtos/          # index.php (listagem)
+│   │   ├── produtos/          # index.php (listagem) e cadastro.php
 │   │   ├── containers/  locacoes/  usuarios/   # módulos futuros
 │   ├── assets/
-│   │   ├── css/               # login, dashboard, clientes, cadastro-cliente, produtos
-│   │   ├── js/                # login, painel, dashboard, clientes, cadastro-cliente, produtos, categorias
+│   │   ├── css/               # login, dashboard, clientes, cadastro-cliente, produtos, cadastro-produto
+│   │   ├── js/                # login, painel, dashboard, clientes, cadastro-cliente, produtos, categorias, cadastro-produto
 │   │   └── img/               # login, logo, nav, dashboard, clientes, cadastro-cliente, produtos
 │   └── uploads/               # arquivos enviados (protegida por .htaccess)
 ├── src/
@@ -272,7 +273,28 @@ Sem o `config.php`, o sistema usa os valores do `config.example.php`.
 
 ## Fluxo de trabalho no Git
 
-- `main` — versão estável, recebe as branches por Pull Request.
-- `Develop` — branch de integração.
-- `feature/<nome>` — uma branch por funcionalidade (ex.: `feature/clientes`).
+- `main` — versão estável; recebe a `Develop` por Pull Request quando uma etapa estiver pronta.
+- `Develop` — branch de integração; recebe as `feature/<nome>` por Pull Request (desde o PR #6).
+- `feature/<nome>` — uma branch por funcionalidade (ex.: `feature/clientes`), sempre criada a partir da `Develop` atualizada.
 - Commits com a data e uma descrição curta da entrega (ex.: `24/10/2026 - Commit Página Clientes`).
+
+Passo a passo de uma nova funcionalidade:
+
+```bash
+git switch Develop
+git pull                           # traz o que já foi integrado
+git switch -c feature/<nome>       # nova branch a partir da Develop
+# ... desenvolvimento ...
+git add <arquivos>
+git commit -m "25/10/2026 - Descrição da entrega"
+git push -u origin feature/<nome>  # depois abrir o Pull Request para a Develop
+```
+
+Para continuar uma branch antiga (que ficou atrás da `Develop`), atualize-a antes de trabalhar nela, para não gerar conflitos no Pull Request:
+
+```bash
+git switch feature/<nome>
+git merge Develop
+```
+
+> Se o VS Code avisar "Your local changes would be overwritten by checkout" ao trocar de branch, **nunca use "Force Checkout"** (apaga as alterações não commitadas). Use "Stash & Checkout", faça o `git merge Develop` e depois `git stash pop`, ou crie uma branch nova com as alterações (`git switch -c feature/<nome>`).

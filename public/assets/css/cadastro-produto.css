@@ -1,0 +1,648 @@
+/*
+ * Formulário de cadastro de produto. Complementa o dashboard.css.
+ * As regras com .product-form-page só valem nesta página (classe definida em $classeBody).
+ *
+ * Organização:
+ *   1. Ajustes do layout nesta página (fundo, cabeçalho e área principal)
+ *   2. Título e botão Voltar
+ *   3. Cartão e seções do formulário
+ *   4. Campos do formulário
+ *   5. Dados do produto
+ *   6. Informações de compra
+ *   7. Valores de locação
+ *   8. Estoque e limites
+ *   9. Botões finais, avisos e diálogo
+ *  10. Responsivo
+ *  11. Ajustes finos (telas largas)
+ */
+
+/* ==========================================================================
+   1. Ajustes do layout nesta página (fundo, cabeçalho e área principal)
+   ========================================================================== */
+
+.product-form-page {
+    background: #f8f7f5;
+    color: #171917
+}
+
+/* Área de trabalho com a fonte Inter do formulário */
+.product-form-page .workspace {
+    font-family: Inter, Arial, sans-serif
+}
+
+/* Cabeçalho mais baixo que o padrão do dashboard */
+.product-form-page .page-header {
+    height: 70px;
+    min-height: 70px;
+    padding: 12px 44px
+}
+
+.product-form-page .page-heading h1 {
+    font-size: 18px;
+    line-height: 22px;
+    font-weight: 700
+}
+
+.product-form-page .page-heading p {
+    margin-top: 6px;
+    font-size: 10px;
+    line-height: 12px;
+    color: #747a76
+}
+
+.product-main {
+    padding: 12px 38px 14px 45px;
+    outline: none
+}
+
+/* ==========================================================================
+   2. Título e botão Voltar
+   ========================================================================== */
+
+.product-intro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 20px;
+    min-height: 58px
+}
+
+.product-intro h2 {
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 700
+}
+
+.product-intro p {
+    margin-top: 6px;
+    color: #6f746f;
+    font-size: 13px;
+    line-height: 18px
+}
+
+/* Botões contornados (Voltar, Cancelar, Continuar cadastro) */
+.product-form-page .outline-button {
+    border-radius: 9px;
+    font-size: 13px;
+    min-height: 40px;
+    padding: 0 20px;
+    font-weight: 700;
+    flex-shrink: 0
+}
+
+.product-intro .outline-button {
+    margin-right: 6px;
+    min-width: 96px
+}
+
+/* ==========================================================================
+   3. Cartão e seções do formulário
+   ========================================================================== */
+
+/* Um único cartão branco com as quatro seções separadas por linhas */
+.product-card {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: white;
+    overflow: hidden
+}
+
+.form-section {
+    padding: 23px 23px 22px 45px;
+    border-bottom: 1px solid var(--line)
+}
+
+.form-section:last-child {
+    border-bottom: 0
+}
+
+.form-section h3 {
+    margin: 0 0 22px;
+    font-size: 18px;
+    line-height: 22px;
+    font-weight: 700
+}
+
+/* Textos de ajuda abaixo do título da seção e dos campos */
+.section-hint,
+.hint {
+    color: #747a76;
+    font-size: 10px;
+    line-height: 15px
+}
+
+.hint {
+    margin-top: 6px
+}
+
+/* ==========================================================================
+   4. Campos do formulário
+   ========================================================================== */
+
+.field {
+    min-width: 0
+}
+
+.field label {
+    display: block;
+    margin-bottom: 9px;
+    font-size: 12px;
+    line-height: 15px;
+    font-weight: 700
+}
+
+.field input,
+.field select,
+.field textarea {
+    display: block;
+    width: 100%;
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid #d8dad6;
+    border-radius: 8px;
+    background: white;
+    font: 400 13px/20px Inter, Arial, sans-serif;
+    color: #171917;
+    outline-offset: 2px
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+    color: #747a76;
+    opacity: 1
+}
+
+.field :is(input, select, textarea):focus-visible {
+    outline: 2px solid var(--forest);
+    border-color: var(--forest)
+}
+
+/* Campo com erro (aria-invalid definido pelo cadastro-produto.js) */
+.field [aria-invalid=true] {
+    border-color: #a7342c
+}
+
+.field-error {
+    font-size: 11px;
+    line-height: 16px;
+    color: #a7342c;
+    margin-top: 6px
+}
+
+/* Select sem a seta nativa: a seta é a imagem posicionada à direita */
+.select-control {
+    position: relative
+}
+
+.select-control select {
+    appearance: none;
+    padding-right: 36px
+}
+
+.select-control img {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none
+}
+
+/* Descrição com o contador de caracteres no canto inferior direito */
+.textarea-control {
+    position: relative
+}
+
+.field textarea {
+    height: 110px;
+    resize: vertical;
+    min-height: 110px;
+    padding: 13px 16px 28px
+}
+
+.textarea-control > span {
+    position: absolute;
+    right: 20px;
+    bottom: 12px;
+    color: #747a76;
+    font-size: 10px;
+    line-height: 12px
+}
+
+/* ==========================================================================
+   5. Dados do produto
+   ========================================================================== */
+
+.product-data {
+    padding-bottom: 28px
+}
+
+/* Nome (mais largo), Código e Categoria na mesma linha */
+.data-grid {
+    display: grid;
+    grid-template-columns: 1.82fr 1fr 1.15fr;
+    gap: 20px
+}
+
+.description-field {
+    grid-column: 1/-1
+}
+
+/* ==========================================================================
+   6. Informações de compra
+   ========================================================================== */
+
+.purchase-section {
+    padding-top: 20px;
+    padding-bottom: 23px
+}
+
+.purchase-section h3 {
+    margin-bottom: 16px
+}
+
+.purchase-grid {
+    display: grid;
+    grid-template-columns: .81fr 1fr;
+    gap: 20px
+}
+
+/* ==========================================================================
+   7. Valores de locação
+   ========================================================================== */
+
+.rental-section {
+    padding-top: 18px;
+    padding-bottom: 20px
+}
+
+.rental-section h3 {
+    margin-bottom: 8px
+}
+
+/* Diária, semanal, quinzenal e mensal lado a lado */
+.rental-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+    margin: 33px 86px 10px 70px
+}
+
+.rental-grid label {
+    margin-bottom: 16px
+}
+
+/* Caixa verde-clara com o exemplo de preços */
+.price-example {
+    padding: 10px 16px;
+    border: 1px solid #deebe5;
+    border-radius: 12px;
+    background: #f6faf8;
+    color: #747a76;
+    font-size: 10px;
+    line-height: 15px
+}
+
+.price-example strong {
+    color: #184c39;
+    margin-right: 5px
+}
+
+.price-example p + p {
+    margin-top: 4px
+}
+
+/* ==========================================================================
+   8. Estoque e limites
+   ========================================================================== */
+
+.stock-section {
+    padding-top: 16px;
+    padding-bottom: 13px
+}
+
+.stock-section h3 {
+    margin-bottom: 29px
+}
+
+/* Grade de 6 colunas: 3 campos na 1ª linha (2 colunas cada) e 2 na 2ª (3 colunas cada) */
+.stock-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    column-gap: 32px;
+    row-gap: 20px
+}
+
+.stock-grid > .field {
+    grid-column: span 2
+}
+
+.stock-grid > .field:nth-child(-n+3) {
+    margin-left: 70px;
+    margin-right: -20px
+}
+
+.stock-grid > .field:nth-child(4) {
+    grid-column: span 3;
+    margin-left: 50px;
+    margin-right: 44px
+}
+
+.stock-grid > .field:nth-child(5) {
+    grid-column: span 3;
+    margin-right: 151px
+}
+
+/* ==========================================================================
+   9. Botões finais, avisos e diálogo
+   ========================================================================== */
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    padding-right: 23px
+}
+
+/* Botão principal (Salvar produto / Descartar) */
+.save-product {
+    min-height: 38px;
+    border: 0;
+    border-radius: 8px;
+    background: #184c39;
+    color: white;
+    padding: 0 18px;
+    font: 700 13px/20px Inter, Arial, sans-serif
+}
+
+.save-product:hover:not(:disabled) {
+    background: var(--forest-light)
+}
+
+/* Desabilitado enquanto as opções não carregam ou durante o salvamento */
+.save-product:disabled {
+    opacity: .6;
+    cursor: default
+}
+
+.product-main > .data-notice {
+    margin-bottom: 16px
+}
+
+.product-form-page .data-notice {
+    font-family: Inter, Arial, sans-serif
+}
+
+/* Botões do diálogo "Descartar alterações?" */
+.info-dialog .form-actions {
+    padding: 0;
+    margin-top: 24px;
+    flex-wrap: wrap
+}
+
+/* ==========================================================================
+   10. Responsivo
+   ========================================================================== */
+
+/* Até 1400px: reduz os recuos laterais das grades */
+@media (max-width: 1400px) {
+    .stock-grid > .field:nth-child(-n+3) {
+        margin-left: 25px;
+        margin-right: 0
+    }
+
+    .stock-grid > .field:nth-child(4) {
+        margin-left: 25px;
+        margin-right: 20px
+    }
+
+    .stock-grid > .field:nth-child(5) {
+        margin-right: 80px
+    }
+
+    .rental-grid {
+        margin-left: 45px;
+        margin-right: 45px
+    }
+}
+
+/* Até 1100px: grades com 2 colunas */
+@media (max-width: 1100px) {
+    .product-main {
+        padding: 20px 24px
+    }
+
+    .product-form-page .page-header {
+        padding: 16px 24px
+    }
+
+    .form-section {
+        padding-left: 24px;
+        padding-right: 24px
+    }
+
+    .data-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .field-nome {
+        grid-column: 1/-1
+    }
+
+    .rental-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin: 24px 0 14px
+    }
+
+    .stock-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px
+    }
+
+    .stock-grid > .field:nth-child(n) {
+        margin: 0;
+        grid-column: span 1
+    }
+
+    .purchase-grid {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .product-intro h2 {
+        font-size: 25px
+    }
+}
+
+/* Até 760px (celular, menu recolhido): uma coluna nos dados e na compra */
+@media (max-width: 760px) {
+    .product-form-page .page-header {
+        height: auto;
+        min-height: 96px;
+        padding: 16px 20px
+    }
+
+    .product-form-page .page-heading h1 {
+        font-size: 18px;
+        white-space: normal
+    }
+
+    .product-main {
+        padding: 20px 16px
+    }
+
+    .product-intro {
+        align-items: flex-start;
+        gap: 12px
+    }
+
+    .product-intro p {
+        font-size: 12px;
+        line-height: 18px
+    }
+
+    .product-intro .outline-button {
+        padding: 0 12px;
+        min-width: 0;
+        margin: 0
+    }
+
+    .product-intro h2 {
+        font-size: 24px
+    }
+
+    .form-section {
+        padding: 22px 20px
+    }
+
+    .form-section h3 {
+        font-size: 17px;
+        margin-bottom: 20px
+    }
+
+    .rental-section h3 {
+        margin-bottom: 8px
+    }
+
+    .stock-section h3 {
+        margin-bottom: 24px
+    }
+
+    .field label {
+        font-size: 12px
+    }
+
+    .field input,
+    .field select {
+        min-height: 44px
+    }
+
+    .product-form-page .form-actions {
+        padding: 0
+    }
+
+    .price-example {
+        font-size: 10px
+    }
+
+    .data-grid,
+    .purchase-grid {
+        grid-template-columns: 1fr
+    }
+
+    .field-nome {
+        grid-column: auto
+    }
+}
+
+/* Até 440px: tudo em uma coluna e botões finais ocupando a largura */
+@media (max-width: 440px) {
+    .stock-grid,
+    .rental-grid {
+        grid-template-columns: 1fr
+    }
+
+    .rental-grid {
+        gap: 18px
+    }
+
+    .rental-grid label {
+        margin-bottom: 9px
+    }
+
+    .product-main .form-actions > a,
+    .product-main .form-actions > button {
+        flex: 1
+    }
+
+    .form-section {
+        padding: 22px 18px
+    }
+}
+
+/* ==========================================================================
+   11. Ajustes finos (telas largas): compacta os espaçamentos para caber na tela
+   ========================================================================== */
+
+@media (min-width: 1101px) {
+    .product-data {
+        padding-top: 18px;
+        padding-bottom: 26px
+    }
+
+    .product-data h3 {
+        margin-bottom: 17px
+    }
+
+    .data-grid {
+        row-gap: 15px
+    }
+
+    .field label {
+        margin-bottom: 6px
+    }
+
+    .purchase-section {
+        padding-bottom: 22px
+    }
+
+    .purchase-section h3 {
+        margin-bottom: 10px
+    }
+
+    .rental-section {
+        padding-top: 16px;
+        padding-bottom: 16px
+    }
+
+    .rental-grid {
+        margin-top: 27px;
+        margin-bottom: 6px
+    }
+
+    .rental-grid label {
+        margin-bottom: 12px
+    }
+
+    .price-example {
+        padding-top: 9px;
+        padding-bottom: 9px
+    }
+
+    .stock-section {
+        padding-bottom: 9px
+    }
+
+    .stock-section h3 {
+        margin-bottom: 23px
+    }
+
+    .stock-grid {
+        row-gap: 14px
+    }
+
+    .stock-section .hint {
+        line-height: 12px
+    }
+}

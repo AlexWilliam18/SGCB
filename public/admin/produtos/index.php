@@ -2,7 +2,7 @@
 /**
  * Listagem de produtos: pesquisa, filtros, paginação, detalhes e nova categoria.
  * Por enquanto só front-end: sem /api/produtos e /api/categorias, a tabela mostra o aviso de erro.
- * "Novo produto" ainda abre o aviso "em desenvolvimento".
+ * "Novo produto" leva para o formulário em admin/produtos/cadastro.php.
  */
 
 require __DIR__ . '/../../../src/bootstrap.php';
@@ -18,7 +18,8 @@ $paginaAtual = 'produtos';
 
 // Caminhos já escapados; também vão para o JS via data-*.
 $img      = htmlspecialchars(BASE_URL . 'assets/img/');
-$urlLista = htmlspecialchars(BASE_URL . 'admin/produtos/index.php');
+$urlLista    = htmlspecialchars(BASE_URL . 'admin/produtos/index.php');
+$urlCadastro = htmlspecialchars(BASE_URL . 'admin/produtos/cadastro.php');
 
 require __DIR__ . '/../../../includes/head.php';
 ?>
@@ -27,8 +28,8 @@ require __DIR__ . '/../../../includes/head.php';
   <div class="workspace">
     <header class="page-header"><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-sidebar" aria-label="Abrir menu"><span></span><span></span><span></span></button><div class="page-heading"><h1>Produtos</h1><p>Gerencie contêineres e demais itens para locação</p></div><div class="date-pill"><img src="<?= $img ?>dashboard/e6378.svg" alt="" width="13" height="13"><time id="today"></time></div></header>
     <main class="products-main" id="products-main" data-lista-url="<?= $urlLista ?>" data-img-url="<?= $img ?>" tabindex="-1" aria-busy="true">
-      <!-- Título, botão do diálogo de categoria e "Novo produto" (data-module: aviso de em desenvolvimento do painel.js) -->
-      <div class="page-intro"><div><h2>Produtos</h2><p>Controle os contêineres, valores e disponibilidade de estoque.</p></div><div class="intro-actions"><button class="category-button" id="open-category" type="button" aria-haspopup="dialog" aria-controls="category-dialog">+ Categoria</button><button class="new-client" id="new-product" type="button" data-module="Cadastro de produto"><img src="<?= $img ?>produtos/novo-produto.svg" alt="" width="16" height="16">Novo produto</button></div></div>
+      <!-- Título, botão do diálogo de categoria e link "Novo produto" (abre o cadastro.php) -->
+      <div class="page-intro"><div><h2>Produtos</h2><p>Controle os contêineres, valores e disponibilidade de estoque.</p></div><div class="intro-actions"><button class="category-button" id="open-category" type="button" aria-haspopup="dialog" aria-controls="category-dialog">+ Categoria</button><a class="new-client" id="new-product" href="<?= $urlCadastro ?>"><img src="<?= $img ?>produtos/novo-produto.svg" alt="" width="16" height="16">Novo produto</a></div></div>
       <!-- Filtros: pesquisa por nome/código, status e categoria (as categorias vêm da API) -->
       <form class="filter-card" id="product-filters" role="search" aria-label="Pesquisar produtos">
         <div class="search-field"><img src="<?= $img ?>clientes/68819.svg" alt="" width="17" height="17"><label class="sr-only" for="product-search">Nome ou código</label><input id="product-search" name="q" type="search" placeholder="Nome ou Código" maxlength="200" autocomplete="off"></div>
