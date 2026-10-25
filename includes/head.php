@@ -8,12 +8,20 @@
  *
  * Variáveis esperadas (definidas pela página antes do require):
  *   @var string   $titulo Título da aba; recebe o sufixo " | Casa Barretto".
- *   @var string[] $css    (opcional) Arquivos de public/assets/css/ a carregar, ex.: ['login.css'].
+ *   @var string[] $css          (opcional) Arquivos de public/assets/css/ a carregar, ex.: ['login.css'].
+ *   @var string[] $fontesExtras (opcional) Famílias extras do Google Fonts, ex.: ['Inter:wght@400;700'].
+ *   @var string   $classeBody   (opcional) Classe CSS do <body>, ex.: 'form-page'.
  */
 
 // Valores padrão, caso a página não defina as variáveis.
-$titulo = $titulo ?? 'SGCB';
-$css    = $css ?? [];
+$titulo       = $titulo ?? 'SGCB';
+$css          = $css ?? [];
+$fontesExtras = $fontesExtras ?? [];
+$classeBody   = $classeBody ?? '';
+
+// Famílias do Google Fonts: as da identidade visual + as extras pedidas pela página.
+$familias = array_merge($fontesExtras, ['Figtree:wght@400;600;700;800', 'Libre+Caslon+Text:wght@400;700']);
+$urlFontes = 'https://fonts.googleapis.com/css2?family=' . implode('&family=', $familias) . '&display=swap';
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -26,9 +34,7 @@ $css    = $css ?? [];
   <!-- Fontes da identidade visual (Figtree para textos, Libre Caslon Text para o logotipo) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&family=Libre+Caslon+Text:wght@400;700&display=swap"
-    rel="stylesheet">
+  <link href="<?= htmlspecialchars($urlFontes) ?>" rel="stylesheet">
 <?php
 // Folhas de estilo da página. BASE_URL deixa o caminho absoluto a partir da raiz do site,
 // então funciona tanto em public/ quanto em public/admin/<modulo>/.
@@ -40,4 +46,4 @@ foreach ($css as $arquivoCss):
 <?php endforeach; ?>
 </head>
 
-<body>
+<body<?= $classeBody !== '' ? ' class="' . htmlspecialchars($classeBody) . '"' : '' ?>>
