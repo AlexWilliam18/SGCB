@@ -1,17 +1,13 @@
 -- =============================================================================
--- SGCB — Sistema de Gestão de Containers Barreto
--- Seed 001: cargo Administrador e usuário admin padrão
---
--- Finalidade: garante um usuário para o primeiro login após montar o banco do zero.
--- Pré-requisito: database/migrations/001_create_schema_casa_barretto.sql já aplicada.
--- Compatível: MySQL 8.0+ e MariaDB 10.4+ (XAMPP).
--- Destino no repositório: database/seeds/001_usuario_admin.sql
+-- SGCB - Seed 001: cargo Administrador e usuário admin padrão, para o primeiro login
+-- depois de montar o banco do zero. Rode depois da migração 001.
+-- Compatível com MySQL 8.0+ e MariaDB 10.4+ (XAMPP).
 --
 -- Credenciais iniciais:
 --   E-mail: admin@casabarretto.local
 --   Senha:  mudar123
 --
--- ATENÇÃO — a senha acima é pública (está no repositório). O usuário é criado com
+-- Atenção: a senha acima é pública (está no repositório). O usuário é criado com
 -- deve_alterar_senha = TRUE para forçar a troca no primeiro acesso. Nunca use
 -- essa senha em produção.
 --

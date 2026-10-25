@@ -1,21 +1,13 @@
 <?php
 /**
- * admin/dashboard.php — Visão Geral, tela inicial da área administrativa (CRUD) do SGCB.
- *
- * Finalidade: exibir os indicadores das locações logo após o login.
- * Depende de: src/bootstrap.php (BASE_URL, sessão, Autenticacao), includes/head.php, includes/nav.php (menu), includes/footer.php,
- *             public/assets/css/dashboard.css, public/assets/js/painel.js (menu/diálogos),
- *             public/assets/js/dashboard.js (indicadores) e ícones de public/assets/img/dashboard/.
- * Usado por:  public/login.php e public/index.php (redirecionam para cá quando há usuário logado).
- * Acesso:     somente usuário logado; sem sessão, volta para o login.
+ * Visão Geral: indicadores das locações, primeira tela depois do login.
+ * Os números são carregados pelo dashboard.js.
  */
 
 require __DIR__ . '/../../src/bootstrap.php';
 
-// Página protegida: sem usuário na sessão, redireciona para login.php.
 Autenticacao::exigirLogin();
 
-// Variáveis lidas por includes/head.php e includes/footer.php.
 $titulo = 'Visão Geral';
 $css    = ['dashboard.css'];
 $js     = ['painel.js', 'dashboard.js'];
@@ -23,7 +15,6 @@ $js     = ['painel.js', 'dashboard.js'];
 // Item destacado no menu lateral (chave de $itensMenu em includes/nav.php).
 $paginaAtual = 'visao-geral';
 
-// Caminho das imagens dos cartões, já escapado para uso direto nos atributos src.
 $img = htmlspecialchars(BASE_URL . 'assets/img/');
 
 require __DIR__ . '/../../includes/head.php';
@@ -49,7 +40,6 @@ require __DIR__ . '/../../includes/head.php';
         <article class="card ranking-card"><div class="card-heading"><h2>Clientes com mais locações</h2><span>Top 5</span></div><div class="ranking-content" id="top-clients"><p class="ranking-empty">Carregando dados…</p></div></article>
       </section>
       <section class="card recent-card" aria-labelledby="recent-title"><div class="recent-heading"><h2 id="recent-title">15 locações mais recentes</h2><button class="outline-button" type="button" data-module="Contratos de Locação">Ver todas</button></div><div class="table-scroll"><table><caption class="sr-only">Contratos de locação mais recentes</caption><colgroup><col class="col-contract"><col class="col-client"><col class="col-start"><col class="col-end"><col class="col-days"><col class="col-value"><col class="col-status"></colgroup><thead><tr><th scope="col">Contrato</th><th scope="col">Cliente</th><th scope="col">Início</th><th scope="col">Fim</th><th scope="col">Dias</th><th scope="col">Valor</th><th scope="col">Status</th></tr></thead><tbody id="recent-contracts"><tr class="empty-row"><td colspan="7">Carregando locações…</td></tr></tbody></table></div></section>
-      <p class="source-note" id="source-note" hidden></p>
       <noscript><p class="data-notice">Ative o JavaScript para carregar os indicadores do painel.</p></noscript>
     </main>
   </div>

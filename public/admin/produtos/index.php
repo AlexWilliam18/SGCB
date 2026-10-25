@@ -1,25 +1,14 @@
 <?php
 /**
- * admin/produtos/index.php — listagem de produtos (pesquisa, filtros, paginação, detalhes e nova categoria).
- *
- * Finalidade: tela de entrada do módulo Produtos (item "Produtos" do menu lateral).
- *             Por enquanto é só front-end: os dados viriam de /api/produtos e /api/categorias, que serão feitas
- *             na etapa de back-end, então a tabela mostra o aviso "Não foi possível carregar os produtos".
- *             O botão "Novo produto" ainda abre o aviso "em desenvolvimento" (a tela de cadastro virá depois).
- * Depende de: src/bootstrap.php, includes/head.php, includes/nav.php, includes/footer.php,
- *             public/assets/css/dashboard.css + clientes.css + produtos.css,
- *             public/assets/js/painel.js + produtos.js + categorias.js,
- *             imagens de public/assets/img/produtos/, clientes/ e dashboard/.
- * Usado por:  includes/nav.php (menu).
- * Acesso:     somente usuário logado.
+ * Listagem de produtos: pesquisa, filtros, paginação, detalhes e nova categoria.
+ * Por enquanto só front-end: sem /api/produtos e /api/categorias, a tabela mostra o aviso de erro.
+ * "Novo produto" ainda abre o aviso "em desenvolvimento".
  */
 
 require __DIR__ . '/../../../src/bootstrap.php';
 
-// Página protegida: sem usuário na sessão, redireciona para login.php.
 Autenticacao::exigirLogin();
 
-// Variáveis lidas por includes/head.php, includes/nav.php e includes/footer.php.
 // clientes.css é reaproveitado: filtros, tabela, paginação e diálogo de detalhes têm o mesmo visual.
 $titulo      = 'Produtos';
 $css         = ['dashboard.css', 'clientes.css', 'produtos.css'];
@@ -27,7 +16,7 @@ $js          = ['painel.js', 'produtos.js', 'categorias.js'];
 $classeBody  = 'products-page';
 $paginaAtual = 'produtos';
 
-// Caminhos já escapados para uso direto nos atributos (também repassados ao JS via data-*).
+// Caminhos já escapados; também vão para o JS via data-*.
 $img      = htmlspecialchars(BASE_URL . 'assets/img/');
 $urlLista = htmlspecialchars(BASE_URL . 'admin/produtos/index.php');
 

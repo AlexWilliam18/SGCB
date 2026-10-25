@@ -1,18 +1,9 @@
 <?php
 /**
- * login.php — tela de login da área administrativa do SGCB (http://localhost/SGCB/login.php).
- *
- * Finalidade: exibir o formulário de acesso e autenticar o usuário contra a tabela usuarios.
- *             Login válido → redireciona para public/admin/dashboard.php (tela inicial do CRUD).
- * Depende de: src/bootstrap.php (BASE_URL, sessão, Autenticacao), includes/head.php, includes/footer.php,
- *             public/assets/css/login.css, public/assets/js/login.js,
- *             imagens de public/assets/img/login/ e public/assets/img/logo/.
- * Usado por:  public/index.php e Autenticacao::exigirLogin() (redirecionam para cá).
- * Observação: não usa includes/nav.php, porque a tela de login não tem menu.
- *             Credenciais iniciais: as do seed database/seeds/001_usuario_admin.sql.
+ * Tela de login. Com e-mail e senha válidos, segue para admin/dashboard.php.
+ * Credenciais iniciais: as do seed database/seeds/001_usuario_admin.sql.
  */
 
-// Bootstrap: carrega a configuração, a sessão e as classes antes de qualquer saída.
 require __DIR__ . '/../src/bootstrap.php';
 
 // Quem já está logado (e confirmado no banco) não precisa ver o login de novo.
@@ -31,7 +22,7 @@ $motivos = [
 ];
 $erro = $motivos[$_GET['motivo'] ?? ''] ?? null;
 
-// Envio do formulário (method="post" para esta mesma página).
+// O formulário faz POST para esta mesma página.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim((string) ($_POST['email'] ?? ''));
     $senha = (string) ($_POST['password'] ?? '');
@@ -56,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Variáveis lidas por includes/head.php e includes/footer.php.
 $titulo = 'Login';
 $css    = ['login.css'];
 $js     = ['login.js'];
@@ -87,8 +77,7 @@ require __DIR__ . '/../includes/head.php';
       <p class="eyebrow">Área administrativa</p>
       <h1 id="login-title">Entrar na conta</h1>
       <p class="subtitle">Informe seus dados para continuar.</p>
-      <!-- POST para esta mesma página; a validação é feita no PHP (topo do arquivo) contra o banco. -->
-      <form id="login-form" method="post" action="<?= htmlspecialchars(BASE_URL . 'login.php') ?>">
+        <form id="login-form" method="post" action="<?= htmlspecialchars(BASE_URL . 'login.php') ?>">
         <input type="hidden" name="csrf" value="<?= htmlspecialchars(Autenticacao::tokenCsrf()) ?>">
         <label class="field-label" for="email">E-mail</label>
         <input id="email" name="email" type="email" autocomplete="username" placeholder="admin@casabarretto.local"

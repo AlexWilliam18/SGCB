@@ -1,15 +1,9 @@
 -- =============================================================================
--- SGCB — Sistema de Gestão de Containers Barreto
--- Migração 001: criação do banco e de todas as tabelas
--- Arquivo: database/migrations/001_create_schema_casa_barretto.sql
+-- SGCB - Migração 001: criação do banco e das 27 tabelas do DER "Casa_Barretto_DER" (Wiki).
 --
--- Finalidade: cria as 27 tabelas do DER "Casa_Barretto_DER" (Wiki).
---             
+-- Os tipos de dados seguem a documentação do DER (BIGINT UNSIGNED, VARCHAR, DECIMAL, DATETIME, ENUM...).
 --
--- Tipos de dados: seguem exatamente a documentação do DER (BIGINT UNSIGNED,
--- VARCHAR, DECIMAL, DATETIME, ENUM...).
---
--- ATENÇÃO — valores de ENUM: o DER não define as opções dos campos ENUM.
+-- Atenção: o DER não define as opções dos campos ENUM.
 -- Os valores usados são uma proposta, marcados com "ENUM proposto".
 --
 -- Ordem: as tabelas estão criadas de forma que toda tabela referenciada por
@@ -44,7 +38,7 @@ CREATE TABLE modulos (
 );
 
 -- Permissões: cada ação permitida dentro de um módulo (ex.: produtos + "cadastrar").
--- Relacionamento 1:N — um módulo possui várias permissões.
+-- Relacionamento 1:N: um módulo possui várias permissões.
 CREATE TABLE permissoes (
   id         BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   modulo_id  BIGINT UNSIGNED,
@@ -191,7 +185,7 @@ CREATE TABLE pessoa_anexos (
   FOREIGN KEY (arquivo_id) REFERENCES arquivos(id)
 );
 
--- Endereços de uma pessoa (1:N — uma pessoa pode ter vários endereços).
+-- Endereços de uma pessoa (1:N: uma pessoa pode ter vários endereços).
 -- principal_pessoa_id garante só UM endereço principal por pessoa:
 -- o sistema grava nele o id da pessoa quando o endereço é o principal e deixa
 -- vazio (NULL) nos demais. Como o campo é UNIQUE, não aceita dois principais.

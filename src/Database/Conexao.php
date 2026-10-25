@@ -1,12 +1,7 @@
 <?php
 /**
- * Conexao.php — conexão única (PDO) com o banco do SGCB.
- *
- * Finalidade: abrir a conexão com o MySQL/MariaDB uma única vez por requisição e
- *             reaproveitá-la em todo o sistema (padrão "singleton").
- * Depende de: constantes DB_HOST, DB_PORT, DB_NAME, DB_USER e DB_PASS (config/config.php).
- * Usado por:  src/Auth/Autenticacao.php e, futuramente, os Models do CRUD.
- * Exemplo:    $pdo = Conexao::obter();
+ * Conexão PDO com o MySQL/MariaDB, aberta uma vez por requisição e reaproveitada.
+ * Usa as constantes DB_* do config/config.php.
  */
 
 final class Conexao

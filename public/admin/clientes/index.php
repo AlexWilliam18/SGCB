@@ -1,29 +1,19 @@
 <?php
 /**
- * admin/clientes/index.php — listagem de clientes (pesquisa, filtros, paginação e detalhes).
- *
- * Finalidade: tela de entrada do módulo Clientes (item "Clientes" do menu lateral).
- *             Por enquanto é só front-end: os dados viriam de /api/clientes, que será feita na etapa de back-end,
- *             então a tabela mostra o aviso "Não foi possível carregar os clientes".
- * Depende de: src/bootstrap.php, includes/head.php, includes/nav.php, includes/footer.php,
- *             public/assets/css/dashboard.css + clientes.css, public/assets/js/painel.js + clientes.js,
- *             imagens de public/assets/img/clientes/ e public/assets/img/dashboard/.
- * Usado por:  includes/nav.php (menu) e public/admin/clientes/cadastro.php (Voltar/Cancelar/após salvar).
- * Acesso:     somente usuário logado.
+ * Listagem de clientes: pesquisa, filtros, paginação e detalhes.
+ * Por enquanto só front-end: sem a /api/clientes, a tabela mostra o aviso de erro ao carregar.
  */
 
 require __DIR__ . '/../../../src/bootstrap.php';
 
-// Página protegida: sem usuário na sessão, redireciona para login.php.
 Autenticacao::exigirLogin();
 
-// Variáveis lidas por includes/head.php, includes/nav.php e includes/footer.php.
 $titulo      = 'Clientes';
 $css         = ['dashboard.css', 'clientes.css'];
 $js          = ['painel.js', 'clientes.js'];
 $paginaAtual = 'clientes';
 
-// Caminhos já escapados para uso direto nos atributos (também repassados ao JS via data-*).
+// Caminhos já escapados; também vão para o JS via data-*.
 $img         = htmlspecialchars(BASE_URL . 'assets/img/');
 $urlLista    = htmlspecialchars(BASE_URL . 'admin/clientes/index.php');
 $urlCadastro = htmlspecialchars(BASE_URL . 'admin/clientes/cadastro.php');

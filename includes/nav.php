@@ -1,17 +1,10 @@
 <?php
 /**
- * nav.php — menu lateral (navegação) de todas as páginas da área administrativa do SGCB.
+ * Menu lateral das páginas do admin: logotipo, módulos, usuário logado e botão Sair.
+ * Para criar ou renomear um item, altere só o array $itensMenu. A página precisa ter
+ * chamado Autenticacao::exigirLogin() antes.
  *
- * Finalidade: ponto único da navegação: logotipo, links dos módulos, usuário logado,
- *             botão Sair e o diálogo de aviso usado pelo menu. Para criar/renomear um item
- *             do menu, altere só o array $itensMenu abaixo.
- * Depende de: src/bootstrap.php (BASE_URL, Autenticacao) e Autenticacao::exigirLogin() já chamado
- *             pela página; ícones de public/assets/img/nav/; public/assets/css/dashboard.css
- *             (seção "Menu lateral") e public/assets/js/painel.js (abrir/fechar menu e diálogos).
- * Usado por:  páginas de public/admin/ (ex.: public/admin/dashboard.php), logo após includes/head.php.
- *
- * Variáveis esperadas (definidas pela página antes do require):
- *   @var string $paginaAtual Chave do item ativo no menu, ex.: 'visao-geral', 'clientes'.
+ * @var string $paginaAtual Chave do item ativo no menu, ex.: 'visao-geral', 'clientes'.
  */
 
 $paginaAtual = $paginaAtual ?? '';
@@ -19,11 +12,11 @@ $usuario     = Autenticacao::usuario();
 
 /*
  * Itens do menu, na ordem em que aparecem.
- *   rotulo  → texto do link
- *   destino → caminho a partir de public/ (é o mesmo usado na URL, após a BASE_URL)
- *   icone   → arquivo em public/assets/img/nav/, com largura e altura originais
- * Se o arquivo de destino ainda não existir, o item vira um botão que abre o aviso
- * "em desenvolvimento" (painel.js); quando a página for criada, ele vira link sozinho.
+ *   rotulo:  texto do link
+ *   destino: caminho a partir de public/ (o mesmo da URL, depois da BASE_URL)
+ *   icone:   arquivo em public/assets/img/nav/, com largura e altura
+ * Enquanto o arquivo de destino não existir, o item é um botão que abre o aviso
+ * "em desenvolvimento" (painel.js); quando a página for criada, vira link sozinho.
  */
 $itensMenu = [
     'visao-geral' => ['rotulo' => 'Visão Geral',          'destino' => 'admin/dashboard.php',       'icone' => ['visao-geral.svg', 18, 18]],
@@ -34,7 +27,7 @@ $itensMenu = [
     'financeiro'  => ['rotulo' => 'Financeiro',           'destino' => 'admin/financeiro/index.php',  'icone' => ['financeiro.svg', 30, 19]],
 ];
 
-// Caminhos já escapados para uso direto nos atributos.
+// Caminhos já escapados para os atributos.
 $iconesNav = htmlspecialchars(BASE_URL . 'assets/img/nav/');
 $urlInicio = htmlspecialchars(BASE_URL . 'admin/dashboard.php');
 $urlSair   = htmlspecialchars(BASE_URL . 'logout.php?csrf=' . urlencode(Autenticacao::tokenCsrf()));
@@ -52,7 +45,6 @@ $inicial = mb_strtoupper(mb_substr($usuario['nome'] ?: $usuario['email'], 0, 1))
     $icone = '<img src="' . $iconesNav . $arquivoIcone . '" alt="" width="' . $larguraIcone . '" height="' . $alturaIcone . '">';
     $ativo = $chave === $paginaAtual;
 
-    // Página já existe em public/? Então é link; senão, botão de "em desenvolvimento".
     if (is_file(__DIR__ . '/../public/' . $item['destino'])): ?>
       <a class="nav-link<?= $ativo ? ' active' : '' ?>" href="<?= htmlspecialchars(BASE_URL . $item['destino']) ?>"<?= $ativo ? ' aria-current="page"' : '' ?>><?= $icone ?><?= htmlspecialchars($item['rotulo']) ?></a>
 <?php else: ?>

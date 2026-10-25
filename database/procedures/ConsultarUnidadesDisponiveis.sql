@@ -1,10 +1,8 @@
 -- =============================================================================
--- SGCB — Stored Procedure (Aula 13 – Introdução às Stored Procedures)
--- Arquivo: database/procedures/ConsultarUnidadesDisponiveis.sql
+-- SGCB - Stored Procedure (Aula 13 - Introdução às Stored Procedures)
 --
--- Finalidade: recebe o id de um produto (modelo de container), lista os
---             containers desse produto que estão com estado DISPONIVEL e
---             devolve a quantidade em um parâmetro de saída.
+-- Recebe o id de um produto (modelo de container), lista os containers desse
+-- produto com estado DISPONIVEL e devolve a quantidade em um parâmetro de saída.
 --
 -- Comandos usados e aula de origem:
 --   DROP PROCEDURE IF EXISTS, DELIMITER, CREATE PROCEDURE,
@@ -13,7 +11,7 @@
 --   WHERE com AND .................................................... Revisão CRUD / Aula 03
 --   COUNT(*) ......................................................... Aula 11
 --
--- Depende de: unidades_fisicas, produtos (migração 001).
+-- Tabelas usadas: unidades_fisicas e produtos (migração 001).
 -- =============================================================================
 
 USE sgcb;

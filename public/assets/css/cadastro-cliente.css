@@ -1,8 +1,6 @@
 /*
- * cadastro-cliente.css — estilos do formulário de cadastro de cliente (public/admin/clientes/cadastro.php).
- * Complementa o dashboard.css. As regras com .form-page só valem nesta página
- * (o <body> recebe a classe pela variável $classeBody).
- * Imagens: public/assets/img/cadastro-cliente/ (caminhos relativos a esta pasta css/).
+ * Formulário de cadastro de cliente. Complementa o dashboard.css.
+ * As regras com .form-page só valem nesta página (classe definida em $classeBody).
  *
  * Organização:
  *   1. Ajustes do layout nesta página (fundo, menu e cabeçalho)

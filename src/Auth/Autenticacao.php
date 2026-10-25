@@ -1,13 +1,8 @@
 <?php
 /**
- * Autenticacao.php — login, logout e proteção das páginas do SGCB.
- *
- * Finalidade: validar e-mail e senha contra a tabela usuarios e guardar o usuário logado na sessão.
- * Depende de: src/Database/Conexao.php, tabelas usuarios e cargos
- *             (database/migrations/001_create_schema_casa_barretto.sql) e a sessão
- *             iniciada em src/bootstrap.php.
- * Usado por:  public/login.php, public/logout.php e todas as páginas protegidas
- *             (ex.: public/admin/dashboard.php chama Autenticacao::exigirLogin()).
+ * Login, logout e proteção das páginas do admin.
+ * Valida e-mail e senha na tabela usuarios e guarda o usuário logado na sessão
+ * (a sessão é aberta em src/bootstrap.php).
  */
 
 final class Autenticacao

@@ -1,7 +1,6 @@
 /*
- * produtos.css — estilos da listagem de produtos (public/admin/produtos/index.php).
- * Complementa o dashboard.css (menu lateral, cabeçalho, cartões) e o clientes.css
- * (filtros, tabela, paginação e diálogo de detalhes, reaproveitados aqui).
+ * Listagem de produtos. Complementa o dashboard.css e o clientes.css
+ * (filtros, tabela, paginação e diálogo de detalhes vêm de lá).
  *
  * Organização:
  *   1. Área principal e título

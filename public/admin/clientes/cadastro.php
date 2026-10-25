@@ -1,23 +1,14 @@
 <?php
 /**
- * admin/clientes/cadastro.php — formulário de cadastro de cliente/fornecedor.
- *
- * Finalidade: incluir um cliente (dados, endereços, informações financeiras e anexos).
- *             Por enquanto é só front-end: as condições de pagamento e o salvamento dependem de
- *             /api/cadastros/opcoes e /api/clientes, que serão feitas na etapa de back-end.
- * Depende de: src/bootstrap.php, includes/head.php, includes/nav.php, includes/footer.php,
- *             public/assets/css/dashboard.css + cadastro-cliente.css, public/assets/js/painel.js + cadastro-cliente.js,
- *             imagens de public/assets/img/cadastro-cliente/ e public/assets/img/dashboard/.
- * Usado por:  public/admin/clientes/index.php (botão "Novo cliente").
- * Acesso:     somente usuário logado.
+ * Cadastro de cliente/fornecedor: dados, endereços, informações financeiras e anexos.
+ * Por enquanto só front-end: as condições de pagamento e o salvamento dependem de
+ * /api/cadastros/opcoes e /api/clientes, que virão na etapa de back-end.
  */
 
 require __DIR__ . '/../../../src/bootstrap.php';
 
-// Página protegida: sem usuário na sessão, redireciona para login.php.
 Autenticacao::exigirLogin();
 
-// Variáveis lidas por includes/head.php, includes/nav.php e includes/footer.php.
 $titulo       = 'Novo cliente';
 $css          = ['dashboard.css', 'cadastro-cliente.css'];
 $js           = ['painel.js', 'cadastro-cliente.js'];
@@ -25,7 +16,7 @@ $fontesExtras = ['Inter:wght@400;700'];   // usada nos campos do formulário
 $classeBody   = 'form-page';               // ajustes de layout do cadastro-cliente.css
 $paginaAtual  = 'clientes';                // o cadastro pertence ao módulo Clientes no menu
 
-// Caminhos já escapados para uso direto nos atributos (também repassados ao JS via data-*).
+// Caminhos já escapados; também vão para o JS via data-*.
 $img      = htmlspecialchars(BASE_URL . 'assets/img/');
 $urlLista = htmlspecialchars(BASE_URL . 'admin/clientes/index.php');
 

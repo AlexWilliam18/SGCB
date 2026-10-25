@@ -1,11 +1,9 @@
 -- =============================================================================
--- SGCB — View complexa (Aula 10 – Views Complexas)
--- Arquivo: database/views/vw_resumo_parcelas_contratos.sql
+-- SGCB - View complexa (Aula 10 - Views Complexas)
 --
--- Finalidade: uma linha por contrato com o resumo das parcelas: quantas são,
---             o valor total a receber e o primeiro e o último vencimento.
---
--- Depende de: contratos, pessoas, parcelas (migração 001).
+-- Uma linha por contrato com o resumo das parcelas: quantas são, o valor total
+-- a receber e o primeiro e o último vencimento.
+-- Tabelas usadas: contratos, pessoas e parcelas (migração 001).
 --
 -- Regras do cálculo:
 --   - parcelas canceladas não entram (WHERE pa.cancelada = FALSE);

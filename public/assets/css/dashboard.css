@@ -1,5 +1,5 @@
 /*
- * dashboard.css — estilos da área administrativa do SGCB (public/admin/dashboard.php).
+ * Layout da área administrativa (menu, cabeçalho, cartões) e da Visão Geral.
  *
  * Organização:
  *   1. Variáveis e base
@@ -821,12 +821,6 @@ td {
   background: #fff;
   color: #705324;
   font-weight: 600;
-}
-
-.source-note {
-  font-size: 11px;
-  color: var(--muted);
-  line-height: 16px;
 }
 
 /* Diálogo de informação (módulo em desenvolvimento, perfil) */

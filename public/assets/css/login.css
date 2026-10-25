@@ -1,5 +1,5 @@
 /*
- * login.css — estilos da tela de login do SGCB (public/login.php).
+ * Tela de login.
  *
  * Organização:
  *   1. Variáveis e base
@@ -479,7 +479,7 @@ dialog p {
     margin-bottom: 8px
 }
 
-/* Cores das amostras (antes eram style="--swatch:..." inline no HTML) */
+/* Cor de cada amostra */
 .swatch-verde {
     --swatch: #1b4332
 }

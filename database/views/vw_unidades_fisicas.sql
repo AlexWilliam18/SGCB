@@ -1,11 +1,9 @@
 -- =============================================================================
--- SGCB — View simples (Aula 09 – Views)
--- Arquivo: database/views/vw_unidades_fisicas.sql
+-- SGCB - View simples (Aula 09 - Views)
 --
--- Finalidade: lista cada container físico com o nome do produto (modelo) e da
---             categoria, sem precisar escrever os JOINs toda vez.
---
--- Depende de: unidades_fisicas, produtos, categorias (migração 001).
+-- Lista cada container físico com o nome do produto (modelo) e da categoria,
+-- sem precisar escrever os JOINs toda vez.
+-- Tabelas usadas: unidades_fisicas, produtos e categorias (migração 001).
 -- =============================================================================
 
 USE sgcb;
