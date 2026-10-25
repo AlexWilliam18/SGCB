@@ -1,0 +1,1162 @@
+/*
+ * cadastro-cliente.css — estilos do formulário de cadastro de cliente (public/admin/clientes/cadastro.php).
+ * Complementa o dashboard.css. As regras com .form-page só valem nesta página
+ * (o <body> recebe a classe pela variável $classeBody).
+ * Imagens: public/assets/img/cadastro-cliente/ (caminhos relativos a esta pasta css/).
+ *
+ * Organização:
+ *   1. Ajustes do layout nesta página (fundo, menu e cabeçalho)
+ *   2. Título e botão Voltar
+ *   3. Cartões de seção e cabeçalho numerado
+ *   4. Dados do cadastro (grade de campos)
+ *   5. Campos do formulário
+ *   6. Foto do cliente
+ *   7. Endereços
+ *   8. Informações financeiras
+ *   9. Anexos
+ *  10. Botões finais e avisos
+ *  11. Responsivo
+ *  12. Ajustes finos
+ */
+
+/* ==========================================================================
+   1. Ajustes do layout nesta página (fundo, menu e cabeçalho)
+   ========================================================================== */
+
+/* Fundo areia com a textura decorativa no topo */
+.form-page {
+    position: relative;
+    background: var(--paper) url('../img/cadastro-cliente/99018.svg') top left/100% auto no-repeat
+}
+
+/* Menu acompanha a altura da página (rola junto com o formulário longo) */
+.form-page .sidebar {
+    position: absolute;
+    min-height: 100vh
+}
+
+/* Área de trabalho com a fonte Inter do formulário */
+.form-page .workspace {
+    min-height: 1624px;
+    font-family: Inter, Arial, sans-serif
+}
+
+/* Cabeçalho mais alto, com linha divisória desenhada por imagem */
+.form-page .page-header {
+    height: 100px;
+    min-height: 100px;
+    padding: 43px 38px 13px 40px;
+    align-items: flex-start;
+    border: 0;
+    background-image: url('../img/cadastro-cliente/ba23e.svg');
+    background-position: bottom center;
+    background-size: 100% 1px;
+    background-repeat: no-repeat
+}
+
+/* Título e subtítulo do cabeçalho em tamanho menor */
+.form-page .page-heading h1 {
+    font-size: 18px;
+    line-height: 22px;
+    font-weight: 700
+}
+
+.form-page .page-heading p {
+    margin-top: 7px;
+    font-size: 10px;
+    line-height: 12px;
+    color: #747a76
+}
+
+/* Data mantém a fonte Figtree */
+.form-page .date-pill {
+    font-family: Figtree, Arial, sans-serif
+}
+
+/* Área principal do formulário */
+.cadastro-main {
+    padding: 8px 38px 54px 40px;
+    outline: none;
+    color: #171917
+}
+
+/* ==========================================================================
+   2. Título e botão Voltar
+   ========================================================================== */
+
+/* Título "Novo cliente" à esquerda e Voltar à direita */
+.form-intro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 25px
+}
+
+.form-intro h2 {
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 700;
+    letter-spacing: 0
+}
+
+.form-intro p {
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 16px;
+    color: #6f746f
+}
+
+/* Botão "← Voltar" para a listagem */
+.return-button {
+    display: grid;
+    place-items: center;
+    width: 97px;
+    min-width: 97px;
+    height: 41px;
+    background: url('../img/cadastro-cliente/4c017.svg') center/100% 100% no-repeat;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none
+}
+
+/* ==========================================================================
+   3. Cartões de seção e cabeçalho numerado
+   ========================================================================== */
+
+/* Cartão branco de cada seção (dados, endereços, financeiro, anexos) */
+.form-card {
+    position: relative;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    padding: 18px 24px 22px;
+    margin-top: 22px
+}
+
+.form-card:first-child {
+    margin-top: 0
+}
+
+/* Cabeçalho da seção: número + título + descrição */
+.section-heading {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-height: 42px
+}
+
+/* Círculo com o número da seção (fundo em imagem) */
+.section-number {
+    position: relative;
+    display: block;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px
+}
+
+.section-number>img {
+    display: block
+}
+
+.section-number>span {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #184c39
+}
+
+/* Título e descrição da seção */
+.section-heading h3 {
+    font-size: 18px;
+    line-height: 22px;
+    margin: 0;
+    font-weight: 700
+}
+
+.section-heading p {
+    font-size: 10px;
+    line-height: 12px;
+    margin-top: 8px;
+    color: #747a76
+}
+
+/* ==========================================================================
+   4. Dados do cadastro (grade de campos)
+   ========================================================================== */
+
+/* Seção 1: foto à esquerda e campos à direita */
+.identity-card {
+    background-image: url('../img/cadastro-cliente/6ca1f.svg');
+    min-height: 300px;
+    margin-left: -3px
+}
+
+/* Coluna dos campos de identificação */
+.identity-fields {
+    margin-top: 18px;
+    padding: 0 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px
+}
+
+/* Linhas da grade: tipo/nome/fantasia; documento/e-mail/telefone/nascimento; nacionalidade/profissão */
+.identity-first-row {
+    display: grid;
+    grid-template-columns: 242fr 320fr 314fr;
+    gap: 14px;
+    width: calc(100% - 306px)
+}
+
+.identity-second-row {
+    display: grid;
+    grid-template-columns: 314fr 366fr 242fr 230fr;
+    gap: 16px
+}
+
+.identity-third-row {
+    display: grid;
+    grid-template-columns: minmax(0, 314fr) minmax(0, 400fr);
+    gap: 52px;
+    width: calc(100% - 268px)
+}
+
+/* ==========================================================================
+   5. Campos do formulário
+   ========================================================================== */
+
+/* Campo: rótulo + controle + mensagem de erro */
+.form-field {
+    min-width: 0;
+    position: relative
+}
+
+.form-field>label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 15px;
+    margin-bottom: 10px
+}
+
+/* Caixa do campo com ícone à esquerda (imagem vem da variável --control-image no HTML) */
+.control {
+    position: relative;
+    min-width: 0;
+    height: 39px;
+    background-image: var(--control-image);
+    background-size: 100% 100%;
+    background-repeat: no-repeat
+}
+
+.control input,
+.control select {
+    font: inherit;
+    font-size: 13px;
+    line-height: 16px;
+    color: #171917;
+    border: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    background: transparent;
+    border-radius: 6px;
+    padding: 0 14px
+}
+
+/* Texto de exemplo dos campos */
+.control input::placeholder {
+    color: #747a76;
+    opacity: 1
+}
+
+.control select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 36px;
+    cursor: pointer
+}
+
+/* Seleção sem escolha: texto em cinza */
+.control select:has(option[value='']:checked) {
+    color: #747a76
+}
+
+/* Seta das seleções */
+.select-control>img {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none
+}
+
+.control input:focus-visible,
+/* Foco pelo teclado */
+.control select:focus-visible {
+    outline: 2px solid #3c7359;
+    outline-offset: 2px
+}
+
+/* Campo com erro: borda vermelha */
+.control:has([aria-invalid=true]) {
+    outline: 2px solid #bd4740;
+    outline-offset: 1px;
+    border-radius: 6px
+}
+
+/* Mensagem de erro abaixo do campo (some quando vazia) */
+.field-error {
+    display: block;
+    font-size: 11px;
+    line-height: 16px;
+    color: #a7342d
+}
+
+.field-error:empty {
+    display: none
+}
+
+/* ==========================================================================
+   6. Foto do cliente
+   ========================================================================== */
+
+/* Cartão da foto */
+.photo-card {
+    position: absolute;
+    right: 23px;
+    top: 12px;
+    width: 276px;
+    min-height: 121px;
+    background: url('../img/cadastro-cliente/e3382.svg') center/100% 100% no-repeat
+}
+
+.photo-card h4 {
+    position: absolute;
+    left: 15px;
+    top: 8px;
+    margin: 0;
+    font-size: 12px;
+    line-height: 15px
+}
+
+/* Avatar padrão (círculo, cabeça e corpo em camadas de imagem) */
+.photo-avatar {
+    position: absolute;
+    left: 29px;
+    top: 30px;
+    width: 68px;
+    height: 68px
+}
+
+.avatar-circle {
+    position: absolute;
+    inset: 0
+}
+
+.avatar-head {
+    position: absolute;
+    left: 26px;
+    top: 19px
+}
+
+.avatar-body {
+    position: absolute;
+    left: 20px;
+    top: 40px
+}
+
+/* Prévia da foto escolhida, por cima do avatar */
+.photo-preview {
+    position: absolute;
+    inset: 0;
+    width: 68px;
+    height: 68px;
+    object-fit: cover;
+    border-radius: 50%;
+    background: white
+}
+
+/* Formatos aceitos e botão "Adicionar foto" */
+.photo-help {
+    position: absolute;
+    left: 111px;
+    top: 38px
+}
+
+.photo-help p {
+    font-size: 10px;
+    line-height: 12px;
+    color: #747a76;
+    margin: 0 0 6px
+}
+
+.photo-help button {
+    display: block;
+    width: 133px;
+    height: 33px;
+    background: url('../img/cadastro-cliente/1fa8b.svg') center/100% 100% no-repeat;
+    padding: 0;
+    border: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #171917;
+    margin-top: 7px
+}
+
+/* Botão "Remover foto" */
+.remove-photo {
+    position: absolute;
+    right: 22px;
+    top: 112px;
+    border: 0;
+    padding: 3px 0;
+    background: none;
+    font-size: 10px;
+    color: #9b3a32
+}
+
+/* Erro da foto (formato/tamanho) */
+.photo-error {
+    position: absolute;
+    top: 126px;
+    right: 0;
+    max-width: 276px
+}
+
+/* ==========================================================================
+   7. Endereços
+   ========================================================================== */
+
+/* Seção 2: lista de endereços */
+.addresses-card {
+    background-image: url('../img/cadastro-cliente/ea60b.svg');
+    padding: 18px 24px 30px;
+    min-height: 662px
+}
+
+/* Cabeçalho da seção com o botão "Novo endereço" */
+.addresses-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px
+}
+
+/* Botão "+ Novo endereço" */
+.add-address {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: url('../img/cadastro-cliente/6d979.svg') center/100% 100% no-repeat;
+    width: 157px;
+    min-width: 157px;
+    height: 39px;
+    border: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #184c39
+}
+
+.add-address>span {
+    font-size: 20px;
+    font-weight: 400
+}
+
+/* Erro geral da seção (ex.: falta endereço principal) */
+.section-error {
+    margin: 8px 0
+}
+
+/* Bloco de um endereço; o principal recebe destaque */
+.address-block {
+    position: relative;
+    margin-top: 8px
+}
+
+.address-block.primary {
+    background: url('../img/cadastro-cliente/4340e.svg') center/100% 100% no-repeat
+}
+
+/* Barra do endereço: ícone, título, tipo e ações */
+.address-header {
+    min-height: 38px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px
+}
+
+.address-block.primary .address-header {
+    height: 48px;
+    background: url('../img/cadastro-cliente/8e47f.svg') center/100% 100% no-repeat
+}
+
+/* Símbolo de casa e título do endereço */
+.home-symbol {
+    font-size: 22px;
+    line-height: 27px
+}
+
+.address-title {
+    font-size: 16px;
+    line-height: 20px;
+    margin: 0;
+    font-weight: 700
+}
+
+/* Seleção do tipo (residencial, comercial, entrega...) */
+.address-kind {
+    height: 22px;
+    min-width: 88px;
+    background: url('../img/cadastro-cliente/f4bb0.svg') center/100% 100% no-repeat
+}
+
+.address-kind select {
+    display: block;
+    width: 100%;
+    max-width: 120px;
+    font-size: 10px;
+    line-height: 22px;
+    color: #2e6c4f;
+    font-weight: 700;
+    border: 0;
+    appearance: none;
+    background: none;
+    padding: 0 10px;
+    cursor: pointer
+}
+
+.address-block:not(.primary):not(.has-data) .address-kind {
+    visibility: hidden
+}
+
+/* Ações "Definir principal" e "Remover" (aparecem quando há dados) */
+.address-tools {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+    opacity: 0
+}
+
+.address-header:hover .address-tools,
+.address-header:focus-within .address-tools,
+.has-data .address-tools {
+    opacity: 1
+}
+
+.address-tools button {
+    border: 0;
+    background: none;
+    font-size: 10px;
+    color: #4f6458;
+    padding: 4px
+}
+
+/* Esconde ações que não fazem sentido (já é principal / único endereço) */
+.primary .make-primary {
+    display: none
+}
+
+.address-block:only-child .remove-address {
+    display: none
+}
+
+/* Botão de recolher/expandir o endereço */
+.collapse-address {
+    width: 24px;
+    height: 24px;
+    border: 0;
+    background: none;
+    color: #171917;
+    font-size: 18px;
+    line-height: 24px
+}
+
+/* Campos do endereço em três linhas */
+.address-body {
+    padding: 6px 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px
+}
+
+.primary .address-body {
+    padding-top: 16px;
+    padding-bottom: 22px
+}
+
+.address-row-one {
+    display: grid;
+    grid-template-columns: 314fr 603fr 225fr;
+    gap: 10px
+}
+
+.address-row-two {
+    display: grid;
+    grid-template-columns: 384fr 421fr 337fr;
+    gap: 10px
+}
+
+.address-row-three {
+    display: grid;
+    grid-template-columns: 1fr
+}
+
+/* ==========================================================================
+   8. Informações financeiras
+   ========================================================================== */
+
+/* Seção 3: condição de pagamento e limite de crédito */
+.finance-card {
+    background-image: url('../img/cadastro-cliente/8c268.svg');
+    min-height: 146px;
+    padding: 18px 24px 12px
+}
+
+/* Campos lado a lado */
+.finance-fields {
+    display: grid;
+    grid-template-columns: 471fr 313fr 362fr;
+    gap: 24px;
+    align-items: end;
+    margin-top: 15px
+}
+
+/* Campo de valor com o prefixo "R$" */
+.money-control {
+    display: flex
+}
+
+.money-control>span {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    background: url('../img/cadastro-cliente/f7c35.svg') center/100% 100% no-repeat;
+    font-size: 13px
+}
+
+.money-control input {
+    padding-left: 14px
+}
+
+/* Caixa "Permitir ultrapassar limite" com checkbox desenhado em imagem */
+.credit-check {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 15px;
+    min-height: 39px
+}
+
+.credit-check input {
+    appearance: none;
+    flex-shrink: 0;
+    width: 28px;
+    height: 25px;
+    margin: 0;
+    border-radius: 5px;
+    background: #d9d9d9;
+    cursor: pointer
+}
+
+.credit-check input:checked {
+    appearance: auto;
+    accent-color: #1b4332
+}
+
+/* ==========================================================================
+   9. Anexos
+   ========================================================================== */
+
+/* Seção 4: anexos */
+.attachments-card {
+    background-image: url('../img/cadastro-cliente/f3b56.svg');
+    min-height: 140px;
+    padding: 18px 24px 20px
+}
+
+/* Área tracejada para arrastar e soltar arquivos (destaca ao arrastar) */
+.dropzone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    width: 100%;
+    min-height: 55px;
+    padding: 0 12px;
+    margin-top: 6px;
+    border: 0;
+    background: url('../img/cadastro-cliente/c6bc9.svg') center/100% 100% no-repeat;
+    color: #171917;
+    text-align: left
+}
+
+.dropzone.dragover {
+    outline: 2px solid #2e6c4f;
+    outline-offset: 2px;
+    border-radius: 8px;
+    background-color: #e9f3ed
+}
+
+/* Seta de envio e textos da área de anexos */
+.upload-symbol {
+    font-size: 28px;
+    font-weight: 400;
+    color: #184c39;
+    line-height: 34px
+}
+
+.dropzone strong {
+    display: block;
+    font-size: 14px;
+    line-height: 17px
+}
+
+.dropzone small {
+    display: block;
+    font-size: 10px;
+    line-height: 12px;
+    color: #747a76;
+    margin-top: 4px
+}
+
+/* Lista dos arquivos escolhidos, com botão Remover */
+.attachment-list {
+    list-style: none;
+    padding: 0;
+    margin: 14px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px
+}
+
+.attachment-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #f5f8f5;
+    border-radius: 6px;
+    font-size: 12px;
+    overflow-wrap: anywhere
+}
+
+.attachment-list button {
+    border: 0;
+    background: none;
+    color: #9b3a32;
+    font-size: 11px
+}
+
+/* ==========================================================================
+   10. Botões finais e avisos
+   ========================================================================== */
+
+/* Botões Cancelar e Salvar alinhados à direita */
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 36px
+}
+
+/* Botão Cancelar (contorno) */
+.cancel-button {
+    display: grid;
+    place-items: center;
+    width: 111px;
+    height: 35px;
+    background: url('../img/cadastro-cliente/a8825.svg') center/100% 100% no-repeat;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700
+}
+
+/* Botão Salvar (verde); fica desabilitado até as opções carregarem */
+.save-button {
+    border: 0;
+    color: white;
+    width: 136px;
+    height: 34px;
+    padding: 0;
+    background: url('../img/cadastro-cliente/0a77f.svg') center/100% 100% no-repeat;
+    font-size: 13px;
+    font-weight: 700
+}
+
+.save-button:disabled {
+    opacity: .65;
+    cursor: not-allowed
+}
+
+/* Aviso no topo do formulário (erro, tentar novamente, sucesso) */
+.form-notice {
+    border: 1px solid #d6c195;
+    background: #fff7e5;
+    color: #775b2c;
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 22px;
+    font-size: 13px;
+    line-height: 20px
+}
+
+.form-notice button {
+    margin-top: 10px;
+    border: 1px solid #c4ac83;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: white;
+    color: inherit
+}
+
+.form-notice.success {
+    border-color: #a7cbb2;
+    background: #eaf6ed;
+    color: #1b4332
+}
+
+/* Botão "Descartar e voltar" do diálogo de alterações não salvas */
+.discard-button {
+    display: block;
+    width: 100%;
+    height: 40px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: white;
+    margin-top: 10px;
+    color: #913c34
+}
+
+/* Remove sublinhado do link "Novo cliente" */
+.new-client {
+    text-decoration: none
+}
+
+/* ==========================================================================
+   11. Responsivo
+   ========================================================================== */
+
+/* Telas médias: grade de campos reorganizada */
+@media(max-width:1450px) {
+    .identity-first-row {
+        width: calc(100% - 280px);
+        grid-template-columns: 1fr 1.3fr
+    }
+
+    .identity-first-row>.form-field:last-child {
+        grid-column: 1/-1
+    }
+
+    .identity-card {
+        min-height: 375px
+    }
+
+    .photo-card {
+        right: 18px;
+        transform: scale(.9);
+        transform-origin: top right
+    }
+
+    .identity-second-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .identity-third-row {
+        width: 100%;
+        gap: 16px;
+        grid-template-columns: 1fr 1fr
+    }
+
+    .identity-fields {
+        gap: 16px
+    }
+
+    .finance-fields {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .credit-check {
+        grid-column: 1/-1
+    }
+
+    .form-card {
+        margin-top: 22px
+    }
+
+    .finance-card {
+        padding-bottom: 20px
+    }
+}
+
+/* Tablets: foto acima dos campos, endereços em menos colunas */
+@media(max-width:1000px) {
+    .cadastro-main {
+        padding: 16px 24px 40px
+    }
+
+    .form-page .page-header {
+        padding: 24px;
+        align-items: center;
+        height: auto
+    }
+
+    .identity-first-row {
+        width: 100%;
+        grid-template-columns: 1fr
+    }
+
+    .identity-card {
+        padding-top: 160px
+    }
+
+    .photo-card {
+        left: 24px;
+        right: auto;
+        top: 18px;
+        transform: none
+    }
+
+    .identity-card>.section-heading {
+        margin-bottom: 20px
+    }
+
+    .identity-first-row>.form-field:last-child {
+        grid-column: auto
+    }
+
+    .address-row-one,
+    .address-row-two {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .address-row-one>.form-field:nth-child(2) {
+        grid-column: 1/-1;
+        grid-row: 2
+    }
+
+    .address-row-two>.form-field:last-child {
+        grid-column: 1/-1
+    }
+
+    .addresses-heading {
+        flex-wrap: wrap
+    }
+
+    .add-address {
+        margin-left: 60px
+    }
+
+    .address-header {
+        flex-wrap: wrap;
+        padding-top: 8px;
+        padding-bottom: 8px
+    }
+
+    .address-tools {
+        opacity: 1
+    }
+
+    .address-title {
+        font-size: 14px
+    }
+
+    .address-block.primary .address-header {
+        height: auto;
+        min-height: 48px
+    }
+
+    .form-page .workspace {
+        min-height: 100vh
+    }
+}
+
+/* Celulares: tudo em uma coluna, menu volta a ser gaveta fixa */
+@media(max-width:760px) {
+    .form-page .sidebar {
+        position: fixed;
+        min-height: 100vh
+    }
+
+    .form-page .page-header {
+        padding: 16px 20px
+    }
+
+    .form-page .page-heading h1 {
+        font-size: 18px;
+        white-space: normal
+    }
+
+    .form-page .page-heading p {
+        margin-top: 4px
+    }
+
+    .cadastro-main {
+        padding: 20px 16px 32px
+    }
+
+    .form-intro {
+        align-items: flex-start;
+        gap: 12px
+    }
+
+    .form-intro h2 {
+        font-size: 24px;
+        line-height: 30px
+    }
+
+    .form-intro p {
+        font-size: 12px;
+        line-height: 18px
+    }
+
+    .return-button {
+        width: 85px;
+        min-width: 85px
+    }
+
+    .form-card {
+        padding-left: 16px;
+        padding-right: 16px
+    }
+
+    .section-heading {
+        gap: 12px
+    }
+
+    .section-heading h3 {
+        font-size: 16px;
+        line-height: 22px
+    }
+
+    .section-heading p {
+        line-height: 16px;
+        margin-top: 4px
+    }
+
+    .identity-second-row,
+    .identity-third-row,
+    .finance-fields,
+    .address-row-one,
+    .address-row-two {
+        grid-template-columns: 1fr;
+        gap: 16px
+    }
+
+    .identity-fields {
+        padding: 0
+    }
+
+    .identity-third-row {
+        gap: 16px
+    }
+
+    .address-row-one>.form-field:nth-child(2) {
+        grid-row: auto
+    }
+
+    .section-heading {
+        min-height: 48px
+    }
+
+    .address-body,
+    .primary .address-body {
+        padding: 16px 12px 22px
+    }
+
+    .address-header {
+        gap: 8px
+    }
+
+    .address-tools {
+        width: 100%;
+        justify-content: flex-end;
+        order: 5
+    }
+
+    .collapse-address {
+        margin-left: auto
+    }
+
+    .address-kind {
+        margin-left: 0
+    }
+
+    .addresses-card {
+        min-height: 0
+    }
+
+    .finance-fields {
+        margin-top: 20px
+    }
+
+    .credit-check {
+        gap: 12px
+    }
+
+    .dropzone {
+        padding: 12px;
+        align-items: flex-start;
+        min-height: 75px
+    }
+
+    .dropzone strong {
+        font-size: 12px;
+        line-height: 18px
+    }
+
+    .dropzone small {
+        font-size: 10px;
+        line-height: 16px
+    }
+
+    .form-actions {
+        margin-top: 24px
+    }
+
+    .form-intro {
+        margin-bottom: 22px
+    }
+}
+
+/* Usuários que preferem menos movimento: rolagem sem animação */
+@media(prefers-reduced-motion:reduce) {
+    * {
+        scroll-behavior: auto !important
+    }
+}
+
+/* ==========================================================================
+   12. Ajustes finos
+   ========================================================================== */
+
+/* Espaçamentos finais de algumas seções */
+.identity-card {
+    padding-bottom: 10px
+}
+
+.address-block:first-child {
+    margin-top: 0
+}
+
+.finance-card {
+    padding-bottom: 7px
+}
+
+/* Telas largas: limita a largura da terceira linha de campos */
+@media(min-width:1451px) {
+    .identity-third-row {
+        width: min(100%, 766px)
+    }
+}

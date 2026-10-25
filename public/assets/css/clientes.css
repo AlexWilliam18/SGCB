@@ -1,0 +1,608 @@
+/*
+ * clientes.css — estilos da listagem de clientes (public/admin/clientes/index.php).
+ * Complementa o dashboard.css, que já traz o menu lateral, o cabeçalho, cartões e tabela.
+ *
+ * Organização:
+ *   1. Área principal e título
+ *   2. Filtros (pesquisa e seleções)
+ *   3. Tabela de clientes
+ *   4. Rodapé da tabela e paginação
+ *   5. Avisos
+ *   6. Diálogo de detalhes do cliente
+ *   7. Responsivo
+ */
+
+/* ==========================================================================
+   1. Área principal e título
+   ========================================================================== */
+
+/* Área principal da listagem */
+.clients-main {
+    padding: 32px;
+    outline: none
+}
+
+/* Título da página à esquerda e botão "Novo cliente" à direita */
+.page-intro {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px
+}
+
+/* Título "Clientes" */
+.page-intro h2 {
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 36px;
+    letter-spacing: -.75px
+}
+
+/* Texto de apoio abaixo do título */
+.page-intro p {
+    margin-top: 4px;
+    font-size: 15px;
+    line-height: 22.5px;
+    color: var(--muted)
+}
+
+/* Botão verde "Novo cliente" (link para o cadastro) */
+.new-client {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 16px;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 12px;
+    background: var(--forest);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    box-shadow: 0 8px 18px #14291e99
+}
+
+.new-client:hover {
+    background: var(--forest-light)
+}
+
+/* ==========================================================================
+   2. Filtros (pesquisa e seleções)
+   ========================================================================== */
+
+/* Cartão branco com todos os filtros em linha */
+.filter-card {
+    min-height: 124px;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    box-shadow: 0 6px 12px #14291e40
+}
+
+/* Campo de pesquisa (nome, CPF ou CNPJ) com a lupa */
+.search-field {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex: 0 1 450px;
+    min-width: 180px
+}
+
+.search-field>img {
+    flex-shrink: 0
+}
+
+/* Caixa de texto da pesquisa */
+.search-field input {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 0 14px 0 40px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+    line-height: 20px
+}
+
+/* Texto de exemplo da pesquisa em cinza claro */
+.search-field input::placeholder {
+    color: #a1a1a1;
+    opacity: 1
+}
+
+/* Seleções (situação, estado, cidade): referência para a seta desenhada */
+.select-field {
+    position: relative;
+    flex-shrink: 0
+}
+
+/* Largura de cada seleção */
+.status-filter {
+    width: 130px
+}
+
+.state-filter {
+    width: 205px
+}
+
+.city-filter {
+    width: 203px
+}
+
+/* Seleção sem a seta padrão do navegador (a seta é uma imagem) */
+.select-field select {
+    appearance: none;
+    -webkit-appearance: none;
+    display: block;
+    width: 100%;
+    height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 0 34px 0 18px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    cursor: pointer
+}
+
+/* Opção vazia em cinza */
+.select-field select:invalid {
+    color: var(--muted)
+}
+
+/* Seleção de cidade (sem seta) */
+.city-filter select {
+    color: #121212b3;
+    padding-right: 14px
+}
+
+/* Seta da seleção, posicionada à direita */
+.select-field>img {
+    position: absolute;
+    right: 15px;
+    top: 19px;
+    pointer-events: none
+}
+
+/* Ajuste de espaçamento da seleção de situação, que é mais estreita */
+.status-filter select {
+    padding-left: 13px;
+    padding-right: 25px
+}
+
+.status-filter>img {
+    right: 10px
+}
+
+/* Botão "Limpar" filtros */
+.clear-filters {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px;
+    flex-shrink: 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 700
+}
+
+.clear-filters:hover {
+    background: var(--paper)
+}
+
+/* Contorno de foco (teclado) nos campos e seleções */
+input:focus-visible,
+select:focus-visible {
+    outline: 3px solid #b58b36;
+    outline-offset: 3px
+}
+
+/* ==========================================================================
+   3. Tabela de clientes
+   ========================================================================== */
+
+/* Cartão que envolve a tabela */
+.clients-card {
+    margin-top: 16px;
+    overflow: hidden;
+    box-shadow: 0 6px 24px -16px #14291e40
+}
+
+/* Largura mínima: abaixo disso a tabela rola na horizontal */
+.clients-table {
+    min-width: 760px
+}
+
+/* Cabeçalho e células da tabela */
+.clients-table th {
+    padding: 14px 16px;
+    font-size: 11px;
+    line-height: 15.714px;
+    border-bottom: 1px solid var(--line);
+    letter-spacing: .275px
+}
+
+.clients-table td {
+    padding: 14px 16px;
+    line-height: 20px
+}
+
+/* Linha única de "carregando" / "nenhum cliente" com ícone centralizado */
+.clients-table .clients-empty {
+    height: 176px;
+    padding: 0;
+    border-top: 0;
+    text-align: center
+}
+
+.clients-empty>div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 176px
+}
+
+.clients-empty p {
+    font-size: 12px;
+    line-height: 16px;
+    color: #737373
+}
+
+/* ==========================================================================
+   4. Rodapé da tabela e paginação
+   ========================================================================== */
+
+/* Rodapé: resumo à esquerda, páginas à direita */
+.table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+    border-top: 1px solid var(--line);
+    min-height: 65px
+}
+
+.table-footer>p {
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--muted)
+}
+
+/* Botões de página (números e setas) */
+.pagination,
+.pagination>div {
+    display: flex;
+    align-items: center;
+    gap: 6px
+}
+
+.pagination button {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink)
+}
+
+.pagination button:disabled {
+    cursor: default
+}
+
+.pagination button:disabled:not(.selected) img {
+    opacity: .35
+}
+
+/* Página atual em verde escuro */
+.pagination button.selected {
+    background: #1b3527;
+    color: #fff;
+    border-color: #1b3527
+}
+
+.pagination button:not(:disabled):hover {
+    background: var(--paper)
+}
+
+/* Botão "Ver cadastro" de cada linha da tabela */
+.view-client {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: white;
+    padding: 5px 9px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--forest-light)
+}
+
+.view-client:hover {
+    background: var(--paper)
+}
+
+/* Marcação "Inativo" abaixo do nome do cliente */
+.inactive-badge {
+    display: block;
+    font-size: 10px;
+    color: #8b5a20
+}
+
+/* ==========================================================================
+   5. Avisos
+   ========================================================================== */
+
+/* Espaço acima dos avisos (erro ao carregar, cadastro salvo) */
+.clients-main>.data-notice {
+    margin-top: 16px
+}
+
+/* ==========================================================================
+   6. Diálogo de detalhes do cliente
+   ========================================================================== */
+
+/* Janela "Dados do cliente" (aberta pelo botão Ver cadastro) */
+.client-dialog {
+    width: min(680px, calc(100% - 32px));
+    max-height: 85vh;
+    overflow: auto;
+    padding: 28px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    color: var(--ink)
+}
+
+/* Fundo escurecido e desfocado atrás da janela */
+.client-dialog::backdrop {
+    background: #14291e80;
+    backdrop-filter: blur(3px)
+}
+
+/* Título da janela e botão de fechar */
+.detail-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px
+}
+
+.detail-heading h2 {
+    font-size: 22px;
+    line-height: 28px
+}
+
+.detail-close {
+    width: 36px;
+    height: 36px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 24px;
+    color: var(--muted)
+}
+
+/* Dados do cliente em duas colunas (rótulo + valor) */
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 24px;
+    margin: 24px 0
+}
+
+.detail-grid dt {
+    font-size: 11px;
+    line-height: 16px;
+    color: var(--muted);
+    margin-bottom: 4px
+}
+
+.detail-grid dd {
+    font-size: 14px;
+    line-height: 22px;
+    margin: 0;
+    overflow-wrap: anywhere
+}
+
+/* Endereços do cliente, separados por linha */
+.detail-address {
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    margin-top: 16px
+}
+
+.detail-address h3 {
+    font-size: 14px;
+    margin: 0 0 6px
+}
+
+.detail-address p {
+    font-size: 13px;
+    line-height: 22px;
+    color: var(--muted)
+}
+
+/* Mensagem de erro dentro da janela */
+.detail-error {
+    margin-top: 20px;
+    color: #8d3f30;
+    line-height: 22px
+}
+
+/* ==========================================================================
+   7. Responsivo
+   ========================================================================== */
+
+/* Telas médias: filtros quebram em mais de uma linha */
+@media(max-width:1450px) {
+    .filter-card {
+        flex-wrap: wrap;
+        gap: 14px
+    }
+
+    .search-field {
+        flex: 1 1 100%
+    }
+
+    .status-filter {
+        flex: 1 1 120px
+    }
+
+    .state-filter {
+        flex: 1 1 180px
+    }
+
+    .city-filter {
+        flex: 1 1 160px
+    }
+}
+
+/* Notebooks: espaçamentos menores */
+@media(max-width:1200px) {
+    .clients-main {
+        padding: 24px
+    }
+
+    .page-intro p {
+        max-width: 380px
+    }
+}
+
+/* Celulares: título e filtros empilhados, detalhes em uma coluna */
+@media(max-width:760px) {
+    .clients-main {
+        padding: 20px
+    }
+
+    .page-intro h2 {
+        font-size: 26px;
+        line-height: 32px
+    }
+
+    .page-intro {
+        flex-wrap: wrap;
+        gap: 16px
+    }
+
+    .page-intro p {
+        font-size: 14px;
+        line-height: 22px
+    }
+
+    .filter-card {
+        margin-top: 20px;
+        padding: 18px;
+        gap: 12px
+    }
+
+    .search-field {
+        gap: 12px
+    }
+
+    .search-field input {
+        padding-left: 14px
+    }
+
+    .city-filter {
+        flex: 1 1 100%
+    }
+
+    .clear-filters {
+        margin-left: auto
+    }
+
+    .clients-table .clients-empty {
+        text-align: left
+    }
+
+    .clients-empty>div {
+        width: calc(100vw - 42px);
+        max-width: 100%;
+        padding: 0 16px
+    }
+
+    .table-footer {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 12px
+    }
+
+    .table-footer>p {
+        flex: 1 1 100%
+    }
+
+    .pagination {
+        margin-left: auto
+    }
+
+    .detail-grid {
+        grid-template-columns: 1fr
+    }
+
+    .client-dialog {
+        padding: 22px
+    }
+}
+
+/* Celulares pequenos: cada filtro ocupa a linha toda */
+@media(max-width:460px) {
+    .clients-main {
+        padding: 16px
+    }
+
+    .status-filter {
+        flex-basis: 100%
+    }
+
+    .state-filter {
+        flex-basis: 100%
+    }
+
+    .clients-empty>div {
+        width: calc(100vw - 34px)
+    }
+
+    .filter-card {
+        border-radius: 20px
+    }
+
+    .new-client {
+        width: 100%
+    }
+}
+
+/* Remove o sublinhado do link "Novo cliente" */
+.new-client {
+    text-decoration: none
+}
+
+/* Aviso verde de cadastro salvo */
+.saved-notice {
+    background: #eaf6ed;
+    border-color: #a7cbb2;
+    color: #1b4332
+}
+
