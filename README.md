@@ -34,9 +34,9 @@ Projeto Integrador desenvolvido pela equipe:
 |---|---|
 | **Login com banco de dados** | E-mail e senha validados na tabela `usuarios` (somente usuário ativo), com proteção CSRF e nova sessão a cada login. |
 | **Senhas com hash** | A senha do seed pode estar em texto puro; no primeiro login ela é convertida automaticamente para hash bcrypt (`password_hash` / `password_verify`). |
-| **Sessão e páginas protegidas** | Páginas de `public/admin/` exigem login (`Autenticacao::exigirLogin()`); sem sessão, voltam para o login. |
+| **Sessão e páginas protegidas** | Páginas de `public/admin/` exigem login (`Autenticacao::exigirLogin()`). A cada página, o usuário da sessão é conferido no banco: se ele foi apagado, desativado ou se o banco estiver fora do ar, a sessão é encerrada e a pessoa volta para o login com o motivo. |
 | **Logout** | Botão "Sair" encerra a sessão (com token CSRF na URL). |
-| **Redirecionamento da raiz** | `http://localhost/SGCB/` leva para o dashboard (logado) ou para o login. |
+| **Redirecionamento da raiz** | `http://localhost/SGCB/` leva para o dashboard (sessão confirmada no banco) ou para o login. |
 | **Menu lateral único** | `includes/nav.php` monta a navegação de todas as páginas do admin a partir de um único array; o item da página atual fica destacado e módulos sem página abrem o aviso "em desenvolvimento". |
 | **Usuário logado no menu** | Nome, cargo e inicial do avatar vêm da sessão. |
 | **Cache de CSS/JS** | Os arquivos são carregados com `?v=<data de modificação>`, então o navegador sempre pega a versão nova. |
@@ -170,7 +170,7 @@ Outros scripts:
 
 | Arquivo | Tipo | O que faz |
 |---|---|---|
-| `seeds/001_usuario_admin.sql` | Seed | Cria o cargo Administrador e o usuário inicial (`admin@casabarretto.local` / `mudar123`, com troca de senha obrigatória). |
+| `seeds/001_usuario_admin.sql` | Seed | Cria o cargo Administrador e o usuário inicial (`admin@casabarretto.local` / `mudar123`). Ele fica marcado com `deve_alterar_senha`, mas a tela de troca de senha ainda não existe. |
 | `views/vw_unidades_fisicas.sql` | View simples | Lista cada contêiner físico com o nome do produto e da categoria. |
 | `views/vw_resumo_parcelas_contratos.sql` | View complexa | Uma linha por contrato com quantidade de parcelas, valor total e primeiro/último vencimento. |
 | `procedures/ConsultarUnidadesDisponiveis.sql` | Stored procedure | Recebe um produto, lista os contêineres disponíveis e devolve a quantidade em parâmetro de saída. |
@@ -181,17 +181,67 @@ Outros scripts:
 
 ## Como rodar o projeto
 
-1. Instale o **XAMPP** e coloque o projeto em `C:\xampp\htdocs\SGCB`.
-2. Inicie o **Apache** e o **MySQL** no painel do XAMPP.
-3. Execute, nesta ordem, no phpMyAdmin ou no cliente MySQL:
-   1. `database/migrations/001_create_schema_casa_barretto.sql`
-   2. `database/seeds/001_usuario_admin.sql`
-   3. os arquivos de `database/views/` e `database/procedures/`
-4. Copie `config/config.example.php` para `config/config.php` e ajuste, se necessário:
-   - `BASE_URL` — nome da pasta no htdocs (padrão `/SGCB/`);
-   - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS` — padrão do XAMPP: `root` sem senha.
-5. Acesse `http://localhost/SGCB/` (ou `http://localhost:8080/SGCB/` se o Apache estiver na porta 8080).
-6. Entre com `admin@casabarretto.local` / `mudar123`.
+> **O banco de dados é obrigatório.** Sem o MySQL ligado e sem o banco `sgcb` com o usuário cadastrado, **não é possível entrar no sistema**: o login recusa o acesso e qualquer sessão aberta antes é encerrada.
+
+### Pré-requisitos
+
+- **XAMPP** com Apache e MySQL (PHP 8.5 ou superior; ver [Ferramentas e ambiente](#ferramentas-e-ambiente)).
+- **Git**, para clonar o repositório.
+
+### 1. Baixar o projeto
+
+Clone dentro da pasta `htdocs` do XAMPP, mantendo o nome da pasta `SGCB`:
+
+```bash
+cd C:\xampp\htdocs
+git clone https://github.com/AlexWilliam18/SGCB.git
+```
+
+### 2. Ligar o servidor
+
+No painel do XAMPP, clique em **Start** no **Apache** e no **MySQL**. Os dois precisam ficar verdes.
+
+### 3. Criar o banco de dados (somente na primeira vez)
+
+Abra o phpMyAdmin (`http://localhost/phpmyadmin`) → aba **SQL** (ou use o cliente MySQL) e execute os arquivos **nesta ordem**:
+
+1. `database/migrations/001_create_schema_casa_barretto.sql` — cria o banco `sgcb` e as 27 tabelas;
+2. `database/seeds/001_usuario_admin.sql` — cria o cargo Administrador e o usuário inicial;
+3. `database/views/vw_unidades_fisicas.sql` e `database/views/vw_resumo_parcelas_contratos.sql`;
+4. `database/procedures/ConsultarUnidadesDisponiveis.sql`.
+
+> A migração cria as tabelas sem `IF NOT EXISTS`: rode-a só em um banco novo. Para recomeçar do zero, apague o banco `sgcb` antes. O seed pode ser executado de novo sem duplicar o usuário.
+
+### 4. Configurar o projeto
+
+Copie `config/config.example.php` para `config/config.php` (esse arquivo não vai para o Git, cada integrante tem o seu) e confira:
+
+| Constante | Padrão | Quando mudar |
+|---|---|---|
+| `BASE_URL` | `/SGCB/` | Se a pasta no `htdocs` tiver outro nome (ex.: `/sgcb/`). Sempre com barra no início e no fim. |
+| `DB_HOST`, `DB_PORT` | `127.0.0.1`, `3306` | Se o MySQL do XAMPP estiver em outra porta. **Use a mesma porta que aparece no phpMyAdmin** ("Servidor: 127.0.0.1:porta"); quando a 3306 já está ocupada por outro MySQL instalado, o XAMPP costuma usar 3307 ou 3308. |
+| `DB_NAME` | `sgcb` | Se o banco tiver outro nome. |
+| `DB_USER`, `DB_PASS` | `root`, vazio | Se o seu MySQL tiver senha no usuário `root` ou outro usuário. |
+
+Sem o `config.php`, o sistema usa os valores do `config.example.php`.
+
+### 5. Acessar
+
+1. Abra `http://localhost/SGCB/` (se o Apache estiver em outra porta, inclua-a: `http://localhost:8080/SGCB/`).
+2. Entre com o usuário do seed: **`admin@casabarretto.local`** / **`mudar123`**.
+3. Depois do login você cai na **Visão Geral** (`admin/dashboard.php`). Use o menu lateral para navegar; "Sair" encerra a sessão.
+
+### Problemas comuns
+
+| Sintoma | Causa provável | Como resolver |
+|---|---|---|
+| "Não foi possível conectar ao banco de dados" no login | MySQL desligado, banco `sgcb` não criado ou dados errados no `config.php` | Ligue o MySQL no XAMPP, rode os scripts do passo 3 e confira o `config.php`. |
+| O sistema entra, mas o banco `sgcb` não aparece no phpMyAdmin (ou o contrário) | Há **dois servidores MySQL** na máquina e o `config.php` aponta para um diferente do phpMyAdmin | Deixe `DB_PORT` igual à porta mostrada no topo do phpMyAdmin. |
+| "E-mail ou senha inválidos" com o usuário do seed | Seed não executado, usuário desativado (`ativo = 0`) ou senha alterada | Rode o seed e confira a tabela `usuarios`. |
+| "Sua sessão foi encerrada…" ao navegar | O usuário logado foi apagado ou desativado no banco | Entre com um usuário ativo. |
+| Página "Not Found" | `BASE_URL` diferente do nome da pasta ou `mod_rewrite` desligado no Apache | Ajuste a `BASE_URL` e confirme que o `.htaccess` da raiz está sendo lido. |
+| Tela sem estilo ou ícones | CSS/imagens não encontrados (geralmente `BASE_URL` errada) | Ajuste a `BASE_URL`; depois recarregue com `Ctrl + F5`. |
+| Aviso amarelo "Não foi possível carregar…" no dashboard ou em Clientes | Normal nesta fase: as APIs dessas telas ainda não existem | Nada a fazer até a etapa de back-end. |
 
 ---
 

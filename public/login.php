@@ -15,14 +15,21 @@
 // Bootstrap: carrega a configuração, a sessão e as classes antes de qualquer saída.
 require __DIR__ . '/../src/bootstrap.php';
 
-// Quem já está logado não precisa ver o login de novo.
-if (Autenticacao::usuario() !== null) {
+// Quem já está logado (e confirmado no banco) não precisa ver o login de novo.
+if (Autenticacao::usuarioValido() !== null) {
     header('Location: ' . BASE_URL . 'admin/dashboard.php');
     exit;
 }
 
-$erro  = null; // mensagem de erro exibida no formulário
-$email = '';   // e-mail digitado, para não obrigar a redigitar após um erro
+$email = ''; // e-mail digitado, para não obrigar a redigitar após um erro
+
+// Mensagem de erro exibida no formulário. Começa com o motivo de uma sessão recusada
+// (enviado por Autenticacao::exigirLogin() em ?motivo=), se houver.
+$motivos = [
+    'banco'  => 'Não foi possível conectar ao banco de dados. Entre novamente quando o sistema estiver disponível.',
+    'sessao' => 'Sua sessão foi encerrada porque o usuário não está mais ativo. Entre novamente.',
+];
+$erro = $motivos[$_GET['motivo'] ?? ''] ?? null;
 
 // Envio do formulário (method="post" para esta mesma página).
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
