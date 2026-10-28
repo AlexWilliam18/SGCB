@@ -1,0 +1,539 @@
+/*
+ * Gerenciamento de manutenções. Complementa o dashboard.css (cards de indicadores)
+ * e o clientes.css (filtros, tabela, paginação e diálogo de detalhes).
+ * As regras com .maintenance-page só valem nesta página (classe definida em $classeBody).
+ *
+ * Organização:
+ *   1. Área principal e título
+ *   2. Cards de indicadores
+ *   3. Filtros (pesquisa, selects e data)
+ *   4. Tabela, selos de status/prioridade e avisos
+ *   5. Responsivo
+ */
+
+/* ==========================================================================
+   1. Área principal e título
+   ========================================================================== */
+
+.maintenance-main {
+    padding: 32px;
+    outline: none
+}
+
+.maintenance-page .page-intro {
+    min-height: 63px
+}
+
+/* Botão "Nova manutenção" um pouco mais escuro que o "Novo cliente" */
+.maintenance-page .new-client {
+    background: #264636
+}
+
+/* ==========================================================================
+   2. Cards de indicadores
+   ========================================================================== */
+
+/* Fundo colorido do ícone de cada card */
+.maintenance-page .stat-icon.ongoing {
+    background: #e5b7004d
+}
+
+.maintenance-page .stat-icon.scheduled {
+    background: #044bff33
+}
+
+.maintenance-page .stat-icon.urgent {
+    background: #f3040733
+}
+
+.maintenance-page .stat-icon.completed {
+    background: #00f27933
+}
+
+/* Recorte das imagens PNG dos ícones */
+.metric-image {
+    position: relative;
+    display: block;
+    width: 28px;
+    height: 28px;
+    overflow: hidden
+}
+
+.metric-image img {
+    display: block;
+    width: 28px;
+    height: 28px;
+    object-fit: cover
+}
+
+/* A imagem do calendário tem margem própria: amplia e desloca para centralizar */
+.scheduled .metric-image {
+    width: 29px
+}
+
+.scheduled .metric-image img {
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    left: -3px;
+    top: -4px
+}
+
+.completed .metric-image,
+.completed .metric-image img {
+    height: 24px
+}
+
+/* ==========================================================================
+   3. Filtros (pesquisa, selects e data)
+   ========================================================================== */
+
+.maintenance-filters {
+    margin-top: 20px;
+    padding: 20px;
+    gap: 28px;
+    min-height: 124px
+}
+
+.maintenance-filters .search-field {
+    flex: 1;
+    min-width: 200px;
+    gap: 18px
+}
+
+.maintenance-filters .search-field input {
+    padding-left: 40px
+}
+
+/* Select com o rótulo posicionado acima da caixa */
+.labeled-filter {
+    position: relative;
+    flex: 0 0 159px;
+    min-width: 0
+}
+
+.labeled-filter > label {
+    position: absolute;
+    left: 5px;
+    top: -22px;
+    font-size: 14px;
+    line-height: 18px
+}
+
+.maintenance-filters .select-field {
+    width: 100%
+}
+
+.maintenance-filters .select-field select {
+    padding-left: 18px;
+    padding-right: 34px
+}
+
+.maintenance-filters .select-field > img {
+    right: 20px
+}
+
+/* Campo de data: o calendário nativo fica invisível e ocupa a caixa toda;
+   sem data escolhida, mostra o texto "Selecione uma data" no lugar */
+.date-filter {
+    flex-basis: 197px;
+    margin-left: -12px
+}
+
+.date-input {
+    position: relative;
+    height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: white
+}
+
+.date-input > img {
+    position: absolute;
+    left: 10px;
+    top: 6px;
+    pointer-events: none;
+    object-fit: cover
+}
+
+.date-input input {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: 0;
+    border-radius: 12px;
+    padding: 0 8px 0 44px;
+    font: 14px Figtree, Arial, sans-serif;
+    color: transparent;
+    cursor: pointer
+}
+
+.date-input input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    opacity: 0;
+    cursor: pointer
+}
+
+/* .has-value é colocada pelo manutencoes.js quando há data escolhida */
+.date-input.has-value input {
+    color: var(--ink)
+}
+
+.date-input > span {
+    position: absolute;
+    left: 44px;
+    top: 13px;
+    font-size: 14px;
+    line-height: 18px;
+    color: #121212b3;
+    pointer-events: none
+}
+
+.date-input.has-value > span {
+    display: none
+}
+
+/* Linha "Filtros aplicados" com o botão Limpar filtros */
+.filter-feedback {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--muted)
+}
+
+.filter-feedback button {
+    background: none;
+    border: 0;
+    padding: 5px;
+    color: var(--forest);
+    font: 600 12px Figtree, Arial, sans-serif;
+    text-decoration: underline
+}
+
+/* ==========================================================================
+   4. Tabela, selos de status/prioridade e avisos
+   ========================================================================== */
+
+.maintenance-card {
+    margin-top: 42px;
+    overflow: hidden;
+    box-shadow: 0 6px 24px -16px #14291e40
+}
+
+/* Largura mínima: abaixo disso a tabela rola na horizontal */
+.maintenance-table {
+    min-width: 1060px
+}
+
+.maintenance-table td {
+    white-space: normal;
+    overflow-wrap: anywhere
+}
+
+.maintenance-table th {
+    white-space: nowrap
+}
+
+.maintenance-page .table-scroll:focus-visible {
+    outline: 2px solid #b58b36;
+    outline-offset: -2px
+}
+
+.maintenance-table .clients-empty > div {
+    min-height: 176px
+}
+
+/* Selo base (status "Em manutenção"); as classes abaixo vêm do valor da API em minúsculas */
+.maintenance-badge {
+    display: inline-block;
+    border-radius: 6px;
+    padding: 3px 7px;
+    background: #f8f1dd;
+    color: #7b5c17;
+    font-size: 10px;
+    font-weight: 600
+}
+
+.maintenance-badge.agendada {
+    background: #e9efff;
+    color: #34569a
+}
+
+.maintenance-badge.concluida {
+    background: #e7f5ec;
+    color: #235338
+}
+
+.maintenance-badge.cancelada {
+    background: #eee;
+    color: #616761
+}
+
+/* Prioridades (classe "priority-" + valor) */
+.priority-urgente {
+    color: #a53232;
+    background: #fdebea
+}
+
+.priority-alta {
+    color: #885315;
+    background: #fff2df
+}
+
+.priority-media {
+    color: #775f21;
+    background: #faf3dd
+}
+
+.priority-baixa {
+    color: #396545;
+    background: #edf5ef
+}
+
+.maintenance-main > .data-notice {
+    margin-top: 20px
+}
+
+/* Descrição no diálogo de detalhes (mantém as quebras de linha digitadas) */
+.maintenance-description {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: 22px;
+    color: var(--muted)
+}
+
+/* ==========================================================================
+   5. Responsivo
+   ========================================================================== */
+
+@media (min-width: 1401px) {
+    .maintenance-filters .search-field {
+        margin-right: 11px
+    }
+}
+
+/* Até 1400px: a pesquisa ocupa a primeira linha e os filtros quebram abaixo */
+@media (max-width: 1400px) {
+    .maintenance-filters {
+        flex-wrap: wrap;
+        gap: 28px 20px;
+        padding-top: 32px;
+        padding-bottom: 24px
+    }
+
+    .maintenance-filters .search-field {
+        flex: 1 1 100%
+    }
+
+    .labeled-filter {
+        flex: 1 1 150px
+    }
+
+    .date-filter {
+        margin-left: 0;
+        flex-basis: 195px
+    }
+
+    .maintenance-page .stat-heading {
+        gap: 6px
+    }
+
+    .maintenance-page .stat-heading h2 {
+        white-space: normal
+    }
+}
+
+@media (max-width: 1200px) {
+    .maintenance-main {
+        padding: 24px
+    }
+
+    .maintenance-page .page-intro {
+        min-height: 70px
+    }
+
+    .maintenance-page .page-heading h1 {
+        font-size: 20px
+    }
+
+    .maintenance-page .stat-heading h2 {
+        font-size: 11px
+    }
+}
+
+@media (max-width: 900px) {
+    .maintenance-page .page-header {
+        flex-wrap: wrap
+    }
+
+    .maintenance-page .date-pill {
+        margin-left: auto
+    }
+
+    .maintenance-page .page-heading h1 {
+        line-height: 25px
+    }
+
+    .maintenance-card {
+        margin-top: 28px
+    }
+}
+
+/* Até 760px (celular, menu recolhido): filtros em uma coluna e cards compactos */
+@media (max-width: 760px) {
+    .maintenance-main {
+        padding: 20px
+    }
+
+    .maintenance-page .page-header {
+        display: grid
+    }
+
+    .maintenance-page .page-heading h1 {
+        font-size: 18px;
+        line-height: 23px;
+        white-space: normal
+    }
+
+    .maintenance-page .date-pill {
+        margin-left: 0
+    }
+
+    .maintenance-page .page-heading p {
+        font-size: 11px
+    }
+
+    .maintenance-page .page-intro {
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        min-height: 0;
+        margin-bottom: 20px
+    }
+
+    .maintenance-page .page-intro h2 {
+        font-size: 26px
+    }
+
+    .maintenance-page .new-client {
+        width: auto;
+        box-shadow: 0 6px 12px #14291e55;
+        font-size: 12px;
+        padding: 0 12px
+    }
+
+    .maintenance-filters {
+        padding: 20px;
+        row-gap: 34px
+    }
+
+    .maintenance-filters .search-field {
+        min-width: 0
+    }
+
+    .maintenance-filters .search-field input {
+        padding-left: 16px
+    }
+
+    .labeled-filter,
+    .date-filter {
+        flex-basis: 100%;
+        min-width: 0;
+        margin-left: 0
+    }
+
+    .maintenance-page .table-footer {
+        flex-wrap: wrap
+    }
+
+    .maintenance-page .pagination {
+        margin-left: auto
+    }
+
+    .maintenance-page .table-footer > p {
+        flex-basis: 100%
+    }
+
+    /* Mensagem de tabela vazia centralizada na tela, mesmo com a rolagem horizontal */
+    .maintenance-table .clients-empty > div {
+        width: calc(100vw - 42px);
+        padding: 0 16px
+    }
+
+    .maintenance-page .stats-grid {
+        gap: 12px
+    }
+
+    .maintenance-page .stat-card {
+        padding: 14px;
+        min-height: 146px
+    }
+
+    .maintenance-page .stat-heading {
+        min-height: 36px
+    }
+
+    .maintenance-page .stat-heading h2 {
+        font-size: 10px
+    }
+
+    .maintenance-page .stat-icon {
+        width: 36px;
+        height: 36px
+    }
+
+    .maintenance-page .stat-caption {
+        max-width: none;
+        font-size: 10px
+    }
+
+    .maintenance-page .stat-value {
+        font-size: 24px
+    }
+}
+
+@media (max-width: 460px) {
+    .maintenance-main {
+        padding: 16px
+    }
+
+    .maintenance-page .page-intro h2 {
+        font-size: 24px
+    }
+
+    .maintenance-page .new-client {
+        font-size: 11px;
+        gap: 5px
+    }
+
+    .maintenance-table .clients-empty > div {
+        width: calc(100vw - 34px)
+    }
+
+    .maintenance-page .stat-heading h2 {
+        font-size: 9px;
+        line-height: 14px
+    }
+
+    .maintenance-page .stat-icon {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0
+    }
+
+    .maintenance-page .stat-value {
+        margin-top: 12px
+    }
+
+    .filter-feedback {
+        align-items: flex-start
+    }
+}
