@@ -2,7 +2,7 @@
 /**
  * Gerenciamento de manutenções: indicadores, pesquisa, filtros, paginação e detalhes.
  * Por enquanto só front-end: sem /api/manutencoes, a tabela mostra o aviso de erro.
- * "Nova manutenção" ainda abre o aviso "em desenvolvimento".
+ * "Nova manutenção" leva para o formulário em admin/manutencoes/cadastro.php.
  */
 
 require __DIR__ . '/../../../src/bootstrap.php';
@@ -16,8 +16,9 @@ $js          = ['painel.js', 'manutencoes.js'];
 $classeBody  = 'maintenance-page';
 $paginaAtual = 'manutencoes';
 
-// Caminho das imagens já escapado; também vai para o JS via data-*.
-$img = htmlspecialchars(BASE_URL . 'assets/img/');
+// Caminhos já escapados; o das imagens também vai para o JS via data-*.
+$img         = htmlspecialchars(BASE_URL . 'assets/img/');
+$urlCadastro = htmlspecialchars(BASE_URL . 'admin/manutencoes/cadastro.php');
 
 require __DIR__ . '/../../../includes/head.php';
 ?>
@@ -26,8 +27,8 @@ require __DIR__ . '/../../../includes/head.php';
   <div class="workspace">
     <header class="page-header"><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-sidebar" aria-label="Abrir menu"><span></span><span></span><span></span></button><div class="page-heading"><h1>Gerenciamento de Manutenções de Contêineres</h1><p>Consulte, filtre e gerencie as manutenções</p></div><div class="date-pill"><img src="<?= $img ?>dashboard/e6378.svg" alt="" width="13" height="13"><time id="today"></time></div></header>
     <main class="maintenance-main" id="maintenance-main" data-img-url="<?= $img ?>" tabindex="-1" aria-busy="true">
-      <!-- Título e "Nova manutenção" (data-module: aviso de em desenvolvimento do painel.js) -->
-      <div class="page-intro"><h2>Manutenções</h2><button class="new-client" id="new-maintenance" type="button" data-module="Nova manutenção"><img src="<?= $img ?>manutencoes/bfafb.svg" alt="" width="16" height="16">Nova manutenção</button></div>
+      <!-- Título e link "Nova manutenção" (abre o cadastro.php) -->
+      <div class="page-intro"><h2>Manutenções</h2><a class="new-client" id="new-maintenance" href="<?= $urlCadastro ?>"><img src="<?= $img ?>manutencoes/bfafb.svg" alt="" width="16" height="16">Nova manutenção</a></div>
       <!-- Indicadores (preenchidos pelo manutencoes.js com data.metrics da API) -->
       <section class="stats-grid" aria-label="Indicadores gerais de manutenção">
         <article class="stat-card"><div class="stat-heading"><h2>Em manutenção</h2><span class="stat-icon ongoing"><span class="metric-image"><img src="<?= $img ?>manutencoes/27de2.png" alt=""></span></span></div><p class="stat-value" id="metric-em_manutencao">—</p><p class="stat-caption">Contêineres atualmente</p></article>

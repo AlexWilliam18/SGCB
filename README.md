@@ -72,13 +72,13 @@ Projeto Integrador desenvolvido pela equipe **Bemfa Developers**:
 | Nova categoria (diálogo da tela de Produtos) | `public/admin/produtos/index.php` | `/api/categorias/opcoes` e `/api/categorias` (POST) — token CSRF e salvamento |
 | Cadastro de produto | `public/admin/produtos/cadastro.php` | `/api/produtos/opcoes` e `/api/produtos` (POST) — categorias, fornecedores, token CSRF e salvamento (gera as unidades físicas) |
 | Manutenções | `public/admin/manutencoes/index.php` | `/api/manutencoes` e `/api/manutencoes/{id}` — indicadores, lista, filtros, localidades, paginação e detalhes |
+| Cadastro de manutenção | `public/admin/manutencoes/cadastro.php` | `/api/manutencoes/opcoes` e `/api/manutencoes` (POST) — contêineres, tipos, prioridades, responsáveis, token CSRF e salvamento |
 
 Enquanto essas APIs não existem, as telas abrem normalmente e mostram um aviso de "não foi possível carregar".
 
 ### Ainda não iniciado
 
 - Módulos **Contratos de Locação** e **Financeiro** (já aparecem no menu como "em desenvolvimento").
-- Tela de **nova manutenção** (o botão "Nova manutenção" ainda abre o aviso "em desenvolvimento").
 - Tela de **troca de senha obrigatória** no primeiro acesso (o banco já tem o campo `deve_alterar_senha`).
 - Recuperação de senha, "lembrar de mim" no servidor e permissões por cargo (as tabelas já existem).
 - Testes automatizados (pastas `tests/` criadas, ainda vazias).
@@ -100,7 +100,7 @@ Ordem cronológica. Os PRs #1 a #5 foram integrados na `main`; a partir do #6 os
 | 7 | `feature/clientes` | #8 | Telas de Clientes (listagem e cadastro) em `public/admin/clientes/`, com CSS/JS próprios e imagens; menu centralizado em `includes/nav.php`; `head.php` passou a aceitar classe no `<body>` e fontes extras. |
 | 8 | `feature/produto` | #9 | Tela de Produtos (somente front-end) em `public/admin/produtos/index.php`: pesquisa, filtros de status e categoria, tabela com diária e estoque, paginação, diálogo "Dados do produto" e diálogo "Cadastre nova Categoria". Arquivos `produtos.css`, `produtos.js`, `categorias.js` e ícones em `img/produtos/`. |
 | 9 | `Develop` | — | Tela de Cadastro de Produto (somente front-end) em `public/admin/produtos/cadastro.php`: dados do produto, informações de compra, valores de locação por período e estoque/limites. Arquivos `cadastro-produto.css` e `cadastro-produto.js`; o botão "Novo produto" da listagem abre essa tela. |
-| 10 | `feature/manutencao` | — (em andamento) | Tela de Manutenções (somente front-end) em `public/admin/manutencoes/index.php`: indicadores (em manutenção, agendadas, urgentes e concluídas no mês), pesquisa, filtros de prioridade, localidade e data, tabela com status e prioridade, paginação e diálogo "Dados da manutenção". Arquivos `manutencoes.css`, `manutencoes.js` e ícones em `img/manutencoes/`. |
+| 10 | `feature/manutencao` | — (em andamento) | Tela de Manutenções (somente front-end) em `public/admin/manutencoes/index.php`: indicadores (em manutenção, agendadas, urgentes e concluídas no mês), pesquisa, filtros de prioridade, localidade e data, tabela com status e prioridade, paginação e diálogo "Dados da manutenção". Tela de Cadastro de Manutenção em `public/admin/manutencoes/cadastro.php`: contêiner, tipo, prioridade, data prevista, responsável e descrição; o botão "Nova manutenção" da listagem abre essa tela. Arquivos `manutencoes.css`, `manutencoes.js`, `cadastro-manutencao.css`, `cadastro-manutencao.js` e ícones em `img/manutencoes/` e `img/cadastro-manutencao/`. |
 
 ---
 
@@ -166,12 +166,12 @@ SGCB/
 │   │   ├── dashboard.php      # Visão Geral
 │   │   ├── clientes/          # index.php (listagem) e cadastro.php
 │   │   ├── produtos/          # index.php (listagem) e cadastro.php
-│   │   ├── manutencoes/       # index.php (listagem)
+│   │   ├── manutencoes/       # index.php (listagem) e cadastro.php
 │   │   ├── containers/  locacoes/  usuarios/   # módulos futuros
 │   ├── assets/
-│   │   ├── css/               # login, dashboard, clientes, cadastro-cliente, produtos, cadastro-produto, manutencoes
-│   │   ├── js/                # login, painel, dashboard, clientes, cadastro-cliente, produtos, categorias, cadastro-produto, manutencoes
-│   │   └── img/               # login, logo, nav, dashboard, clientes, cadastro-cliente, produtos, manutencoes
+│   │   ├── css/               # login, dashboard, clientes, cadastro-cliente, produtos, cadastro-produto, manutencoes, cadastro-manutencao
+│   │   ├── js/                # login, painel, dashboard, clientes, cadastro-cliente, produtos, categorias, cadastro-produto, manutencoes, cadastro-manutencao
+│   │   └── img/               # login, logo, nav, dashboard, clientes, cadastro-cliente, produtos, manutencoes, cadastro-manutencao
 │   └── uploads/               # arquivos enviados (protegida por .htaccess)
 ├── src/
 │   ├── bootstrap.php          # carrega config, classes e inicia a sessão
