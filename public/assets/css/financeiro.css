@@ -1,0 +1,238 @@
+/*
+ * Gerenciamento financeiro. Complementa o dashboard.css (cards de indicadores), o clientes.css
+ * (filtros, tabela, paginação e diálogo) e o manutencoes.css (layout, filtros com rótulo e data).
+ * As regras com .finance-page só valem nesta página (classe definida em $classeBody).
+ *
+ * Organização:
+ *   1. Cards de indicadores (cores e recorte dos ícones)
+ *   2. Tabela de parcelas e selos de status
+ *   3. Diálogo de detalhes (histórico de pagamentos e observações)
+ *   4. Responsivo
+ */
+
+/* ==========================================================================
+   1. Cards de indicadores (cores e recorte dos ícones)
+   ========================================================================== */
+
+/* Fundo colorido do ícone de cada card */
+.finance-page .stat-icon.received {
+    background: #00f27933
+}
+
+.finance-page .stat-icon.open {
+    background: #e5b7004d
+}
+
+.finance-page .stat-icon.overdue {
+    background: #f3040733
+}
+
+.finance-page .stat-icon.upcoming {
+    background: #044bff33
+}
+
+/* Cada ícone fica dentro de uma "janela" com overflow escondido e é deslocado
+   para centralizar a parte útil da imagem (as imagens têm margens diferentes) */
+.revenue-icon {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    width: 28px;
+    height: 28px
+}
+
+.revenue-icon img {
+    position: absolute;
+    left: -4.25px;
+    top: 1px;
+    display: block
+}
+
+.calendar-icon {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    width: 29px;
+    height: 28px
+}
+
+.calendar-icon img {
+    position: absolute;
+    left: -3px;
+    top: -4px;
+    display: block;
+    object-fit: cover
+}
+
+.overdue-icon {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    width: 40px;
+    height: 40px
+}
+
+.overdue-icon img {
+    position: absolute;
+    left: 6.25px;
+    top: 6px;
+    display: block;
+    object-fit: cover
+}
+
+.upcoming-icon {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    width: 40px;
+    height: 40px
+}
+
+.upcoming-icon img {
+    position: absolute;
+    left: 6px;
+    top: 8px;
+    display: block;
+    object-fit: cover
+}
+
+/* Valores em R$ podem ser longos: quebram e usam números de largura fixa */
+.finance-page .stat-value {
+    overflow-wrap: anywhere;
+    max-width: 100%;
+    font-variant-numeric: tabular-nums
+}
+
+/* ==========================================================================
+   2. Tabela de parcelas e selos de status
+   ========================================================================== */
+
+/* Largura mínima: abaixo disso a tabela rola na horizontal */
+.finance-table {
+    min-width: 1100px;
+    table-layout: fixed
+}
+
+.finance-table td {
+    white-space: normal;
+    overflow-wrap: anywhere
+}
+
+.finance-table .money-cell {
+    font-variant-numeric: tabular-nums
+}
+
+/* Selo base ("Em aberto"); as classes abaixo vêm do status da API em minúsculas */
+.finance-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 15px;
+    padding: 3px 7px;
+    border-radius: 6px;
+    background: #fff4d9;
+    color: #795c1f
+}
+
+.finance-badge.paga {
+    background: #e7f5ec;
+    color: #235338
+}
+
+.finance-badge.atrasada {
+    background: #fdebea;
+    color: #a53232
+}
+
+.finance-badge.cancelada {
+    background: #eee;
+    color: #616761
+}
+
+.finance-badge.parcial {
+    background: #e9efff;
+    color: #34569a
+}
+
+/* "Parcela N" abaixo do número do contrato */
+.installment-number {
+    display: block;
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 16px
+}
+
+/* ==========================================================================
+   3. Diálogo de detalhes (histórico de pagamentos e observações)
+   ========================================================================== */
+
+.payment-history {
+    margin-top: 24px
+}
+
+.payment-history h3 {
+    font-size: 15px;
+    margin: 0 0 12px
+}
+
+.payment-entry {
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    line-height: 19px;
+    overflow-wrap: anywhere
+}
+
+.payment-entry p + p {
+    margin-top: 4px
+}
+
+/* Linha "Estornado em…" em vermelho */
+.payment-reversed {
+    color: #a53232
+}
+
+/* Observações da parcela (mantém as quebras de linha digitadas) */
+.finance-note {
+    margin-top: 20px;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: 20px
+}
+
+/* ==========================================================================
+   4. Responsivo
+   ========================================================================== */
+
+@media (max-width: 760px) {
+    .finance-page .stat-value {
+        font-size: 21px;
+        line-height: 28px
+    }
+
+    /* Faturamento (valor em R$) um pouco menor para caber no card */
+    .finance-page .stat-card:first-child .stat-value {
+        font-size: 19px
+    }
+
+    .finance-page .stat-heading h2,
+    .finance-page .stat-caption {
+        font-size: 10px
+    }
+
+    .finance-page .finance-table .clients-empty > div {
+        width: calc(100vw - 42px)
+    }
+}
+
+@media (max-width: 460px) {
+    .finance-page .stat-heading h2 {
+        font-size: 9px
+    }
+
+    .finance-page .finance-table .clients-empty > div {
+        width: calc(100vw - 34px)
+    }
+}
