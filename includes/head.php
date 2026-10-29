@@ -25,6 +25,8 @@ $urlFontes = 'https://fonts.googleapis.com/css2?family=' . implode('&family=', $
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1b4332">
   <title><?= htmlspecialchars($titulo) ?> | Casa Barretto</title>
+  <!-- Favicon (logotipo) em todas as páginas; "?v=" evita que o navegador fique com o ícone antigo em cache -->
+  <link rel="icon" type="image/svg+xml" href="<?= htmlspecialchars(BASE_URL . 'assets/img/logo/favicon.svg?v=' . (@filemtime(__DIR__ . '/../public/assets/img/logo/favicon.svg') ?: 0)) ?>">
   <!-- Figtree para textos, Libre Caslon Text para o logotipo -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
