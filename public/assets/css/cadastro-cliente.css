@@ -1158,3 +1158,9 @@
         width: min(100%, 766px)
     }
 }
+/* Edição: nomes dos anexos já enviados, acima da lista dos novos (cadastro-cliente.js) */
+.existing-attachments {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--muted, #5d625e);
+}

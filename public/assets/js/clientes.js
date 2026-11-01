@@ -1,7 +1,7 @@
 'use strict';
 /*
  * Listagem de clientes: filtros, paginação e diálogo de detalhes.
- * Os dados vêm de /api/clientes (back-end ainda não implementado).
+ * Os dados vêm de /api/clientes (atendidos por public/api/index.php → src/Controllers).
  */
 (() => {
   const $ = id => document.getElementById(id);
@@ -9,10 +9,14 @@
   const imgUrl = $('clients-main').dataset.imgUrl;
   const url = new URLSearchParams(location.search);
   if (/^\d+$/.test(url.get('cadastro_salvo') || '')) {
+    // editado=1 vem da edição (cadastro-cliente.js com ?id=); sem ele, é um cadastro novo.
+    const editado = url.get('editado') === '1';
     $('saved-notice').textContent =
       url.get('tipo_cadastro') === 'FORNECEDOR'
-        ? 'Fornecedor cadastrado com sucesso. Esta listagem exibe clientes; fornecedores exclusivos não aparecem aqui.'
-        : 'Cliente cadastrado com sucesso.';
+        ? 'Fornecedor ' + (editado ? 'atualizado' : 'cadastrado') + ' com sucesso. Esta listagem exibe clientes; fornecedores exclusivos não aparecem aqui.'
+        : editado
+          ? 'Cadastro atualizado com sucesso.'
+          : 'Cliente cadastrado com sucesso.';
     $('saved-notice').hidden = false;
   }
   const state = {
@@ -157,7 +161,7 @@
       for (const [key, value] of Object.entries(state)) {
         if (!['pages'].includes(key) && value !== '' && (key !== 'page' || value !== 1)) params.set(key, value);
       }
-      const response = await fetch('/api/clientes?' + params, {
+      const response = await fetch(window.SGCB_API + 'clientes?' + params, {
         signal: controller.signal,
         cache: 'no-store',
         headers: { Accept: 'application/json' },
@@ -255,7 +259,7 @@
     container.textContent = 'Carregando cadastro…';
     $('client-dialog').showModal();
     try {
-      const response = await fetch('/api/clientes/' + encodeURIComponent(id), { cache: 'no-store' });
+      const response = await fetch(window.SGCB_API + 'clientes/' + encodeURIComponent(id), { cache: 'no-store' });
       if (!response.ok) throw Error();
       const client = await response.json();
       if (current !== detailRequest || !$('client-dialog').open) return;
@@ -307,6 +311,20 @@
         section.append(heading, text);
         container.append(section);
       });
+      // Ações do cadastro (acoes.js): Editar abre o cadastro preenchido; Ativar/Inativar grava na hora.
+      SGCBAcoes.barra(container, [
+        {
+          texto: client.ativo ? 'Inativar' : 'Reativar',
+          classe: client.ativo ? 'perigo' : '',
+          confirmar: client.ativo ? 'Inativar ' + client.nome + '? Ele não poderá receber contratos novos.' : null,
+          acao: async () => {
+            await SGCBAcoes.executar('clientes/' + encodeURIComponent(id) + '/status', { ativo: !client.ativo });
+            loadClients();
+            showClient(id);
+          },
+        },
+        { texto: 'Editar cadastro', classe: 'primaria', href: 'cadastro.php?id=' + encodeURIComponent(id) },
+      ]);
     } catch (_) {
       if (current === detailRequest) {
         container.textContent = 'Não foi possível abrir o cadastro. Feche esta janela e tente novamente.';

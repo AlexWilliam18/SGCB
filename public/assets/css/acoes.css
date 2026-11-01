@@ -1,0 +1,136 @@
+/* ==========================================================================
+   Ações dos diálogos de detalhes (acoes.js): barra de botões, mensagens e formulários curtos.
+   Usado nas listagens de Clientes, Produtos, Manutenções e Financeiro.
+   Cores: as variáveis do dashboard.css (--forest, --line, --paper, --muted).
+   ========================================================================== */
+
+/* Barra de botões no rodapé do diálogo */
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+/* Botão padrão: contorno claro, como o "Ver" das tabelas */
+.detail-action {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--forest-light);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.detail-action:hover {
+  background: var(--paper);
+}
+
+.detail-action:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+/* Ação principal (Editar, Concluir, Registrar) em verde */
+.detail-action.primaria {
+  border-color: var(--forest);
+  background: var(--forest);
+  color: white;
+}
+
+.detail-action.primaria:hover {
+  background: var(--forest-light);
+}
+
+/* Ação destrutiva (Inativar, Cancelar, Estornar) em vermelho */
+.detail-action.perigo {
+  border-color: #e6c3c3;
+  color: #9b2c2c;
+}
+
+.detail-action.perigo:hover {
+  background: #fdf3f3;
+}
+
+/* Botão pequeno dentro do histórico (ex.: Estornar um pagamento) */
+.detail-action.pequena {
+  padding: 4px 9px;
+  font-size: 11px;
+}
+
+/* Mensagem de erro das ações */
+.detail-feedback {
+  margin: 10px 0 0;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #fdf3f3;
+  color: #9b2c2c;
+  font-size: 12px;
+  text-align: right;
+}
+
+/* Formulário curto (Concluir manutenção, Registrar pagamento) */
+.detail-form {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+}
+
+.detail-form h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+}
+
+.detail-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.detail-form-grid label {
+  display: grid;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.detail-form-grid input,
+.detail-form-grid select {
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  padding: 6px 9px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.detail-form .detail-action {
+  margin-left: auto;
+}
+
+/* Aviso de sucesso no topo da listagem (ex.: "Cadastro atualizado") */
+.action-success {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border: 1px solid #b7d7c2;
+  border-radius: 10px;
+  background: #eef7f1;
+  color: var(--forest);
+  font-size: 13px;
+}

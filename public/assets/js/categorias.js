@@ -2,7 +2,7 @@
 /*
  * Diálogo "Cadastre nova Categoria" da listagem de produtos.
  * Ao abrir, busca o token CSRF em /api/categorias/opcoes; ao salvar, faz POST em /api/categorias
- * (back-end ainda não implementado) e dispara o evento "categoria:criada", ouvido pelo produtos.js.
+ * (atendidos por public/api/index.php → src/Controllers) e dispara o evento "categoria:criada", ouvido pelo produtos.js.
  */
 (() => {
   const $ = id => document.getElementById(id),
@@ -44,7 +44,7 @@
     saveState();
     $('retry-category').disabled = true;
     try {
-      const response = await fetch('/api/categorias/opcoes', { cache: 'no-store', signal: controller.signal });
+      const response = await fetch(window.SGCB_API + 'categorias/opcoes', { cache: 'no-store', signal: controller.signal });
       if (!response.ok) throw Error();
       const data = await response.json();
       if (current !== generation || !dialog.open) return;
@@ -153,7 +153,7 @@
     const controller = new AbortController(),
       timeout = setTimeout(() => controller.abort(), 20000);
     try {
-      const response = await fetch('/api/categorias', {
+      const response = await fetch(window.SGCB_API + 'categorias', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
           body: JSON.stringify({ nome: value }),

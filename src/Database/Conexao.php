@@ -24,6 +24,9 @@ final class Conexao
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,       // linhas como array associativo
                 PDO::ATTR_EMULATE_PREPARES   => false,                  // prepared statements reais no servidor
             ]);
+
+            // NOW() do banco no mesmo fuso do PHP (definido no bootstrap), ex.: '-03:00'.
+            self::$pdo->exec("SET time_zone = '" . date('P') . "'");
         }
 
         return self::$pdo;
