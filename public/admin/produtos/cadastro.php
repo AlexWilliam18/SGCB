@@ -1,8 +1,7 @@
 <?php
 /**
  * Cadastro de produto: dados, informações de compra, valores de locação, estoque e limites.
- * Por enquanto só front-end: as categorias/fornecedores e o salvamento dependem de
- * /api/produtos/opcoes e /api/produtos, que virão na etapa de back-end.
+ * Com ?id=3 abre em modo edição (cadastro-produto.js carrega o produto e salva em /api/produtos/3).
  */
 
 require __DIR__ . '/../../../src/bootstrap.php';

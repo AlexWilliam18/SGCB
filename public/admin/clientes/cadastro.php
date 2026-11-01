@@ -1,8 +1,7 @@
 <?php
 /**
  * Cadastro de cliente/fornecedor: dados, endereços, informações financeiras e anexos.
- * Por enquanto só front-end: as condições de pagamento e o salvamento dependem de
- * /api/cadastros/opcoes e /api/clientes, que virão na etapa de back-end.
+ * Com ?id=5 abre em modo edição (cadastro-cliente.js carrega o cliente e salva em /api/clientes/5).
  */
 
 require __DIR__ . '/../../../src/bootstrap.php';

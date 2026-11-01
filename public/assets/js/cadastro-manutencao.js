@@ -2,7 +2,7 @@
 /*
  * Cadastro de manutenção: carrega contêineres, tipos, prioridades e responsáveis, valida,
  * salva e avisa sobre alterações não salvas. As opções vêm de /api/manutencoes/opcoes e o
- * salvamento faz POST em /api/manutencoes (back-end ainda não implementado).
+ * salvamento faz POST em /api/manutencoes (atendidos por public/api/index.php → src/Controllers).
  * Depois de salvar, o formulário é limpo e fica na tela para um novo cadastro.
  */
 (() => {
@@ -90,7 +90,7 @@
     saveState();
     $('retry-options').disabled = true;
     try {
-      const response = await fetch('/api/manutencoes/opcoes', { cache: 'no-store', signal: controller.signal });
+      const response = await fetch(window.SGCB_API + 'manutencoes/opcoes', { cache: 'no-store', signal: controller.signal });
       const data = await readJson(response);
       if (!response.ok || !data) throw Error();
       if (!['unidades', 'responsaveis', 'tipos', 'prioridades'].every(key => Array.isArray(data[key])) || !data.csrf_token)
@@ -186,7 +186,7 @@
     const controller = new AbortController(),
       timeout = setTimeout(() => controller.abort(), 20000);
     try {
-      const response = await fetch('/api/manutencoes', {
+      const response = await fetch(window.SGCB_API + 'manutencoes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
         body: JSON.stringify(data),

@@ -1,7 +1,7 @@
 'use strict';
 /*
  * Gerenciamento financeiro: indicadores, pesquisa, filtros, paginação e diálogo de detalhes da parcela.
- * Os dados vêm de /api/financeiro e /api/financeiro/parcelas/{id} (back-end ainda não implementado).
+ * Os dados vêm de /api/financeiro e /api/financeiro/parcelas/{id} (atendidos por public/api/index.php → src/Controllers).
  * Os filtros e a página ficam na URL (?q=&prioridade=&status=&data=&page=), então
  * recarregar ou compartilhar o link mantém a mesma consulta.
  */
@@ -192,7 +192,7 @@
       const params = new URLSearchParams();
       for (const [key, value] of Object.entries(state))
         if (key !== 'pages' && value !== '' && (key !== 'page' || value !== 1)) params.set(key, value);
-      const response = await fetch('/api/financeiro?' + params, { cache: 'no-store', signal: active.signal });
+      const response = await fetch(window.SGCB_API + 'financeiro?' + params, { cache: 'no-store', signal: active.signal });
       const data = await readJson(response);
       if (!response.ok || !data)
         throw Error(data?.error || 'Não foi possível carregar o financeiro. Verifique a conexão com o banco e tente novamente.');
@@ -309,7 +309,7 @@
     box.textContent = 'Carregando parcela…';
     if (!$('finance-dialog').open) $('finance-dialog').showModal();
     try {
-      const response = await fetch('/api/financeiro/parcelas/' + encodeURIComponent(identifier), {
+      const response = await fetch(window.SGCB_API + 'financeiro/parcelas/' + encodeURIComponent(identifier), {
         cache: 'no-store',
         signal: active.signal,
       });
@@ -376,10 +376,81 @@
             reversed.textContent =
               'Estornado em ' + dateTime(payment.estornado_em) + (payment.motivo_estorno ? ' — ' + payment.motivo_estorno : '');
             entry.append(reversed);
+          } else {
+            // Estornar: o pagamento continua no histórico, mas deixa de contar no saldo.
+            const reverse = document.createElement('button');
+            reverse.type = 'button';
+            reverse.className = 'detail-action pequena perigo';
+            reverse.textContent = 'Estornar';
+            reverse.addEventListener('click', async () => {
+              const motivo = prompt('Motivo do estorno de ' + money(payment.valor) + ':');
+              if (motivo === null) return;
+              reverse.disabled = true;
+              try {
+                await SGCBAcoes.executar('financeiro/pagamentos/' + encodeURIComponent(payment.id) + '/estorno', {
+                  motivo_estorno: motivo,
+                });
+                atualizar();
+              } catch (erro) {
+                alert(erro.message);
+                reverse.disabled = false;
+              }
+            });
+            entry.append(reverse);
           }
           section.append(entry);
         });
       box.append(section);
+
+      // Ações da parcela (acoes.js). Depois de gravar, recarrega a lista e reabre a parcela atualizada.
+      function atualizar() {
+        load();
+        showDetail(identifier);
+      }
+      const rota = 'financeiro/parcelas/' + encodeURIComponent(identifier) + '/';
+      if (item.status !== 'CANCELADA' && item.saldo > 0) {
+        SGCBAcoes.formulario(
+          box,
+          'Registrar pagamento',
+          [
+            {
+              nome: 'forma',
+              rotulo: 'Forma',
+              tipo: 'select',
+              opcoes: [
+                ['PIX', 'Pix'],
+                ['CARTAO_CREDITO', 'Cartão de crédito'],
+                ['CARTAO_DEBITO', 'Cartão de débito'],
+                ['DINHEIRO', 'Dinheiro'],
+                ['BOLETO', 'Boleto'],
+                ['TRANSFERENCIA', 'Transferência'],
+              ],
+              obrigatorio: true,
+            },
+            // Começa com o saldo inteiro; pode ser menor (pagamento parcial).
+            { nome: 'valor', rotulo: 'Valor (R$)', valor: Number(item.saldo).toFixed(2).replace('.', ','), obrigatorio: true },
+            { nome: 'pago_em', rotulo: 'Data do pagamento', tipo: 'datetime-local', valor: SGCBAcoes.agoraLocal() },
+          ],
+          'Registrar',
+          async dados => {
+            await SGCBAcoes.executar(rota + 'pagamentos', dados);
+            atualizar();
+          }
+        );
+      }
+      if (item.status !== 'CANCELADA' && !item.valor_recebido)
+        SGCBAcoes.barra(box, [
+          {
+            texto: 'Cancelar parcela',
+            classe: 'perigo',
+            acao: async () => {
+              const motivo = prompt('Motivo do cancelamento da parcela:');
+              if (motivo === null) return;
+              await SGCBAcoes.executar(rota + 'cancelar', { motivo });
+              atualizar();
+            },
+          },
+        ]);
     } catch (error) {
       if (current === detailId && $('finance-dialog').open) {
         box.textContent =

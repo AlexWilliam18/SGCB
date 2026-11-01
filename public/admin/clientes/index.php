@@ -9,8 +9,8 @@ require __DIR__ . '/../../../src/bootstrap.php';
 Autenticacao::exigirLogin();
 
 $titulo      = 'Clientes';
-$css         = ['dashboard.css', 'clientes.css'];
-$js          = ['painel.js', 'clientes.js'];
+$css         = ['dashboard.css', 'clientes.css', 'acoes.css'];
+$js          = ['painel.js', 'acoes.js', 'clientes.js'];
 $paginaAtual = 'clientes';
 
 // Caminhos já escapados; também vão para o JS via data-*.

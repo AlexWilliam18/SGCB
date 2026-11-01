@@ -11,8 +11,8 @@ Autenticacao::exigirLogin();
 
 // clientes.css é reaproveitado: filtros, tabela, paginação e diálogo de detalhes têm o mesmo visual.
 $titulo      = 'Manutenções';
-$css         = ['dashboard.css', 'clientes.css', 'manutencoes.css'];
-$js          = ['painel.js', 'manutencoes.js'];
+$css         = ['dashboard.css', 'clientes.css', 'manutencoes.css', 'acoes.css'];
+$js          = ['painel.js', 'acoes.js', 'manutencoes.js'];
 $classeBody  = 'maintenance-page';
 $paginaAtual = 'manutencoes';
 
