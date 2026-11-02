@@ -11,8 +11,8 @@ Autenticacao::exigirLogin();
 // clientes.css (filtros, tabela, paginação, diálogo) e manutencoes.css (cards, filtros com rótulo,
 // campo de data) são reaproveitados; financeiro.css só traz o que é próprio desta tela.
 $titulo      = 'Financeiro';
-$css         = ['dashboard.css', 'clientes.css', 'manutencoes.css', 'financeiro.css'];
-$js          = ['painel.js', 'financeiro.js'];
+$css         = ['dashboard.css', 'clientes.css', 'manutencoes.css', 'financeiro.css', 'acoes.css'];
+$js          = ['painel.js', 'acoes.js', 'financeiro.js'];
 $classeBody  = 'maintenance-page finance-page';   // maintenance-page ativa os estilos do manutencoes.css
 $paginaAtual = 'financeiro';
 

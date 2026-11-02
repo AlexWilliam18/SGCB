@@ -11,8 +11,8 @@ Autenticacao::exigirLogin();
 
 // clientes.css é reaproveitado: filtros, tabela, paginação e diálogo de detalhes têm o mesmo visual.
 $titulo      = 'Produtos';
-$css         = ['dashboard.css', 'clientes.css', 'produtos.css'];
-$js          = ['painel.js', 'produtos.js', 'categorias.js'];
+$css         = ['dashboard.css', 'clientes.css', 'produtos.css', 'acoes.css'];
+$js          = ['painel.js', 'acoes.js', 'produtos.js', 'categorias.js'];
 $classeBody  = 'products-page';
 $paginaAtual = 'produtos';
 

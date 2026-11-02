@@ -1,7 +1,7 @@
 'use strict';
 /*
  * Listagem de produtos: filtros, paginação e diálogo de detalhes.
- * Os dados vêm de /api/produtos (back-end ainda não implementado). A lista é recarregada
+ * Os dados vêm de /api/produtos (atendidos por public/api/index.php → src/Controllers). A lista é recarregada
  * quando o categorias.js dispara o evento "categoria:criada".
  */
 (() => {
@@ -142,7 +142,7 @@
       const params = new URLSearchParams();
       for (const [key, value] of Object.entries(state))
         if (key !== 'pages' && value !== '' && (key !== 'page' || value !== 1)) params.set(key, value);
-      const response = await fetch('/api/produtos?' + params, {
+      const response = await fetch(window.SGCB_API + 'produtos?' + params, {
         signal: controller.signal,
         cache: 'no-store',
         headers: { Accept: 'application/json' },
@@ -249,7 +249,7 @@
     container.textContent = 'Carregando produto…';
     if (!$('product-dialog').open) $('product-dialog').showModal();
     try {
-      const response = await fetch('/api/produtos/' + encodeURIComponent(id), {
+      const response = await fetch(window.SGCB_API + 'produtos/' + encodeURIComponent(id), {
         cache: 'no-store',
         signal: controller.signal,
       });
@@ -300,6 +300,33 @@
       p.textContent =
         'Estoque calculado pelas unidades físicas e pela agenda atual. Reservas, manutenção e unidades inativas não entram em Disponível.';
       container.append(p);
+      // Ações do produto (acoes.js). Depois de gravar, recarrega a lista e reabre os dados atualizados.
+      const atualizar = () => {
+        loadProducts();
+        showProduct(id);
+      };
+      SGCBAcoes.formulario(
+        container,
+        'Ajustar estoque',
+        [{ nome: 'quantidade', rotulo: 'Unidades (+ entram, − saem)', tipo: 'number', placeholder: 'Ex.: 2 ou -1', obrigatorio: true }],
+        'Aplicar',
+        async dados => {
+          await SGCBAcoes.executar('produtos/' + encodeURIComponent(id) + '/estoque', { quantidade: dados.quantidade });
+          atualizar();
+        }
+      );
+      SGCBAcoes.barra(container, [
+        {
+          texto: product.ativo ? 'Inativar' : 'Reativar',
+          classe: product.ativo ? 'perigo' : '',
+          confirmar: product.ativo ? 'Inativar ' + product.nome + '? Ele não poderá entrar em contratos novos.' : null,
+          acao: async () => {
+            await SGCBAcoes.executar('produtos/' + encodeURIComponent(id) + '/status');
+            atualizar();
+          },
+        },
+        { texto: 'Editar produto', classe: 'primaria', href: 'cadastro.php?id=' + encodeURIComponent(id) },
+      ]);
     } catch (_) {
       if (current === detailRequest && $('product-dialog').open) {
         container.textContent = 'Não foi possível abrir o produto. ';
@@ -328,8 +355,10 @@
   try {
     const created = JSON.parse(sessionStorage.getItem('produto-criado') || 'null');
     if (created) {
-      $('category-success').textContent =
-        'Produto “' + created.nome + '” cadastrado com sucesso. ' + created.unidades + ' unidade(s) criada(s).';
+      // "editado" vem da edição do produto (cadastro-produto.js com ?id=).
+      $('category-success').textContent = created.editado
+        ? 'Produto “' + created.nome + '” atualizado com sucesso.'
+        : 'Produto “' + created.nome + '” cadastrado com sucesso. ' + created.unidades + ' unidade(s) criada(s).';
       $('category-success').hidden = false;
       sessionStorage.removeItem('produto-criado');
     }

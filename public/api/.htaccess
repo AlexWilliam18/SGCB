@@ -1,0 +1,5 @@
+# Toda URL de api/ (ex.: api/clientes/5) é atendida pelo index.php desta pasta,
+# que encontra a rota e chama o controller certo (src/Controllers).
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]

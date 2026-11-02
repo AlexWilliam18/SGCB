@@ -1,7 +1,7 @@
 'use strict';
 /*
  * Cadastro de cliente: máscaras, validação, endereços, foto, anexos e aviso de alterações não salvas.
- * As opções e o salvamento usam /api/cadastros/opcoes e /api/clientes (back-end ainda não implementado).
+ * As opções e o salvamento usam /api/cadastros/opcoes e /api/clientes (atendidos por public/api/index.php → src/Controllers).
  */
 (() => {
   // URL da listagem de clientes, vinda do data-lista-url do <main>.
@@ -17,7 +17,13 @@
     COBRANCA: 'de cobrança',
     OUTRO: 'adicional',
   };
-  let dirty = false,
+  // Edição: cadastro.php?id=5 abre o cliente 5 preenchido e salva em POST /api/clientes/5.
+  const editId = /^\d+$/.test(new URLSearchParams(location.search).get('id') || '')
+      ? new URLSearchParams(location.search).get('id')
+      : null,
+    saveLabel = editId ? 'Salvar alterações' : 'Salvar cadastro';
+  let loaded = !editId, // na edição, só libera o Salvar depois de carregar o cadastro
+    dirty = false,
     saving = false,
     ready = false,
     responsible = false,
@@ -180,6 +186,14 @@
   }
   addAddress('RESIDENCIAL', true);
   addAddress('ENTREGA');
+  // Textos da tela no modo edição.
+  if (editId) {
+    document.querySelector('.form-intro h2').textContent = 'Editar cliente';
+    document.querySelector('.form-intro p').textContent =
+      'Altere os dados e salve. Anexos novos são somados aos que já foram enviados.';
+    $('save-client').textContent = saveLabel;
+    document.title = document.title.replace('Novo cliente', 'Editar cliente');
+  }
   $('add-address').addEventListener('click', () => addAddress('ENTREGA', false, true));
   form.addEventListener('input', e => {
     dirty = true;
@@ -313,7 +327,63 @@
   );
   $('dropzone').addEventListener('drop', e => addFiles(e.dataTransfer.files));
   function saveState() {
-    $('save-client').disabled = saving || !ready || !responsible;
+    $('save-client').disabled = saving || !ready || !responsible || !loaded;
+  }
+  // Edição: busca o cadastro na API (GET /api/clientes/{id}) e preenche o formulário.
+  async function loadRecord() {
+    const response = await fetch(window.SGCB_API + 'clientes/' + encodeURIComponent(editId), { cache: 'no-store' });
+    const client = await response.json().catch(() => null);
+    if (!response.ok || !client) throw Error(client?.error || 'Não foi possível carregar o cadastro.');
+
+    $('tipo_cadastro').value = client.tipo_cadastro || '';
+    $('nome_razao_social').value = client.nome || '';
+    $('nome_fantasia').value = client.nome_fantasia || '';
+    $('cpf_cnpj').value = maskDoc(client.cpf_cnpj || '');
+    $('email').value = client.email || '';
+    $('telefone').value = client.telefone || '';
+    $('telefone').dispatchEvent(new Event('blur')); // aplica a máscara (12) 99999-9999
+    $('data_nascimento').value = client.data_nascimento || '';
+    $('profissao').value = client.profissao || '';
+    // Nacionalidade fora da lista vai para "Outra" + campo de texto.
+    const nationality = client.nacionalidade || '',
+      known = [...$('nacionalidade').options].some(option => option.value === nationality);
+    $('nacionalidade').value = known ? nationality : nationality ? 'Outra' : '';
+    $('other-nationality').hidden = known || !nationality;
+    $('nacionalidade_outra').value = known ? '' : nationality;
+    $('condicao_pagamento_id').value = client.condicao_pagamento_id ? String(client.condicao_pagamento_id) : '';
+    $('limite_credito').value = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+      Number(client.limite_credito) || 0
+    );
+    $('permite_ultrapassar_limite').checked = Boolean(client.permite_ultrapassar_limite);
+
+    // Endereços: um bloco por endereço ativo (o tipo "Outro" volta pela descrição).
+    $('addresses').replaceChildren();
+    const addresses = client.enderecos?.length ? client.enderecos : [{ principal: true, tipo: 'RESIDENCIAL' }];
+    addresses.forEach(address => {
+      addAddress(address.tipo || (address.descricao === 'Outro' ? 'OUTRO' : 'COMERCIAL'), Boolean(address.principal));
+      const node = nodes()[nodes().length - 1];
+      ['rua', 'numero', 'bairro', 'cidade', 'uf', 'complemento'].forEach(
+        field => (node.querySelector('[data-field="' + field + '"]').value = address[field] || '')
+      );
+      node.querySelector('[data-field=cep]').value = (address.cep || '').replace(/(\d{5})(\d)/, '$1-$2');
+    });
+    refresh();
+
+    // Foto atual (só exibição; uma foto nova escolhida substitui esta ao salvar).
+    if (client.foto) {
+      $('photo-preview').src = window.SGCB_BASE + client.foto;
+      $('photo-preview').hidden = false;
+      $('choose-photo').textContent = 'Alterar foto';
+    }
+    // Anexos já enviados ficam listados acima dos novos.
+    if (client.anexos?.length) {
+      const existing = document.createElement('p');
+      existing.className = 'existing-attachments';
+      existing.textContent = 'Já enviados: ' + client.anexos.map(file => file.nome_original).join(', ');
+      $('attachment-list').before(existing);
+    }
+    loaded = true;
+    dirty = false;
   }
   // Busca as condições de pagamento e o token CSRF; o botão Salvar só libera se vier tudo certo.
   async function loadOptions() {
@@ -321,7 +391,7 @@
     saveState();
     $('reload-options').disabled = true;
     try {
-      const response = await fetch('/api/cadastros/opcoes', { cache: 'no-store' });
+      const response = await fetch(window.SGCB_API + 'cadastros/opcoes', { cache: 'no-store' });
       if (!response.ok) throw Error();
       const data = await response.json();
       if (!Array.isArray(data.condicoes_pagamento) || !data.csrf_token) throw Error();
@@ -336,9 +406,13 @@
         notice('Solicite ao administrador a configuração de um usuário responsável para habilitar o salvamento.', true);
       else if (!ready) notice('Cadastre uma condição de pagamento para continuar.', true);
       else $('form-notice').hidden = true;
+      // Edição: com as opções prontas, carrega o cadastro (uma vez só).
+      if (editId && !loaded) await loadRecord();
     } catch (_) {
       notice(
-        'Não foi possível carregar as condições de pagamento. Verifique a conexão com o banco e tente novamente.',
+        editId && !loaded
+          ? 'Não foi possível carregar o cadastro para edição. Verifique a conexão e tente novamente.'
+          : 'Não foi possível carregar as condições de pagamento. Verifique a conexão com o banco e tente novamente.',
         true
       );
     } finally {
@@ -418,7 +492,7 @@
     const body = new FormData();
     body.append('dados', JSON.stringify(data));
     if (photo) body.append('foto', photo);
-    attachments.forEach(f => body.append('anexos', f));
+    attachments.forEach(f => body.append('anexos[]', f)); // [] para o PHP receber todos os arquivos
     saving = true;
     form.setAttribute('aria-busy', 'true');
     $('save-client').textContent = 'Salvando…';
@@ -427,7 +501,8 @@
     const controller = new AbortController(),
       timer = setTimeout(() => controller.abort(), 45000);
     try {
-      const response = await fetch('/api/clientes', {
+      // Cadastro novo: POST clientes; edição: POST clientes/{id} (mesmo formato de envio).
+      const response = await fetch(window.SGCB_API + (editId ? 'clientes/' + encodeURIComponent(editId) : 'clientes'), {
           method: 'POST',
           headers: { 'X-CSRF-Token': csrf },
           body,
@@ -442,7 +517,12 @@
       if (!Number.isInteger(result.id)) throw Error();
       dirty = false;
       location.assign(
-        listaUrl + '?cadastro_salvo=' + result.id + '&tipo_cadastro=' + encodeURIComponent(result.tipo_cadastro)
+        listaUrl +
+          '?cadastro_salvo=' +
+          result.id +
+          '&tipo_cadastro=' +
+          encodeURIComponent(result.tipo_cadastro) +
+          (editId ? '&editado=1' : '')
       );
     } catch (_) {
       notice(
@@ -453,7 +533,7 @@
       saving = false;
       form.setAttribute('aria-busy', 'false');
       controls.forEach(([el, disabled]) => (el.disabled = disabled));
-      $('save-client').textContent = 'Salvar cadastro';
+      $('save-client').textContent = saveLabel;
       saveState();
     }
   });

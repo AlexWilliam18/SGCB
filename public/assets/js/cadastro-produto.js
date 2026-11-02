@@ -2,7 +2,7 @@
 /*
  * Cadastro de produto: carrega categorias/fornecedores, valida, formata valores em R$ e
  * avisa sobre alterações não salvas. As opções vêm de /api/produtos/opcoes e o salvamento
- * faz POST em /api/produtos (back-end ainda não implementado).
+ * faz POST em /api/produtos (atendidos por public/api/index.php → src/Controllers).
  */
 (() => {
   // URL da listagem de produtos, vinda do data-lista-url do <main>.
@@ -10,7 +10,12 @@
   const $ = id => document.getElementById(id),
     form = $('product-form'),
     fields = () => form.querySelectorAll('input,select,textarea');
-  let csrf = '',
+  // Edição: cadastro.php?id=3 abre o produto 3 preenchido e salva em POST /api/produtos/3.
+  const editParam = new URLSearchParams(location.search).get('id'),
+    editId = /^\d+$/.test(editParam || '') ? editParam : null,
+    saveLabel = editId ? 'Salvar alterações' : 'Salvar produto';
+  let loaded = !editId, // na edição, só libera o Salvar depois de carregar o produto
+    csrf = '',
     ready = false, // opções carregadas e usuário responsável configurado
     busy = false, // salvamento em andamento
     dirty = false, // há dados digitados ainda não salvos
@@ -24,7 +29,59 @@
     $('retry-options').hidden = !retry;
   }
   function updateSave() {
-    $('save-product').disabled = !ready || busy;
+    $('save-product').disabled = !ready || busy || !loaded;
+  }
+
+  // Modo edição: textos da tela e campos que só existem no cadastro novo.
+  if (editId) {
+    document.querySelector('.product-intro h2').textContent = 'Editar produto';
+    document.querySelector('.product-intro p').textContent = 'Altere os dados, os preços e os limites do produto.';
+    $('save-product').textContent = saveLabel;
+    document.title = document.title.replace('Novo produto', 'Editar produto');
+    // Quantidade e status inicial geram as unidades só no cadastro; na edição o estoque muda por "Ajustar estoque".
+    ['quantidade', 'estado_operacional'].forEach(name => {
+      $(name).required = false;
+      $(name).closest('.field').hidden = true;
+    });
+    const hint = document.createElement('p');
+    hint.className = 'hint';
+    hint.textContent = 'Para incluir ou retirar contêineres, use "Ajustar estoque" nos dados do produto (tela de Produtos).';
+    document.querySelector('.stock-grid').before(hint);
+  }
+
+  // Valor numérico → "R$ 1.234,56" (mesmo formato do blur dos campos de dinheiro).
+  const money = value => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value) || 0);
+
+  // Seleciona o valor no select; se a opção não existir (categoria/fornecedor inativo), cria a opção.
+  function selectValue(id, value, label) {
+    if (!value) return;
+    const select = $(id);
+    if (![...select.options].some(option => option.value === String(value)))
+      select.append(new Option((label || '#' + value) + ' (inativo)', String(value)));
+    select.value = String(value);
+  }
+
+  // Edição: busca o produto (GET /api/produtos/{id}) e preenche o formulário.
+  async function loadRecord() {
+    const response = await fetch(window.SGCB_API + 'produtos/' + encodeURIComponent(editId), { cache: 'no-store' });
+    const product = await readJson(response);
+    if (!response.ok || !product) throw Error(product?.error || 'Não foi possível carregar o produto para edição.');
+
+    $('nome').value = product.nome || '';
+    $('codigo').value = product.codigo || '';
+    $('descricao').value = product.descricao || '';
+    $('description-count').textContent = $('descricao').value.length + '/500';
+    selectValue('categoria_id', product.categoria_id, product.categoria);
+    selectValue('fornecedor_id', product.fornecedor_id, product.fornecedor);
+    $('valor_total_bem').value = money(product.valor_total_bem);
+    // Preços por periodicidade → campos diaria, semanal, quinzenal e mensal.
+    const fieldsByPeriod = { DIARIA: 'diaria', SEMANAL: 'semanal', QUINZENAL: 'quinzenal', MENSAL: 'mensal' };
+    (product.precos || []).forEach(price => {
+      if (fieldsByPeriod[price.periodicidade]) $(fieldsByPeriod[price.periodicidade]).value = money(price.valor);
+    });
+    ['limite_inicial', 'limite_maximo', 'maximo_estoque'].forEach(name => ($(name).value = product[name] ?? 0));
+    loaded = true;
+    dirty = false;
   }
 
   // Preenche um select com os itens da API, mantendo a opção já escolhida.
@@ -56,7 +113,7 @@
     updateSave();
     $('retry-options').disabled = true;
     try {
-      const response = await fetch('/api/produtos/opcoes', { cache: 'no-store', signal: controller.signal });
+      const response = await fetch(window.SGCB_API + 'produtos/opcoes', { cache: 'no-store', signal: controller.signal });
       const data = await readJson(response);
       if (!response.ok || !data)
         throw Error(data?.error || 'Não foi possível carregar as opções. Verifique a conexão com o banco e tente novamente.');
@@ -71,6 +128,8 @@
       else if (!data.categorias.length) notice('Cadastre uma categoria ativa na tela de Produtos para continuar.', true);
       else if (!data.fornecedores.length) notice('Cadastre um fornecedor ativo em Clientes para continuar.', true);
       else $('form-notice').hidden = true;
+      // Edição: com as opções prontas, carrega o produto (uma vez só).
+      if (editId && !loaded) await loadRecord();
     } catch (error) {
       notice(
         error.name === 'AbortError'
@@ -159,7 +218,7 @@
       high = Number(data.limite_maximo),
       cap = Number(data.maximo_estoque);
     if (high && low > high) fieldError('limite_maximo', 'O limite máximo deve ser maior ou igual ao limite inicial.');
-    if (cap && (low > cap || high > cap || Number(data.quantidade) > cap))
+    if (cap && (low > cap || high > cap || (!editId && Number(data.quantidade) > cap)))
       fieldError('maximo_estoque', 'O máximo de estoque deve comportar os limites e a quantidade inicial.');
     const firstInvalid = form.querySelector('[aria-invalid=true]');
     if (firstInvalid) {
@@ -175,7 +234,8 @@
     const controller = new AbortController(),
       timeout = setTimeout(() => controller.abort(), 30000);
     try {
-      const response = await fetch('/api/produtos', {
+      // Cadastro novo: POST produtos; edição: POST produtos/{id}.
+      const response = await fetch(window.SGCB_API + (editId ? 'produtos/' + encodeURIComponent(editId) : 'produtos'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
         body: JSON.stringify(data),
@@ -194,7 +254,10 @@
       dirty = false;
       leaving = true;
       try {
-        sessionStorage.setItem('produto-criado', JSON.stringify({ nome: result.nome, unidades: result.unidades_criadas }));
+        sessionStorage.setItem(
+          'produto-criado',
+          JSON.stringify({ nome: result.nome, unidades: result.unidades_criadas, editado: Boolean(editId) })
+        );
       } catch (_) {
         /* O cadastro já foi confirmado pelo servidor; só o aviso na listagem não aparece. */
       }
@@ -211,7 +274,7 @@
       busy = false;
       form.removeAttribute('aria-busy');
       fields().forEach(el => (el.disabled = false));
-      $('save-product').textContent = 'Salvar produto';
+      $('save-product').textContent = saveLabel;
       updateSave();
       const invalid = form.querySelector('[aria-invalid=true]');
       if (invalid) invalid.focus();

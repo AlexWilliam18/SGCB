@@ -1,7 +1,7 @@
 'use strict';
 /*
  * Gerenciamento de manutenções: indicadores, pesquisa, filtros, paginação e diálogo de detalhes.
- * Os dados vêm de /api/manutencoes e /api/manutencoes/{id} (back-end ainda não implementado).
+ * Os dados vêm de /api/manutencoes e /api/manutencoes/{id} (atendidos por public/api/index.php → src/Controllers).
  * Os filtros e a página ficam na URL (?q=&prioridade=&localidade=&data=&page=), então
  * recarregar ou compartilhar o link mantém a mesma consulta.
  */
@@ -158,7 +158,7 @@
     });
     updateFilters();
     try {
-      const response = await fetch('/api/manutencoes?' + query, {
+      const response = await fetch(window.SGCB_API + 'manutencoes?' + query, {
         cache: 'no-store',
         signal: current.signal,
         headers: { Accept: 'application/json' },
@@ -269,7 +269,7 @@
     box.textContent = 'Carregando manutenção…';
     if (!$('maintenance-dialog').open) $('maintenance-dialog').showModal();
     try {
-      const response = await fetch('/api/manutencoes/' + encodeURIComponent(identifier), {
+      const response = await fetch(window.SGCB_API + 'manutencoes/' + encodeURIComponent(identifier), {
         cache: 'no-store',
         signal: current.signal,
       });
@@ -308,6 +308,50 @@
       description.className = 'maintenance-description';
       description.textContent = item.descricao || 'Sem descrição.';
       box.replaceChildren(list, description);
+
+      // Ações conforme o status (acoes.js); concluídas e canceladas não têm ações.
+      // Depois de gravar, recarrega a lista e reabre os dados atualizados.
+      const rota = 'manutencoes/' + encodeURIComponent(identifier) + '/';
+      const atualizar = () => {
+        load();
+        showDetail(identifier);
+      };
+      if (item.status === 'AGENDADA' || item.status === 'EM_MANUTENCAO') {
+        SGCBAcoes.formulario(
+          box,
+          'Concluir manutenção',
+          [
+            { nome: 'custo', rotulo: 'Custo (R$)', placeholder: 'Ex.: 250,00' },
+            { nome: 'responsavel_externo', rotulo: 'Empresa/pessoa externa', placeholder: 'Opcional' },
+          ],
+          'Concluir',
+          async dados => {
+            await SGCBAcoes.executar(rota + 'concluir', dados);
+            atualizar();
+          }
+        );
+        const botoes = [
+          {
+            texto: 'Cancelar manutenção',
+            classe: 'perigo',
+            confirmar: 'Cancelar esta manutenção? O contêiner volta a ficar livre na agenda.',
+            acao: async () => {
+              await SGCBAcoes.executar(rota + 'cancelar');
+              atualizar();
+            },
+          },
+        ];
+        if (item.status === 'AGENDADA')
+          botoes.push({
+            texto: 'Iniciar manutenção',
+            classe: 'primaria',
+            acao: async () => {
+              await SGCBAcoes.executar(rota + 'iniciar');
+              atualizar();
+            },
+          });
+        SGCBAcoes.barra(box, botoes);
+      }
     } catch (error) {
       if (id !== detailId || !$('maintenance-dialog').open) return;
       box.textContent =

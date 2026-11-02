@@ -1,7 +1,7 @@
 'use strict';
 /*
  * Indicadores da Visão Geral: cartões, gráficos dos últimos 12 meses, rankings e últimas locações.
- * Os dados vêm de /api/dashboard (back-end ainda não implementado).
+ * Os dados vêm de /api/dashboard (atendidos por public/api/index.php → src/Controllers).
  */
 (() => {
   const $ = id => document.getElementById(id);
@@ -174,7 +174,7 @@
     const controller = new AbortController(),
       timeout = setTimeout(() => controller.abort(), 15000);
     try {
-      const response = await fetch('/api/dashboard', {
+      const response = await fetch(window.SGCB_API + 'dashboard', {
         headers: { Accept: 'application/json' },
         signal: controller.signal,
         cache: 'no-store',
