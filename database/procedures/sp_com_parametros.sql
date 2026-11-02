@@ -19,6 +19,16 @@
 -- existe, apague-a antes com DROP PROCEDURE NomeDaProcedure; (Aula 13).
 --
 -- Tabelas usadas: produtos, unidades_fisicas, contratos (migração 001).
+--
+-- Testado no phpMyAdmin com os dados da seed do projeto (database/seeds):
+--   produtos com ids 16 a 20; categorias 15 (Escritório), 16 (Almoxarifado),
+--   17 (Sanitário) e 18 (Refrigerado). Os exemplos de CALL abaixo usam esses ids.
+--   Se a seed for carregada em um banco novo, os ids podem ser outros:
+--   confira antes com SELECT id, categoria_id, codigo, nome FROM produtos;
+--
+-- Observação: CALL de INSERT, UPDATE e DELETE não devolve linhas. O phpMyAdmin
+-- mostra "O MySQL retornou um conjunto vazio" e o resultado é conferido com
+-- uma consulta (ex.: CALL BuscarProdutoPorId(...)).
 -- =============================================================================
 
 
@@ -26,8 +36,10 @@
 -- Exercício 7 — Buscar um registro pelo ID da principal tabela do projeto.
 -- Tabela principal: produtos (cada modelo de container que a empresa aluga).
 -- Parâmetro: p_id = id do produto.
--- Exemplo:   CALL BuscarProdutoPorId(1);
+-- Exemplos:  CALL BuscarProdutoPorId(16);
+--            CALL BuscarProdutoPorId(19);
 -- -----------------------------------------------------------------------------
+
 DELIMITER $$
 CREATE PROCEDURE BuscarProdutoPorId(
   IN p_id BIGINT UNSIGNED
@@ -44,7 +56,8 @@ DELIMITER ;
 -- Exercício 8 — Pesquisar registros pelo nome.
 -- Busca o produto com o nome exatamente igual ao informado.
 -- Parâmetro: p_nome = nome do produto.
--- Exemplo:   CALL BuscarProdutoPorNome('Container 20 pés escritório');
+-- Exemplo:   CALL BuscarProdutoPorNome('Contêiner Escritório 20 pés');
+-- A comparação não diferencia maiúsculas/minúsculas (utf8mb4_unicode_ci).
 -- -----------------------------------------------------------------------------
 DELIMITER $$
 CREATE PROCEDURE BuscarProdutoPorNome(
@@ -62,7 +75,7 @@ DELIMITER ;
 -- Exercício 9 — Filtrar registros por uma categoria.
 -- Lista todos os produtos de uma categoria.
 -- Parâmetro: p_categoria_id = id da categoria.
--- Exemplo:   CALL BuscarProdutosPorCategoria(1);
+-- Exemplo:   CALL BuscarProdutosPorCategoria(15);   -- categoria Escritório
 -- -----------------------------------------------------------------------------
 DELIMITER $$
 CREATE PROCEDURE BuscarProdutosPorCategoria(
@@ -80,8 +93,11 @@ DELIMITER ;
 -- Exercício 10 — Inserir um novo registro usando parâmetros.
 -- Cadastra um novo produto já como ativo (TRUE).
 -- Parâmetros: p_categoria_id, p_codigo, p_nome, p_descricao, p_valor_total_bem.
--- Exemplo:   CALL InserirProduto(1, 'C10-ESC', 'Container 10 pés escritório',
---                                'Escritório compacto', 28000.00);
+-- Exemplos:  CALL InserirProduto(15, 'C12-ESC', 'Contêiner Escritório 12 pés',
+--                                'Escritório compacto para obra', 28000.00);
+--            CALL InserirProduto(18, 'C20-REF', 'Contêiner Refrigerado 20 pés',
+--                                'Câmara fria para alimentos', 85000.00);
+-- Se o código já existir, o banco recusa (erro #1062, codigo é UNIQUE).
 -- -----------------------------------------------------------------------------
 DELIMITER $$
 CREATE PROCEDURE InserirProduto(
@@ -116,7 +132,8 @@ DELIMITER ;
 -- Exercício 11 — Atualizar um campo específico de um registro.
 -- Altera o valor do bem (valor_total_bem) de um produto.
 -- Parâmetros: p_id = id do produto; p_valor_total_bem = novo valor.
--- Exemplo:   CALL AtualizarValorProduto(1, 37000.00);
+-- Exemplos:  CALL AtualizarValorProduto(16, 40000.00);
+--            CALL AtualizarValorProduto(19, 34000.00);
 -- -----------------------------------------------------------------------------
 DELIMITER $$
 CREATE PROCEDURE AtualizarValorProduto(
@@ -136,7 +153,7 @@ DELIMITER ;
 -- Remove um produto. Se o produto tiver containers cadastrados em
 -- unidades_fisicas, a chave estrangeira impede a exclusão (integridade).
 -- Parâmetro: p_id = id do produto.
--- Exemplo:   CALL ExcluirProduto(6);
+-- Exemplo:   CALL ExcluirProduto(26);   -- produto de teste, sem containers
 -- -----------------------------------------------------------------------------
 DELIMITER $$
 CREATE PROCEDURE ExcluirProduto(
@@ -156,7 +173,7 @@ DELIMITER ;
 -- containers de um modelo estão DISPONIVEIS para alugar.
 -- Parâmetros: p_produto_id = id do produto;
 --             p_estado     = DISPONIVEL, LOCADA, MANUTENCAO ou INATIVA.
--- Exemplo:   CALL BuscarUnidadesPorProdutoEstado(1, 'DISPONIVEL');
+-- Exemplo:   CALL BuscarUnidadesPorProdutoEstado(16, 'DISPONIVEL');
 -- -----------------------------------------------------------------------------
 DELIMITER $$
 CREATE PROCEDURE BuscarUnidadesPorProdutoEstado(
@@ -216,7 +233,7 @@ DELIMITER ;
 -- Lista os produtos de uma categoria em ordem alfabética de nome.
 -- Usa ORDER BY (Revisão CRUD), pois a Aula 14 não tem exemplo de ordenação.
 -- Parâmetro: p_categoria_id = id da categoria.
--- Exemplo:   CALL ListarProdutosCategoriaPorNome(1);
+-- Exemplo:   CALL ListarProdutosCategoriaPorNome(15);
 -- -----------------------------------------------------------------------------
 DELIMITER $$
 CREATE PROCEDURE ListarProdutosCategoriaPorNome(
