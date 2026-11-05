@@ -1,0 +1,133 @@
+/*
+ * Listagem de usuários (public/admin/usuarios/index.php).
+ * Reaproveita a base do painel (dashboard.css), da tabela/filtros/diálogo (clientes.css)
+ * e dos botões de ação do diálogo (acoes.css); aqui ficam só os ajustes desta tela.
+ */
+
+/* ==========================================================================
+   1. Cabeçalho e área principal
+   ========================================================================== */
+
+/* Subtítulo do cabeçalho em Inter, cinza */
+.users-page .page-heading p{font-family:Inter,Arial,sans-serif;font-size:12px;line-height:15px;color:#6f746f}
+
+/* Espaçamento interno do conteúdo; sem contorno ao receber foco pelo "pular para" */
+.users-main{padding:32px;outline:none}
+
+/* Título "Usuários" e botão "Novo Usuário" lado a lado */
+.users-intro{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;height:68px}
+.users-intro h2{font:700 28px/41px Inter,Arial,sans-serif;color:#171917}
+
+/* Botão verde "Novo Usuário" */
+.new-user{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:149.477px;height:40px;margin-right:21px;flex-shrink:0;padding:0 16px;border:0;border-radius:12px;background:#264636;color:#fff;font:700 14px/20px Figtree,Arial,sans-serif;box-shadow:0 8px 18px #14291e99;white-space:nowrap;text-decoration:none}
+.new-user:hover{background:var(--forest-light)}
+
+/* ==========================================================================
+   2. Indicadores (total, ativos e inativos)
+   ========================================================================== */
+
+/* Três cards na mesma linha */
+.users-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;height:147px}
+.users-stat{height:147px;min-height:147px}
+.users-stat:after{right:-11px;bottom:-17px}
+
+/* Quadrado do ícone, com fundo na cor do indicador (azul, verde, vermelho) */
+.users-stat .stat-icon{width:40px;height:40px;border-radius:12px}
+.users-stat .stat-icon.total{background:#044bff33}
+.users-stat .stat-icon.active{background:#00f27933}
+.users-stat .stat-icon.inactive{background:#f3040733}
+.users-stat img{display:block}
+
+/* ==========================================================================
+   3. Filtros (pesquisa, perfil, status e Limpar)
+   ========================================================================== */
+
+/* Pesquisa ocupa o espaço livre; os dois selects têm largura fixa */
+.users-filters{display:grid;grid-template-columns:minmax(0,1fr) 159px 159px auto;align-items:center;gap:18px;margin-top:20px;padding:20px 40px 20px 20px;min-height:124px}
+.users-filters .search-field{min-width:0;width:100%;gap:18px}
+.users-filters .search-field input{padding-left:40px}
+
+/* Select com rótulo visível acima ("Perfil de acesso", "Status") */
+.users-labeled-filter{position:relative;min-width:0}
+.users-labeled-filter>label{position:absolute;left:5px;top:-22px;font:400 14px/18px Figtree,Arial,sans-serif}
+.users-labeled-filter .select-field{width:100%}
+.users-labeled-filter .select-field>img{right:20px;pointer-events:none}
+.users-filters .clear-filters{margin-left:0;white-space:nowrap}
+
+/* ==========================================================================
+   4. Avisos (usuário salvo e erro ao carregar)
+   ========================================================================== */
+
+.users-main>.data-notice{margin-top:16px}
+
+/* ==========================================================================
+   5. Tabela de usuários
+   ========================================================================== */
+
+.users-card{margin-top:42px;overflow:hidden;box-shadow:0 6px 24px -16px #14291e40}
+
+/* Largura mínima: no celular a tabela rola na horizontal */
+.users-table{min-width:1050px;table-layout:fixed}
+.users-table th,.users-table td{padding-left:50px;padding-right:16px}
+.users-table td{white-space:normal;overflow-wrap:anywhere}
+.users-table td:last-child{padding-left:16px}
+
+/* Linha "Nenhum usuário encontrado" / "Carregando" */
+.users-table .clients-empty{padding:0}
+.users-table .clients-empty>div{min-height:176px}
+
+/* Etiqueta de status: verde (ativo) ou vermelha (inativo) */
+.users-status{display:inline-block;padding:3px 8px;background:#e7f5ec;color:#235338;border-radius:6px;font-size:11px;font-weight:600;line-height:16px}
+.users-status.inactive{background:#f7e9e9;color:#99423c}
+
+/* Nome do perfil (cargo) em verde */
+.user-profile-badge{color:#315841;font-size:12px;font-weight:600}
+
+/* Contorno ao focar a tabela pelo teclado */
+.users-page .table-scroll:focus-visible{outline:2px solid #b58b36;outline-offset:-2px}
+.users-page .logout{background:none}
+
+/* ==========================================================================
+   6. Responsivo
+   ========================================================================== */
+
+/* Tablet: cards mais próximos; pesquisa em linha própria */
+@media(max-width:1200px){
+  .users-main{padding:24px}
+  .users-stats{gap:16px;padding:0;grid-template-columns:repeat(3,minmax(0,1fr));height:auto}
+  .users-filters{grid-template-columns:1fr 1fr auto;gap:32px 18px;padding:24px}
+  .users-filters .search-field{grid-column:1/-1}
+  .new-user{margin-right:0}
+}
+
+/* Celular: tudo em uma coluna */
+@media(max-width:760px){
+  .users-main{padding:20px 16px}
+  .users-page .page-heading h1{font-size:18px;white-space:normal}
+  .users-page .page-heading p{font-size:11px;line-height:16px}
+  .users-intro{height:auto;margin-bottom:20px;gap:12px;align-items:center}
+  .users-intro h2{font-size:25px;line-height:34px}
+  .new-user{width:auto;font-size:13px;padding:0 12px}
+  .users-stats{grid-template-columns:1fr;gap:14px}
+  .users-stat{height:126px;min-height:126px}
+  .users-stat .stat-heading{min-height:40px}
+  .users-stat .stat-value{margin-top:14px}
+  .users-filters{grid-template-columns:1fr;gap:34px;padding:20px}
+  .users-filters .search-field{grid-column:auto;gap:12px}
+  .users-filters .search-field input{padding-left:14px}
+  .users-filters .clear-filters{justify-self:end}
+  .users-card{margin-top:28px}
+  .users-page .table-footer{flex-wrap:wrap;align-items:flex-start}
+  .users-page .table-footer>p{flex-basis:100%}
+  .users-page .pagination{margin-left:auto}
+  .users-table .clients-empty>div{width:calc(100vw - 34px);padding:0 16px}
+  .users-table .clients-empty{text-align:left}
+}
+
+/* Celulares bem estreitos */
+@media(max-width:370px){
+  .users-main{padding:18px 12px}
+  .new-user{font-size:12px;gap:6px}
+  .users-intro h2{font-size:24px}
+  .users-table .clients-empty>div{width:calc(100vw - 26px)}
+}

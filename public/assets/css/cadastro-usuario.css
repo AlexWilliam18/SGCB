@@ -1,0 +1,165 @@
+/*
+ * Cadastro de usuário (public/admin/usuarios/cadastro.php).
+ * Usa a base do painel (dashboard.css); aqui ficam o formulário, os cards de perfil e os avisos.
+ */
+
+/* ==========================================================================
+   1. Cabeçalho, área principal e título
+   ========================================================================== */
+
+/* Subtítulo do cabeçalho em Inter, cinza */
+.user-create-page .page-heading p{font:400 12px/15px Inter,Arial,sans-serif;color:#6f746f}
+
+/* Espaçamento interno; sem contorno ao receber foco pelo "pular para" */
+.user-create-main{padding:32px;outline:none}
+
+/* Coluna com título, aviso e formulário */
+.user-create-content{display:flex;flex-direction:column;gap:22px;width:100%;font-family:Inter,Arial,sans-serif;color:#171917}
+
+/* Título "Novo usuário" e botão Voltar lado a lado */
+.user-create-intro{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.user-create-heading{min-width:0}
+.user-create-intro h2{font-size:28px;line-height:41px;font-weight:700}
+.user-create-intro p{margin-top:4px;font-size:13px;line-height:19px;color:#6f746f}
+
+/* ==========================================================================
+   2. Botões (contorno = Voltar/Cancelar; verde = Salvar)
+   ========================================================================== */
+
+.user-outline,.user-save{display:inline-flex;justify-content:center;align-items:center;padding:12px 20px;border-radius:9px;min-height:43px;font:700 13px/19px Inter,Arial,sans-serif;text-decoration:none;white-space:nowrap}
+.user-outline{border:1px solid #e5e3dd;background:white;color:#171917}
+.user-outline:hover{background:#f4f7f4}
+.user-save{border:0;background:#184c39;color:white}
+.user-save:hover:not(:disabled){background:#245c47}
+.user-save:disabled{opacity:.6;cursor:default}
+
+/* ==========================================================================
+   3. Aviso geral (erro da API, sem permissão, cargos não carregados)
+   ========================================================================== */
+
+.user-notice{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 18px;border:1px solid #e3b5b1;border-radius:12px;background:#fdf1f0;color:#8a2f29;font-size:13px;line-height:19px}
+.user-notice .user-outline{min-height:36px;padding:8px 14px}
+
+/* ==========================================================================
+   4. Formulário e seções
+   ========================================================================== */
+
+.user-create-form{display:flex;flex-direction:column;gap:22px;width:100%;margin:0}
+.user-create-form[aria-busy=true]{opacity:.8}
+
+/* Cada seção é um card branco com borda */
+.user-create-section{display:flex;flex-direction:column;gap:20px;padding:28px;border:1px solid #e5e3dd;border-radius:18px;background:white;overflow:hidden}
+.user-create-section h3{font-size:18px;line-height:26px;font-weight:700;margin:0}
+
+/* Grades em duas colunas, com os mesmos eixos de alinhamento em todas as seções */
+.user-form-grid,.user-role-options{display:grid;grid-template-columns:minmax(0,585fr) minmax(0,536fr);gap:20px;width:100%;min-width:0}
+
+/* ==========================================================================
+   5. Campos (rótulo, input, select e erros)
+   ========================================================================== */
+
+.user-field{min-width:0}
+.user-field>label{display:block;margin-bottom:8px;font-size:12px;font-weight:700;line-height:17px}
+.user-field input,.user-field select{display:block;width:100%;height:45px;padding:12px;border:1px solid #e5e3dd;border-radius:8px;background:white;color:#171917;font:400 13px/19px Inter,Arial,sans-serif;min-width:0}
+.user-field input::placeholder{color:#6f746f;opacity:1}
+.user-field input:focus-visible,.user-field select:focus-visible{outline:2px solid #184c39;outline-offset:2px;border-color:#184c39}
+
+/* Campo com erro fica com borda vermelha */
+.user-field [aria-invalid=true]{border-color:#a53831}
+
+/* Select com seta própria (⌄) */
+.user-select{position:relative}
+.user-select select{appearance:none;padding-right:38px;color:#6f746f}
+.user-select>span{position:absolute;right:12px;top:12px;font-size:14px;line-height:20px;pointer-events:none}
+
+/* Texto de ajuda e mensagem de erro abaixo do campo */
+.user-help{font-size:11px;line-height:16px;color:#6f746f}
+.user-error{font-size:11px;line-height:16px;color:#a53831;margin-top:6px}
+
+/* ==========================================================================
+   6. Caixa "Solicitar alteração de senha no primeiro acesso"
+   ========================================================================== */
+
+.user-first-access{display:flex;align-items:center;gap:8px;font-size:13px;line-height:19px;cursor:pointer}
+.user-first-access input{appearance:none;display:grid;place-content:center;width:13px;height:13px;margin:0;border:1px solid #747a76;border-radius:3px;background:white;flex-shrink:0;cursor:pointer}
+.user-first-access input:checked{background:#747a76}
+/* Visto desenhado com bordas */
+.user-first-access input:checked:before{content:'';width:4px;height:7px;border:solid white;border-width:0 1.5px 1.5px 0;transform:translateY(-1px) rotate(45deg)}
+.user-first-access input:focus-visible{outline:2px solid #184c39;outline-offset:3px}
+
+/* ==========================================================================
+   7. Cards de perfil de acesso (Operador / Administrador)
+   ========================================================================== */
+
+.user-role-options{border:0;padding:0;margin:0;min-width:0}
+.user-role-card{display:flex;flex-direction:column;gap:8px;padding:20px;border:1px solid #e5e3dd;border-radius:10px;background:white;min-width:0;cursor:pointer}
+
+/* Card escolhido fica verde */
+.user-role-card:has(input:checked){border-color:#184c39;background:#f1f7f3}
+.user-role-card:has(input:checked) .user-role-title{color:#184c39}
+.user-role-card:has(input:focus-visible){outline:2px solid #184c39;outline-offset:2px}
+
+/* Card cujo cargo não existe no banco fica apagado */
+.user-role-card:has(input:disabled){opacity:.5;cursor:not-allowed}
+
+/* Rádio redondo desenhado com CSS */
+.user-role-title{display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px;color:#171917}
+.user-role-title input{appearance:none;display:grid;place-content:center;margin:0;width:13px;height:13px;border:1px solid currentColor;border-radius:50%;color:#171917;flex-shrink:0;cursor:pointer}
+.user-role-title input:checked{color:#184c39}
+.user-role-title input:checked:before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.user-role-description{font-size:12px;line-height:17px;color:#6f746f}
+
+/* ==========================================================================
+   8. Rodapé do formulário e diálogo de descarte
+   ========================================================================== */
+
+.user-create-actions{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+.user-create-actions>p{font-size:11px;line-height:16px;color:#6f746f}
+.user-create-actions>div{display:flex;gap:12px}
+.user-dialog-actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:24px}
+.user-form-dialog{font-family:Inter,Arial,sans-serif}
+.user-noscript{font-size:13px;line-height:20px;color:#6f746f}
+
+/* ==========================================================================
+   9. Responsivo
+   ========================================================================== */
+
+/* Tablet: duas colunas iguais */
+@media(max-width:1200px){
+  .user-create-main{padding:24px}
+  .user-form-grid,.user-role-options{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;max-width:none}
+}
+
+/* Celular: uma coluna e botões do rodapé alinhados à direita */
+@media(max-width:760px){
+  .user-create-main{padding:20px 16px}
+  .user-create-page .page-heading h1{font-size:18px;white-space:normal}
+  .user-create-page .page-heading p{font-size:11px;line-height:16px}
+  .user-create-intro{gap:12px;align-items:flex-start}
+  .user-create-heading{min-width:0}
+  .user-create-intro h2{font-size:24px;line-height:32px}
+  .user-create-intro p{font-size:12px;line-height:18px}
+  .user-create-intro .user-outline{padding:10px 12px;min-height:40px}
+  .user-create-section{padding:22px 20px}
+  .user-form-grid,.user-role-options{grid-template-columns:1fr}
+  .user-create-actions{flex-direction:column;gap:16px}
+  .user-create-actions>div{align-self:flex-end}
+  .user-role-card{padding:18px}
+  .user-role-description{line-height:19px}
+  .user-notice{flex-direction:column;align-items:flex-start}
+}
+
+/* Título e Voltar em linhas separadas */
+@media(max-width:480px){
+  .user-create-intro{flex-wrap:wrap}
+  .user-create-heading{flex:1 1 100%}
+  .user-create-intro .user-outline{margin-left:auto}
+}
+
+/* Celulares bem estreitos: botões do rodapé dividem a largura */
+@media(max-width:370px){
+  .user-create-section{padding:20px 16px}
+  .user-create-actions>div{width:100%;gap:10px}
+  .user-create-actions .user-outline,.user-create-actions .user-save{flex:1;padding:12px}
+  .user-create-intro .user-outline{padding:10px}
+}

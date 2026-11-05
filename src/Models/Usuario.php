@@ -33,7 +33,11 @@ final class Usuario extends Modelo
         return $usuario ? self::formatar($usuario) : null;
     }
 
-    /** Listagem paginada para a futura tela de Usuários. Filtros: q (nome/e-mail), situacao (ativos|inativos). */
+    /**
+     * Listagem paginada da tela de Usuários (public/admin/usuarios/index.php).
+     * Filtros: q (nome/e-mail), situacao (ativos|inativos) e cargo (código do cargo, ex.: ADMIN, OPERADOR).
+     * Também devolve "resumo" com os totais dos cards (todos os usuários, sem os filtros).
+     */
     public static function listarUsuarios(array $filtros = []): array
     {
         $where  = ['1 = 1'];
@@ -49,6 +53,12 @@ final class Usuario extends Modelo
         } elseif (($filtros['situacao'] ?? '') === 'inativos') {
             $where[] = 'u.ativo = 0';
         }
+        // Filtro "Perfil de acesso" da tela: compara com o código do cargo.
+        $cargo = trim((string) ($filtros['cargo'] ?? ''));
+        if ($cargo !== '') {
+            $where[]         = 'c.codigo = :cargo';
+            $params['cargo'] = $cargo;
+        }
 
         $resultado = self::paginar(
             'u.id, u.cargo_id, u.nome, u.email, u.telefone, u.ativo, u.deve_alterar_senha, u.ultimo_acesso,
@@ -59,6 +69,16 @@ final class Usuario extends Modelo
             (int) ($filtros['page'] ?? 1)
         );
         $resultado['items'] = array_map([self::class, 'formatar'], $resultado['items']);
+
+        // Totais dos cards "Total", "Ativos" e "Inativos" (contam todos os usuários).
+        $resumo = self::pdo()->query(
+            'SELECT COUNT(*) AS total, COALESCE(SUM(ativo = 1), 0) AS ativos FROM usuarios'
+        )->fetch();
+        $resultado['resumo'] = [
+            'total'    => (int) $resumo['total'],
+            'ativos'   => (int) $resumo['ativos'],
+            'inativos' => (int) $resumo['total'] - (int) $resumo['ativos'],
+        ];
 
         return $resultado;
     }
@@ -82,8 +102,9 @@ final class Usuario extends Modelo
     }
 
     /**
-     * Cadastra um usuário com senha provisória: no primeiro acesso ele precisa trocá-la.
-     * Campos: nome, email, telefone, cargo_id, senha.
+     * Cadastra um usuário com senha inicial.
+     * Campos: nome, email, telefone, cargo_id, senha e, opcionais, ativo e deve_alterar_senha
+     * (quando não enviados, o usuário nasce ativo e precisa trocar a senha no primeiro acesso).
      *
      * @return int id do usuário criado.
      */
@@ -98,14 +119,19 @@ final class Usuario extends Modelo
         self::lancarSeErros($erros);
         self::exigirEmailLivre($campos['email']);
 
-        return self::transacao(static function (PDO $pdo) use ($campos, $senha, $criadoPor): int {
+        // "Status inicial" e "Solicitar alteração de senha" do formulário (padrão: sim para os dois).
+        $ativo       = array_key_exists('ativo', $dados) ? self::campoBool($dados, 'ativo') : 1;
+        $deveAlterar = array_key_exists('deve_alterar_senha', $dados) ? self::campoBool($dados, 'deve_alterar_senha') : 1;
+
+        return self::transacao(static function (PDO $pdo) use ($campos, $senha, $ativo, $deveAlterar, $criadoPor): int {
             $agora = self::agora();
             $pdo->prepare(
                 'INSERT INTO usuarios (cargo_id, nome, email, telefone, senha_hash, ativo, deve_alterar_senha, criado_em, atualizado_em)
-                 VALUES (:cargo, :nome, :email, :telefone, :hash, 1, 1, :criado, :atualizado)'
+                 VALUES (:cargo, :nome, :email, :telefone, :hash, :ativo, :deve_alterar, :criado, :atualizado)'
             )->execute([
                 'cargo' => $campos['cargo_id'], 'nome' => $campos['nome'], 'email' => $campos['email'],
                 'telefone' => $campos['telefone'], 'hash' => password_hash($senha, PASSWORD_BCRYPT),
+                'ativo' => $ativo, 'deve_alterar' => $deveAlterar,
                 'criado' => $agora, 'atualizado' => $agora,
             ]);
             $id = (int) $pdo->lastInsertId();

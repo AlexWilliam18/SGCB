@@ -53,7 +53,7 @@ Projeto Integrador desenvolvido pela equipe **Bemfa Developers**:
 | Funcionalidade | Detalhes |
 |---|---|
 | **Back-end das 27 tabelas** | Regras de negócio e acesso ao banco em `src/Models/` (uma classe por assunto), chamadas pela API em `src/Controllers/` + `public/api/index.php`. Ver [Como o back-end está organizado](#como-o-back-end-está-organizado) e [Regras de negócio aplicadas](#regras-de-negócio-aplicadas). |
-| **Telas lendo e gravando no banco** | Dashboard, Clientes, Produtos (e categorias), Manutenções e Financeiro carregam e salvam pela API. |
+| **Telas lendo e gravando no banco** | Dashboard, Clientes, Produtos (e categorias), Manutenções, Financeiro e Usuários carregam e salvam pela API. |
 | **Edição e ações** | Editar cliente e produto, inativar/reativar, ajustar estoque, iniciar/concluir/cancelar manutenção, registrar pagamento, estornar e cancelar parcela. |
 | **Auditoria** | Toda gravação registra quem fez, o quê e quando na tabela `auditoria`. |
 | **Permissões** | Toda gravação confere o token CSRF e a permissão do usuário (`Usuario::temPermissao`); o cargo ADMIN pode tudo. |
@@ -82,6 +82,8 @@ Projeto Integrador desenvolvido pela equipe **Bemfa Developers**:
 | Manutenções | `public/admin/manutencoes/index.php` | `/api/manutencoes` e `/api/manutencoes/{id}` — indicadores, lista, filtros, localidades, paginação e detalhes |
 | Cadastro de manutenção | `public/admin/manutencoes/cadastro.php` | `/api/manutencoes/opcoes` e `/api/manutencoes` (POST) — contêineres, tipos, prioridades, responsáveis, token CSRF e salvamento |
 | Financeiro | `public/admin/financeiro/index.php` | `/api/financeiro` e `/api/financeiro/parcelas/{id}` — indicadores, parcelas, filtros, paginação, detalhes e histórico de pagamentos |
+| Listagem de usuários | `public/admin/usuarios/index.php` | `/api/usuarios` e `/api/usuarios/{id}` — indicadores (total, ativos, inativos), pesquisa por nome/e-mail, filtros de perfil e status, paginação e detalhes |
+| Cadastro/edição de usuário | `public/admin/usuarios/cadastro.php` (`?id=` edita) | `/api/usuarios/opcoes` (cargos e token CSRF), `/api/usuarios` (POST, novo: senha inicial com hash bcrypt, status inicial, troca de senha no 1º acesso e perfil) e `/api/usuarios/{id}` (GET carrega, POST salva nome, e-mail, telefone e perfil; se o status mudou, chama `/api/usuarios/{id}/status`) |
 
 **Edição e ações** (botões no diálogo de detalhes de cada listagem, montados pelo `public/assets/js/acoes.js`):
 
@@ -91,6 +93,7 @@ Projeto Integrador desenvolvido pela equipe **Bemfa Developers**:
 | Produtos | **Editar produto** (`cadastro.php?id=`: dados, preços e limites), **Ajustar estoque** (+ cria contêineres, − inativa os livres), **Inativar/Reativar** |
 | Manutenções | **Iniciar**, **Concluir** (custo e responsável externo) e **Cancelar** |
 | Financeiro | **Registrar pagamento** (forma, valor e data; parcial ou total), **Estornar** um pagamento, **Cancelar parcela** sem pagamento |
+| Usuários | **Editar usuário** (abre `cadastro.php?id=` preenchido; a senha não é alterada na edição), **Inativar/Reativar** (a API não deixa o usuário logado inativar a si mesmo; inativar encerra os "lembrar de mim" dele) |
 
 Os scripts chamam a API por `window.SGCB_API` (definido em `includes/footer.php` como `BASE_URL . 'api/'`, ex.: `/SGCB/api/`), então funcionam com qualquer nome de pasta. O `footer.php` também entrega `window.SGCB_BASE` (endereço do site, para exibir as fotos enviadas) e `window.SGCB_CSRF` (token usado pelas ações dos diálogos).
 
@@ -128,7 +131,7 @@ Os models (`src/Models/`), chamados pelos controllers:
 |---|---|---|
 | `Modelo` (base) | — | transação (com savepoint), paginação `{items, total, page, pages}`, leitura/validação dos campos, auditoria |
 | `ErroValidacao` | — | erro com mensagem, erros por campo e status HTTP (422, 404, 409), no formato `{error, fields}` das telas |
-| `Usuario`, `SessaoPersistente` | usuarios, cargos, modulos, permissoes, cargo_permissoes, usuario_permissoes, recuperacoes_senha, sessoes_usuario | `cadastrarUsuario`, `alterarSenha`, `gerarRecuperacaoSenha`, `redefinirSenhaComToken`, `temPermissao`, `listarResponsaveis`; "lembrar de mim" (`criar`, `validar`, `revogar`) |
+| `Usuario`, `SessaoPersistente` | usuarios, cargos, modulos, permissoes, cargo_permissoes, usuario_permissoes, recuperacoes_senha, sessoes_usuario | `listarUsuarios` (filtros e totais dos cards), `cadastrarUsuario` (status e troca de senha opcionais), `alterarStatus`, `alterarSenha`, `gerarRecuperacaoSenha`, `redefinirSenhaComToken`, `temPermissao`, `listarResponsaveis`; "lembrar de mim" (`criar`, `validar`, `revogar`) |
 | `Cliente`, `Arquivo` | pessoas, enderecos_pessoa, pessoa_anexos, arquivos | `listarClientes`, `buscarCliente`, `cadastrarCliente` (endereços, foto e anexos), `atualizarDados`, `inativarCliente`, `listarFornecedores`, `validarCpfCnpj`; uploads em `public/uploads/AAAA/MM/` |
 | `CondicaoPagamento`, `Empresa` | condicoes_pagamento, empresas, preferencias_contrato | condições ativas, dados da empresa, preferências e numeração automática (`reservarNumero`) |
 | `Categoria`, `Produto`, `UnidadeFisica` | categorias, produtos, precos_produto, unidades_fisicas, agenda_unidades | `listarProdutos`, `buscarProduto`, `cadastrarProduto` (gera as unidades), `atualizarQuantidade`, `verificarDisponibilidade` por período, `alterarStatusProduto` |
@@ -242,7 +245,8 @@ C:\xampp\php\php.exe tests\manual\teste_api.php http://localhost:8080   # Apache
 
 ### Ainda não iniciado
 
-- Telas de **Contratos de Locação**, **Usuários** e **Configurações da empresa** (a API e os models já existem; falta o front-end).
+- Telas de **Contratos de Locação** e **Configurações da empresa** (a API e os models já existem; falta o front-end).
+- **Redefinir a senha** de outro usuário pela tela de Usuários (hoje a edição altera dados, perfil e status; a senha só muda pela rota `POST api/conta/senha`, do próprio usuário).
 - Tela de **troca de senha obrigatória** no primeiro acesso (rota `POST api/conta/senha` pronta).
 - Telas de recuperação de senha, "lembrar de mim" e permissões por cargo (funções prontas em `Usuario` e `SessaoPersistente`; hoje só o cargo ADMIN grava, porque as permissões dos outros cargos ainda não foram cadastradas).
 - Impressão do **recibo** e do **PDF do contrato** (os dados do recibo já saem em `GET api/financeiro/pagamentos/{id}/recibo`).
@@ -271,6 +275,7 @@ Ordem cronológica. Os PRs #1 a #5 foram integrados na `main`; a partir do #6 os
 | 11 | `feature/favicon` | #11 | Favicon (`img/logo/favicon.svg`) aplicado no `includes/head.php`, valendo para todas as páginas. |
 | 12 | `feature/financeiro` | #12 | Tela de Financeiro (somente front-end) em `public/admin/financeiro/index.php`: indicadores (faturamento do mês, em aberto, em atraso e prestes a vencer), pesquisa por cliente, filtros de prioridade, status e vencimento, tabela de parcelas, paginação e diálogo "Detalhes da parcela" com histórico de pagamentos e estornos. Arquivos `financeiro.css`, `financeiro.js` e ícone em `img/financeiro/`; reaproveita o visual de `clientes.css` e `manutencoes.css`. |
 | 13 | `feature/funcoes` | — (em andamento) | **Back-end completo.** Models das 27 tabelas em `src/Models/` (22 classes, incluindo a hierarquia `Pagamento` → Pix/Cartão/Dinheiro/Boleto/Transferência), API em `public/api/index.php` + `src/Controllers/` (login, CSRF e permissão em `Api.php`, seguindo o CRUD de base do curso), telas ligadas à API (`window.SGCB_API`), edição e ações nos diálogos (`acoes.js`/`acoes.css`, cadastros com `?id=`), seeds `002_dados_basicos.sql` e `003_dados_exemplo.sql`, testes manuais `teste_models.php` e `teste_api.php`. Ajustes: fuso America/Sao_Paulo no bootstrap e na conexão; envio de anexos como `anexos[]`. |
+| 14 | `feature/usuarios` | — | Telas de **Usuários** ligadas ao banco: listagem com indicadores, pesquisa e filtros; cadastro e edição de usuários; ativar e inativar pelo diálogo de detalhes. Item **Usuários** no menu e ícones do menu alinhados. |
 
 ---
 
@@ -341,11 +346,12 @@ SGCB/
 │   │   ├── produtos/          # index.php (listagem) e cadastro.php
 │   │   ├── manutencoes/       # index.php (listagem) e cadastro.php
 │   │   ├── financeiro/        # index.php (parcelas)
-│   │   ├── containers/  locacoes/  usuarios/   # módulos futuros
+│   │   ├── usuarios/          # index.php (listagem) e cadastro.php (?id= edita)
+│   │   ├── containers/  locacoes/   # módulos futuros
 │   ├── assets/
-│   │   ├── css/               # login, dashboard, clientes, cadastro-cliente, produtos, cadastro-produto, manutencoes, cadastro-manutencao, financeiro, acoes
-│   │   ├── js/                # login, painel, dashboard, clientes, cadastro-cliente, produtos, categorias, cadastro-produto, manutencoes, cadastro-manutencao, financeiro, acoes
-│   │   └── img/               # login, logo, nav, dashboard, clientes, cadastro-cliente, produtos, manutencoes, cadastro-manutencao, financeiro
+│   │   ├── css/               # login, dashboard, clientes, cadastro-cliente, produtos, cadastro-produto, manutencoes, cadastro-manutencao, financeiro, acoes, usuarios, cadastro-usuario
+│   │   ├── js/                # login, painel, dashboard, clientes, cadastro-cliente, produtos, categorias, cadastro-produto, manutencoes, cadastro-manutencao, financeiro, acoes, usuarios, cadastro-usuario
+│   │   └── img/               # login, logo, nav, dashboard, clientes, cadastro-cliente, produtos, manutencoes, cadastro-manutencao, financeiro, usuarios
 │   └── uploads/               # arquivos enviados, em AAAA/MM/ (protegida por .htaccess; fora do Git)
 ├── src/
 │   ├── bootstrap.php          # config, fuso horário, autoload de Models/Controllers e sessão
