@@ -1,12 +1,12 @@
 <?php
 /**
- * API de Usuários (futura tela admin/usuarios). Gerenciar usuários exige a permissão do
+ * API de Usuários (telas public/admin/usuarios/index.php e cadastro.php). Gerenciar usuários exige a permissão do
  * módulo "usuarios" (o cargo ADMIN tem), como o apenasAdmin() do CRUD de base.
  *
- *   GET  api/usuarios                 listar (filtros q, situacao, page)
+ *   GET  api/usuarios                 listar (filtros q, situacao, cargo, page) + totais dos cards
  *   GET  api/usuarios/opcoes          cargos + token
  *   GET  api/usuarios/{id}            buscar
- *   POST api/usuarios                 salvar (com senha provisória)
+ *   POST api/usuarios                 salvar (senha inicial, status e troca de senha no 1º acesso)
  *   POST api/usuarios/{id}            atualizar (nome, e-mail, telefone, cargo)
  *   POST api/usuarios/{id}/status     ativar/desativar ({ "ativo": false })
  *   POST api/conta/senha              o próprio usuário troca a senha ({ senha_atual, nova_senha })

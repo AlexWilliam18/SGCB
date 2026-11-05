@@ -25,6 +25,7 @@ $itensMenu = [
     'locacoes'    => ['rotulo' => 'Contratos de Locação', 'destino' => 'admin/locacoes/index.php',    'icone' => ['contratos.svg', 18, 18]],
     'manutencoes' => ['rotulo' => 'Manutenções',          'destino' => 'admin/manutencoes/index.php', 'icone' => ['manutencoes.png', 22, 21]],
     'financeiro'  => ['rotulo' => 'Financeiro',           'destino' => 'admin/financeiro/index.php',  'icone' => ['financeiro.svg', 30, 19]],
+    'usuarios'    => ['rotulo' => 'Usuários',             'destino' => 'admin/usuarios/index.php',    'icone' => ['usuarios.svg', 18, 18]],
 ];
 
 // Caminhos já escapados para os atributos.
@@ -42,7 +43,9 @@ $inicial = mb_strtoupper(mb_substr($usuario['nome'] ?: $usuario['email'], 0, 1))
     <nav class="navigation" aria-label="Navegação do sistema">
 <?php foreach ($itensMenu as $chave => $item):
     [$arquivoIcone, $larguraIcone, $alturaIcone] = $item['icone'];
-    $icone = '<img src="' . $iconesNav . $arquivoIcone . '" alt="" width="' . $larguraIcone . '" height="' . $alturaIcone . '">';
+    // A caixa .nav-icon tem largura fixa e centraliza o ícone: ícones de tamanhos diferentes
+    // (ex.: financeiro 30x19) ficam no mesmo eixo e os textos começam todos no mesmo ponto.
+    $icone = '<span class="nav-icon"><img src="' . $iconesNav . $arquivoIcone . '" alt="" width="' . $larguraIcone . '" height="' . $alturaIcone . '"></span>';
     $ativo = $chave === $paginaAtual;
 
     if (is_file(__DIR__ . '/../public/' . $item['destino'])): ?>

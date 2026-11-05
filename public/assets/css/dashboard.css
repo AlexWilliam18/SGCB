@@ -198,6 +198,16 @@ h2 {
   white-space: nowrap;
 }
 
+/* Caixa do ícone: largura fixa (18px, a dos ícones padrão) com o ícone centralizado,
+   para que todos os ícones fiquem no mesmo eixo e todos os textos alinhados */
+.nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+}
+
 /* Ícone do item: não encolhe e mantém a proporção da imagem */
 .nav-link img {
   flex-shrink: 0;
