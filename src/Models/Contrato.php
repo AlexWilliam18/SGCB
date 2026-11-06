@@ -294,8 +294,8 @@ final class Contrato extends Modelo
     }
 
     /**
-     * Listagem para a futura tela de Contratos.
-     * Filtros: q (cliente, CPF/CNPJ ou número), status, page.
+     * Listagem da tela de Contratos de Locação (public/admin/locacoes/index.php).
+     * Filtros: q (cliente, CPF/CNPJ ou número), status, data (AAAA-MM-DD dentro do período), page.
      */
     public static function listarContratos(array $filtros = []): array
     {
@@ -317,10 +317,18 @@ final class Contrato extends Modelo
             $where[]          = 'c.status = :status';
             $params['status'] = $status;
         }
+        // Período: contratos em andamento na data escolhida (prazo indeterminado não tem data_fim).
+        $data = (string) ($filtros['data'] ?? '');
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $data) && checkdate((int) substr($data, 5, 2), (int) substr($data, 8, 2), (int) substr($data, 0, 4))) {
+            $where[]          = 'c.data_inicio <= :data1 AND (c.data_fim IS NULL OR c.data_fim >= :data2)';
+            $params['data1']  = $data;
+            $params['data2']  = $data;
+        }
 
         $resultado = self::paginar(
             'c.id, c.numero_contrato, c.numero_locacao, c.status, c.prazo, c.data_emissao, c.data_inicio, c.data_fim,
-             c.periodicidade, p.nome_razao_social AS cliente,
+             c.periodicidade, p.nome_razao_social AS cliente, p.cpf_cnpj,
+             (SELECT COALESCE(SUM(i.quantidade), 0) FROM contrato_itens i WHERE i.contrato_id = c.id) AS itens,
              (SELECT COALESCE(SUM(i.subtotal), 0) FROM contrato_itens i WHERE i.contrato_id = c.id)
                + COALESCE(c.frete_deslocamento, 0) + COALESCE(c.outros_valores, 0) AS valor_total',
             'FROM contratos c JOIN pessoas p ON p.id = c.cliente_id WHERE ' . implode(' AND ', $where),
@@ -330,6 +338,7 @@ final class Contrato extends Modelo
         );
         $resultado['items'] = array_map(static function (array $c): array {
             $c['id']          = (int) $c['id'];
+            $c['itens']       = (int) $c['itens'];
             $c['valor_total'] = (float) $c['valor_total'];
             return $c;
         }, $resultado['items']);

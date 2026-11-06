@@ -1,8 +1,8 @@
 <?php
 /**
- * API de Contratos de Locação (para a futura tela de Contratos).
+ * API de Contratos de Locação (tela public/admin/locacoes/index.php).
  *
- *   GET  api/contratos                     listar (filtros q, status, page)
+ *   GET  api/contratos                     listar (filtros q, status, data, page)
  *   GET  api/contratos/opcoes              opcoes (clientes, produtos com preços, condições + token)
  *   GET  api/contratos/{id}                buscar (itens, contêineres e parcelas)
  *   POST api/contratos/calcular            prévia do valor, sem gravar

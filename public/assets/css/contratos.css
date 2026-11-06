@@ -1,0 +1,520 @@
+/*
+ * Listagem de Contratos de Locação (public/admin/locacoes/index.php).
+ * Reaproveita a base do painel (dashboard.css), da tabela/filtros/diálogo (clientes.css)
+ * e dos botões do diálogo (acoes.css); aqui ficam os ajustes desta tela.
+ *
+ * Organização:
+ *   1. Ícones desenhados em CSS (sem arquivos SVG)
+ *   2. Filtros (status e período)
+ *   3. Tabela e etiquetas de status
+ *   4. Diálogo "Prévia do contrato"
+ *   5. Impressão / salvar PDF
+ *   6. Responsivo
+ */
+
+/* ==========================================================================
+   1. Ícones desenhados em CSS
+   Cada ícone é um <span class="icon icon-..."> montado com bordas e pseudo-elementos.
+   A cor vem de "currentColor", então o ícone segue a cor do texto onde está.
+   ========================================================================== */
+
+/* Base: caixa de tamanho fixo que não encolhe dentro de flex */
+.icon {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    color: inherit
+}
+
+.icon::before,
+.icon::after {
+    content: "";
+    position: absolute;
+    box-sizing: border-box
+}
+
+/* Lupa: círculo + cabo inclinado */
+.icon-search {
+    width: 17px;
+    height: 17px;
+    color: #5d625e
+}
+
+.icon-search::before {
+    left: 1px;
+    top: 1px;
+    width: 12px;
+    height: 12px;
+    border: 2px solid currentColor;
+    border-radius: 50%
+}
+
+.icon-search::after {
+    left: 11px;
+    top: 12px;
+    width: 6px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transform: rotate(45deg)
+}
+
+/* Seta para baixo das seleções: "V" com duas bordas giradas */
+.icon-chevron {
+    width: 10px;
+    height: 6px;
+    color: #121212
+}
+
+.icon-chevron::before {
+    left: 2px;
+    top: -3px;
+    width: 6px;
+    height: 6px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg)
+}
+
+/* Calendário: folha com a faixa superior grossa e as duas argolas */
+.icon-calendar {
+    width: 14px;
+    height: 14px;
+    color: var(--forest)
+}
+
+.icon-calendar::before {
+    inset: 2px 0 0;
+    border: 1.5px solid currentColor;
+    border-top-width: 4px;
+    border-radius: 3px
+}
+
+.icon-calendar::after {
+    left: 3px;
+    top: 0;
+    width: 8px;
+    height: 4px;
+    border-left: 1.5px solid currentColor;
+    border-right: 1.5px solid currentColor
+}
+
+/* Mais (+) do botão "Novo contrato" */
+.icon-plus {
+    width: 14px;
+    height: 14px;
+    color: #fff
+}
+
+.icon-plus::before,
+.icon-plus::after {
+    left: 50%;
+    top: 50%;
+    background: currentColor;
+    border-radius: 2px;
+    transform: translate(-50%, -50%)
+}
+
+.icon-plus::before {
+    width: 14px;
+    height: 2px
+}
+
+.icon-plus::after {
+    width: 2px;
+    height: 14px
+}
+
+/* Limpar: seta circular (círculo aberto + ponta) */
+.icon-clear {
+    color: var(--ink)
+}
+
+.icon-clear::before {
+    inset: 2px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    transform: rotate(45deg)
+}
+
+.icon-clear::after {
+    right: 1px;
+    top: 1px;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 5px solid currentColor;
+    transform: rotate(45deg)
+}
+
+/* Documento (lista vazia): folha com canto dobrado e linhas de texto */
+.icon-document {
+    width: 26px;
+    height: 32px;
+    border: 2px solid #a3a7a3;
+    border-radius: 4px;
+    color: #a3a7a3
+}
+
+.icon-document::before {
+    right: -2px;
+    top: -2px;
+    width: 10px;
+    height: 10px;
+    background: linear-gradient(to bottom left, #fff 50%, currentColor 50%, currentColor calc(50% + 2px), transparent calc(50% + 2px));
+    border-bottom-left-radius: 2px
+}
+
+.icon-document::after {
+    left: 4px;
+    right: 4px;
+    top: 12px;
+    height: 10px;
+    background: linear-gradient(currentColor 0 2px, transparent 2px 4px, currentColor 4px 6px, transparent 6px 8px, currentColor 8px 10px)
+}
+
+/* Setas da paginação: "<" e ">" */
+.icon-arrow-left::before,
+.icon-arrow-right::before {
+    top: 4px;
+    width: 8px;
+    height: 8px;
+    border-left: 2px solid currentColor;
+    border-bottom: 2px solid currentColor
+}
+
+.icon-arrow-left::before {
+    left: 5px;
+    transform: rotate(45deg)
+}
+
+.icon-arrow-right::before {
+    left: 2px;
+    transform: rotate(-135deg)
+}
+
+/* Setas apagadas quando o botão está desativado */
+.pagination button:disabled:not(.selected) .icon {
+    opacity: .35
+}
+
+/* ==========================================================================
+   2. Filtros (status e período)
+   ========================================================================== */
+
+/* Botão "Novo contrato" é <button>: herda a fonte do painel */
+.contracts-page .new-client {
+    font-family: inherit;
+    cursor: pointer
+}
+
+/* Pesquisa ocupa o espaço livre; status e período com largura fixa */
+.contracts-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 205px 205px auto;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 40px 20px 20px
+}
+
+.contracts-filters .search-field {
+    width: 100%;
+    min-width: 0
+}
+
+/* Seta desenhada da seleção de status */
+.contract-status-filter .icon-chevron {
+    position: absolute;
+    right: 18px;
+    top: 19px;
+    pointer-events: none
+}
+
+/* Período: rótulo visível acima do campo de data */
+.period-filter {
+    position: relative;
+    min-width: 0
+}
+
+.period-filter>label {
+    position: absolute;
+    left: 6px;
+    top: -22px;
+    font-size: 14px;
+    line-height: 18px
+}
+
+/* Caixa da data com o calendário à esquerda e o texto de exemplo */
+.date-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding-left: 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden
+}
+
+.date-field .icon-calendar {
+    pointer-events: none
+}
+
+/* O input cobre a caixa inteira: clicar em qualquer ponto abre o calendário do navegador */
+.date-field input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 0 10px 0 42px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: transparent;
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer
+}
+
+.date-field input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    opacity: 0;
+    cursor: pointer
+}
+
+/* Com data escolhida, o texto do input aparece */
+.date-field.has-date input {
+    color: var(--ink)
+}
+
+.date-placeholder {
+    position: absolute;
+    left: 42px;
+    color: #121212b3;
+    font-size: 14px;
+    pointer-events: none;
+    white-space: nowrap
+}
+
+.contracts-filters .clear-filters {
+    white-space: nowrap
+}
+
+/* ==========================================================================
+   3. Tabela e etiquetas de status
+   ========================================================================== */
+
+.contracts-card {
+    margin-top: 42px
+}
+
+/* Largura mínima: no celular a tabela rola na horizontal */
+.contracts-table {
+    min-width: 960px;
+    table-layout: fixed
+}
+
+.contracts-table td {
+    overflow-wrap: anywhere
+}
+
+/* Texto secundário (locação, CPF/CNPJ) em cinza abaixo do principal */
+.contracts-table td small {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 16px
+}
+
+/* Número do contrato em verde, clicável */
+.contract-number {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--forest);
+    font: inherit;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer
+}
+
+.contract-number:hover {
+    text-decoration: underline
+}
+
+.contract-value {
+    font-weight: 600
+}
+
+/* Etiquetas: verde (ativo), amarela (rascunho), cinza (finalizado), vermelha (cancelado) */
+.contract-status {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 30px;
+    background: #e7f2eb;
+    color: #235438;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+    white-space: nowrap
+}
+
+.contract-status.draft {
+    background: #fff3d6;
+    color: #7a550c
+}
+
+.contract-status.finished {
+    background: #ededed;
+    color: #5d625e
+}
+
+.contract-status.canceled {
+    background: #fbe9e7;
+    color: #a73328
+}
+
+/* Lista vazia com o ícone de documento */
+.contracts-table .clients-empty .icon-document {
+    margin-bottom: 4px
+}
+
+/* Contorno ao focar a tabela pelo teclado */
+.contracts-page .table-scroll:focus-visible {
+    outline: 2px solid #b58b36;
+    outline-offset: -2px
+}
+
+/* ==========================================================================
+   4. Diálogo "Prévia do contrato" (mesmo visual do Figma)
+   ========================================================================== */
+
+.contract-dialog {
+    width: min(640px, calc(100% - 32px))
+}
+
+/* Folha do contrato */
+.contract-sheet {
+    margin-top: 18px
+}
+
+/* "CASA BARRETTO" em verde, com a fonte do logotipo */
+.contract-brand {
+    font: 700 22px/30px 'Libre Caslon Text', Georgia, serif;
+    color: var(--forest);
+    letter-spacing: .5px
+}
+
+.contract-sheet h3 {
+    margin: 10px 0 12px;
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 800
+}
+
+.contract-sheet-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 13px
+}
+
+/* Cada linha "Rótulo: valor" */
+.contract-line {
+    font-size: 13px;
+    line-height: 20px;
+    padding: 5px 0;
+    overflow-wrap: anywhere
+}
+
+/* Observação final em cinza */
+.contract-note {
+    margin-top: 10px;
+    font-size: 11px;
+    line-height: 16px;
+    color: var(--muted)
+}
+
+.contract-dialog .detail-actions {
+    margin-top: 20px
+}
+
+/* ==========================================================================
+   5. Impressão / salvar PDF
+   Com body.printing-contract (contratos.js), só a folha do contrato vai para o papel.
+   ========================================================================== */
+
+@media print {
+    body.printing-contract>*:not(#contract-dialog) {
+        display: none !important
+    }
+
+    body.printing-contract #contract-dialog {
+        position: static;
+        width: 100%;
+        max-height: none;
+        border: 0;
+        padding: 0;
+        overflow: visible
+    }
+
+    body.printing-contract #contract-dialog::backdrop {
+        display: none
+    }
+
+    body.printing-contract .detail-heading,
+    body.printing-contract .detail-actions {
+        display: none
+    }
+}
+
+/* ==========================================================================
+   6. Responsivo
+   ========================================================================== */
+
+/* Tablet: pesquisa em linha própria */
+@media(max-width:1200px) {
+    .contracts-filters {
+        grid-template-columns: 1fr 1fr auto;
+        gap: 34px 18px;
+        padding: 24px
+    }
+
+    .contracts-filters .search-field {
+        grid-column: 1/-1
+    }
+}
+
+/* Celular: tudo em uma coluna */
+@media(max-width:760px) {
+    .contracts-filters {
+        grid-template-columns: 1fr;
+        gap: 34px;
+        padding: 20px
+    }
+
+    .contracts-filters .search-field {
+        grid-column: auto;
+        gap: 12px
+    }
+
+    .contracts-filters .clear-filters {
+        justify-self: end
+    }
+
+    .contracts-card {
+        margin-top: 28px
+    }
+
+    .contracts-page .page-intro {
+        flex-wrap: wrap
+    }
+}
