@@ -141,13 +141,17 @@ final class Produto extends Modelo
         return array_map(static fn (array $l): array => ['periodicidade' => $l['periodicidade'], 'valor' => (float) $l['valor']], $consulta->fetchAll());
     }
 
-    /** Produtos ativos com os preços, para o select de itens do contrato: [{ id, codigo, nome, precos }]. */
+    /**
+     * Produtos ativos com os preços, para o select de itens do contrato:
+     * [{ id, codigo, nome, descricao, valor_total_bem, precos }].
+     */
     public static function listarAtivos(): array
     {
-        $linhas = self::pdo()->query('SELECT id, codigo, nome FROM produtos WHERE ativo = 1 ORDER BY nome')->fetchAll();
+        $linhas = self::pdo()->query('SELECT id, codigo, nome, descricao, valor_total_bem FROM produtos WHERE ativo = 1 ORDER BY nome')->fetchAll();
 
         return array_map(static fn (array $p): array => [
-            'id' => (int) $p['id'], 'codigo' => $p['codigo'], 'nome' => $p['nome'], 'precos' => self::listarPrecos((int) $p['id']),
+            'id' => (int) $p['id'], 'codigo' => $p['codigo'], 'nome' => $p['nome'], 'descricao' => $p['descricao'],
+            'valor_total_bem' => (float) $p['valor_total_bem'], 'precos' => self::listarPrecos((int) $p['id']),
         ], $linhas);
     }
 

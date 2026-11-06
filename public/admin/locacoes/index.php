@@ -4,7 +4,7 @@
  * filtro de período (data dentro da locação), paginação e prévia do contrato com impressão/PDF.
  * Os dados vêm de /api/contratos (contratos.js → public/api/index.php → ContratoController → Contrato).
  * Os ícones desta tela são desenhados em CSS (contratos.css), sem arquivos de imagem.
- * O cadastro ("Novo contrato") ainda está em desenvolvimento e abre o aviso padrão do painel.js.
+ * "Novo contrato" abre cadastro.php; ?ver=ID abre direto a prévia do contrato (usado depois de salvar).
  */
 
 require __DIR__ . '/../../../src/bootstrap.php';
@@ -26,8 +26,8 @@ require __DIR__ . '/../../../includes/head.php';
     <header class="page-header"><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-sidebar" aria-label="Abrir menu"><span></span><span></span><span></span></button><div class="page-heading"><h1>Contratos de Locação</h1><p>Consulte, filtre e gerencie os contratos</p></div><div class="date-pill"><span class="icon icon-calendar" aria-hidden="true"></span><time id="today"></time></div></header>
 
     <main class="clients-main contracts-main" id="contracts-main" tabindex="-1" aria-busy="true">
-      <!-- Título da seção e botão "Novo contrato" (cadastro ainda em desenvolvimento: abre o aviso) -->
-      <div class="page-intro"><div><h2>Contratos de Locação</h2><p>Consulte contratos, abra a prévia em PDF e acompanhe o status das locações.</p></div><button class="new-client" id="new-contract" type="button" data-module="Novo contrato"><span class="icon icon-plus" aria-hidden="true"></span>Novo contrato</button></div>
+      <!-- Título da seção e botão "Novo contrato" (abre cadastro.php) -->
+      <div class="page-intro"><div><h2>Contratos de Locação</h2><p>Consulte contratos, abra a prévia em PDF e acompanhe o status das locações.</p></div><a class="new-client" id="new-contract" href="<?= htmlspecialchars(BASE_URL . 'admin/locacoes/cadastro.php') ?>"><span class="icon icon-plus" aria-hidden="true"></span>Novo contrato</a></div>
 
       <!-- Filtros: pesquisa, status do contrato, data dentro do período e Limpar -->
       <form class="filter-card contracts-filters" id="contract-filters" role="search" aria-label="Pesquisar contratos">

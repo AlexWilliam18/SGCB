@@ -129,6 +129,23 @@ final class UnidadeFisica extends Modelo
     }
 
     /**
+     * Contêineres ativos do produto com a situação no período (tela "Novo contrato"):
+     * [{ id, codigo, livre }]. "livre" = pode ser reservado nas datas pedidas.
+     */
+    public static function situacaoNoPeriodo(int $produtoId, string $inicio, string $fim): array
+    {
+        $consulta = self::pdo()->prepare(
+            "SELECT id, codigo FROM unidades_fisicas WHERE produto_id = :id AND estado_operacional <> 'INATIVA' ORDER BY codigo"
+        );
+        $consulta->execute(['id' => $produtoId]);
+        $livres = self::livresNoPeriodo($produtoId, $inicio, $fim);
+
+        return array_map(static fn (array $u): array => [
+            'id' => (int) $u['id'], 'codigo' => $u['codigo'], 'livre' => in_array((int) $u['id'], $livres, true),
+        ], $consulta->fetchAll());
+    }
+
+    /**
      * Trava as unidades do produto até o fim da transação (SELECT ... FOR UPDATE).
      * Chame antes de livresNoPeriodo() ao reservar: dois contratos simultâneos
      * não conseguem pegar o mesmo contêiner.

@@ -63,6 +63,7 @@ $rotas = [
     ['GET',  'contratos',                              [ContratoController::class, 'listar']],
     ['POST', 'contratos',                              [ContratoController::class, 'salvar']],
     ['GET',  'contratos/opcoes',                       [ContratoController::class, 'opcoes']],
+    ['GET',  'contratos/unidades',                     [ContratoController::class, 'unidades']],
     ['POST', 'contratos/calcular',                     [ContratoController::class, 'calcular']],
     ['GET',  'contratos/{id}',                         [ContratoController::class, 'buscar']],
     ['POST', 'contratos/{id}/gerar',                   [ContratoController::class, 'gerar']],
