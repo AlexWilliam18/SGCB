@@ -3,7 +3,7 @@
  * Listagem de Contratos de Locação: pesquisa, filtros (status e período), paginação
  * e diálogo "Prévia do contrato" com impressão / salvar em PDF.
  * Os dados vêm de /api/contratos (public/api/index.php → ContratoController → Contrato).
- * Por enquanto a tela só consulta; o cadastro de contrato virá numa próxima etapa.
+ * O cadastro fica em cadastro.php (cadastro-contrato.js); ?ver=ID abre a prévia ao chegar.
  */
 (() => {
   const $ = id => document.getElementById(id);
@@ -423,4 +423,11 @@
   });
 
   loadContracts();
+
+  // ?ver=ID (vindo do cadastro, botão "Visualizar documento"): abre a prévia desse contrato.
+  const verId = url.get('ver');
+  if (/^\d+$/.test(verId || '')) {
+    showContract(Number(verId));
+    url.delete('ver');
+  }
 })();

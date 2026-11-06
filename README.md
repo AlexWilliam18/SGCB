@@ -54,7 +54,7 @@ Projeto Integrador desenvolvido pela equipe **Bemfa Developers**:
 | **Visão Geral** | Indicadores, gráficos, rankings e últimas locações. |
 | **Clientes** | Listagem com pesquisa e filtros, cadastro e edição (endereços, foto e anexos), inativar e reativar. |
 | **Produtos** | Listagem com pesquisa e filtros, cadastro e edição de produtos e categorias, preços por período, controle de estoque por contêiner. |
-| **Contratos de Locação** | Listagem com pesquisa por cliente, CPF/CNPJ ou número, filtros de status e período, paginação e prévia do contrato com opção de imprimir/salvar em PDF. |
+| **Contratos de Locação** | Listagem com pesquisa por cliente, CPF/CNPJ ou número, filtros de status e período, paginação e prévia do contrato com opção de imprimir/salvar em PDF. Cadastro de contrato com escolha do cliente, endereço de entrega, período, contêineres livres no período, condições comerciais, resumo com o valor calculado e geração do contrato (ou rascunho). |
 | **Manutenções** | Listagem com indicadores e filtros, agendamento, início, conclusão e cancelamento. |
 | **Financeiro** | Parcelas com indicadores e filtros, registro de pagamentos (parcial ou total, em várias formas), estornos e cancelamento de parcelas. |
 | **Usuários** | Listagem com indicadores e filtros, cadastro e edição, ativar e inativar. |
@@ -62,7 +62,6 @@ Projeto Integrador desenvolvido pela equipe **Bemfa Developers**:
 
 ### Próximas etapas
 
-- Cadastro de contrato pela tela.
 - Configurações da empresa.
 - Troca e recuperação de senha pela tela.
 - Impressão do recibo de pagamento.
@@ -82,7 +81,7 @@ Resumo do caminho que seguimos do cadastro até o encerramento de um contrato:
 5. **Entrega e acompanhamento** — os contêineres saem para o cliente e as parcelas aparecem no **Financeiro**, onde os pagamentos são registrados.
 6. **Encerramento** — ao fim da locação o contrato é **finalizado** e os contêineres voltam ao estoque. Se for **cancelado**, os contêineres são liberados e as parcelas sem pagamento são canceladas.
 
-> Hoje a tela de Contratos mostra a listagem e a prévia; a montagem e a geração do contrato pela tela fazem parte das próximas etapas.
+> Pela tela de cadastro, os passos 3 e 4 acontecem juntos quando o status inicial é **Ativo**; com **Rascunho**, o contrato fica salvo para ser gerado depois.
 
 ---
 
@@ -105,6 +104,7 @@ Resumo do caminho que seguimos do cadastro até o encerramento de um contrato:
 | 13 | Back-end completo: todas as telas lendo e gravando no banco, com edição e ações. |
 | 14 | Telas de Usuários (listagem, cadastro, edição, ativar e inativar). |
 | 15 | Tela inicial de Contratos de Locação ligada ao banco, com prévia e impressão do contrato. |
+| 16 | Cadastro de contrato de locação ligado ao banco: escolha dos contêineres livres no período, valor calculado pelo sistema, prévia antes de salvar e geração do contrato com as parcelas. |
 
 ---
 

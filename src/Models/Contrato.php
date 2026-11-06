@@ -73,14 +73,33 @@ final class Contrato extends Modelo
     }
 
     /**
+     * Cadastro da tela "Novo contrato" com status inicial ativo: cria o rascunho e já gera,
+     * tudo na mesma transação (se a geração falhar, o rascunho também é desfeito).
+     * Os contêineres escolhidos na tela (itens[].unidades) são os reservados.
+     *
+     * @return array contrato gerado (buscarContrato).
+     */
+    public static function criarEGerarContrato(array $dados, int $usuarioId): array
+    {
+        $unidades = self::validar($dados)['unidades'];
+
+        return self::transacao(static function () use ($dados, $usuarioId, $unidades): array {
+            $id = self::criarContrato($dados, $usuarioId);
+            return self::gerarContrato($id, $usuarioId, $unidades);
+        });
+    }
+
+    /**
      * Ativa o contrato (método gerarContrato do diagrama). Confere cliente, limite de crédito
      * e estoque no período; reserva os contêineres; numera; grava os snapshots e gera as parcelas.
      *
+     * @param array<int, int[]> $unidadesEscolhidas índice do item => ids dos contêineres escolhidos
+     *                                              (itens sem escolha recebem os primeiros livres).
      * @return array resumo do contrato gerado (buscarContrato).
      */
-    public static function gerarContrato(int $id, int $usuarioId): array
+    public static function gerarContrato(int $id, int $usuarioId, array $unidadesEscolhidas = []): array
     {
-        self::transacao(static function (PDO $pdo) use ($id, $usuarioId): void {
+        self::transacao(static function (PDO $pdo) use ($id, $usuarioId, $unidadesEscolhidas): void {
             $contrato = self::bloquear($id, ['RASCUNHO']);
             $hoje     = self::hoje();
 
@@ -116,7 +135,21 @@ final class Contrato extends Modelo
             $statusAgenda   = $contrato['data_inicio'] <= $hoje ? 'EM_USO' : 'RESERVADA';
             foreach ($itens as $i => $item) {
                 UnidadeFisica::bloquearProduto($item['produto_id']);
-                $livres = UnidadeFisica::livresNoPeriodo($item['produto_id'], $inicio, $fim, $item['quantidade']);
+                $escolhidas = $unidadesEscolhidas[$i] ?? [];
+                if ($escolhidas) {
+                    // Contêineres escolhidos na tela: todos precisam continuar livres no período.
+                    $ocupadas = array_diff($escolhidas, UnidadeFisica::livresNoPeriodo($item['produto_id'], $inicio, $fim));
+                    if ($ocupadas || count($escolhidas) !== $item['quantidade']) {
+                        throw new ErroValidacao(
+                            "Um ou mais contêineres escolhidos de {$item['produto']} não estão mais livres no período. Atualize a seleção.",
+                            ["itens.$i.unidades" => 'Contêiner indisponível no período.'],
+                            409
+                        );
+                    }
+                    $livres = $escolhidas;
+                } else {
+                    $livres = UnidadeFisica::livresNoPeriodo($item['produto_id'], $inicio, $fim, $item['quantidade']);
+                }
                 if (count($livres) < $item['quantidade']) {
                     throw new ErroValidacao(
                         "Não há {$item['quantidade']} unidade(s) de {$item['produto']} livres no período (livres: " . count($livres) . ').',
@@ -143,10 +176,13 @@ final class Contrato extends Modelo
             }
 
             // 6. Snapshots: o contrato guarda os dados do dia, mesmo que os cadastros mudem depois.
-            $entrega = null;
-            foreach ($cliente['enderecos'] as $endereco) {
-                if ($endereco['id'] === (int) $contrato['endereco_entrega_id']) {
-                    $entrega = $endereco;
+            // Entrega: o endereço digitado na tela (gravado no rascunho) tem prioridade sobre o cadastro.
+            $entrega = $contrato['dados_entrega_snapshot'] !== null ? json_decode($contrato['dados_entrega_snapshot'], true) : null;
+            if ($entrega === null) {
+                foreach ($cliente['enderecos'] as $endereco) {
+                    if ($endereco['id'] === (int) $contrato['endereco_entrega_id']) {
+                        $entrega = $endereco;
+                    }
                 }
             }
             $dadosCliente = array_intersect_key($cliente, array_flip([
@@ -154,6 +190,10 @@ final class Contrato extends Modelo
                 'profissao', 'rg', 'inscricao_estadual', 'representante_legal', 'cpf_representante',
             ]));
             $dadosCliente['endereco'] = $cliente['enderecos'][0] ?? null; // principal vem primeiro
+            // Responsável pela assinatura informado na tela substitui o do cadastro.
+            if ($contrato['dados_cliente_snapshot'] !== null) {
+                $dadosCliente = array_merge($dadosCliente, (array) json_decode($contrato['dados_cliente_snapshot'], true));
+            }
 
             // 7. Parcelas.
             $condicao = $contrato['condicao_pagamento_id'] ? CondicaoPagamento::buscar((int) $contrato['condicao_pagamento_id']) : null;
@@ -417,6 +457,11 @@ final class Contrato extends Modelo
             $valores[$campo] = self::campoDecimal($dados, $campo, $erros) ?? '0.00';
         }
 
+        // Local de entrega digitado na tela (pode ser um endereço do cliente ajustado só para este contrato).
+        $entregaSnapshot = self::validarEntrega($dados['entrega'] ?? null, $erros);
+        // Responsável pela assinatura (opcional, para pessoa jurídica): nome + CPF juntos.
+        $responsavel = self::validarResponsavel($dados['responsavel'] ?? null, $erros);
+
         // Itens
         $itens  = [];
         $listaItens = is_array($dados['itens'] ?? null) ? array_values($dados['itens']) : [];
@@ -427,17 +472,30 @@ final class Contrato extends Modelo
         if ($dataInicio !== null && $periodicidade !== null && !isset($erros['data_fim'])) {
             $periodosPadrao = self::numeroPeriodos($periodicidade, $prazo, $dataInicio, $dataFim, $parcelas, $preferencias['contagem_diarias'] ?? 'CORRIDOS');
         }
+        $unidadesEscolhidas = [];   // índice do item => ids das unidades físicas escolhidas na tela
+        $unidadesUsadas     = [];   // evita o mesmo contêiner em dois itens
         foreach ($listaItens as $i => $item) {
             $item = is_array($item) ? $item : [];
             $p    = "itens.$i.";
+
+            // Unidades físicas escolhidas (opcional): sem elas, o sistema escolhe as livres ao gerar.
+            $unidades = is_array($item['unidades'] ?? null) ? array_values(array_unique(array_map('intval', $item['unidades']))) : [];
+            if ($unidades && trim((string) ($item['quantidade'] ?? '')) === '') {
+                $item['quantidade'] = count($unidades);
+            }
 
             $produtoId = self::campoInteiro($item, 'produto_id', $erros, true, 1);
             $qtd       = self::campoInteiro($item, 'quantidade', $erros, true, 1, 1000);
             $perItem   = self::campoOpcao($item, 'periodicidade', Produto::PERIODICIDADES, $erros) ?? $periodicidade;
             $desconto  = self::campoDecimal($item, 'desconto', $erros) ?? '0.00';
             $outros    = self::campoDecimal($item, 'outros', $erros) ?? '0.00';
+            // Preço da locação ajustado na tela (opcional); sem ele vale o preço do produto.
+            $valorAjustado = self::campoDecimal($item, 'valor_unitario', $erros);
+            if ($valorAjustado !== null && self::centavos($valorAjustado) <= 0) {
+                $erros['valor_unitario'] = 'Informe um valor maior que zero.';
+            }
             // Os erros dos itens voltam como "itens.N.campo".
-            foreach (['produto_id', 'quantidade', 'periodicidade', 'desconto', 'outros'] as $campo) {
+            foreach (['produto_id', 'quantidade', 'periodicidade', 'desconto', 'outros', 'valor_unitario'] as $campo) {
                 if (isset($erros[$campo])) {
                     $erros[$p . $campo] = $erros[$campo];
                     unset($erros[$campo]);
@@ -454,10 +512,33 @@ final class Contrato extends Modelo
                 $erros[$p . 'produto_id'] = 'Selecione um produto ativo.';
                 continue;
             }
-            $valorUnitario = Produto::valorPorPeriodicidade($produtoId, $perItem);
+            $valorUnitario = $valorAjustado ?? Produto::valorPorPeriodicidade($produtoId, $perItem);
             if ($valorUnitario === null) {
                 $erros[$p . 'periodicidade'] = 'O produto não tem preço para esta periodicidade.';
                 continue;
+            }
+
+            // Unidades escolhidas: precisam ser do produto, não inativas, sem repetir entre itens e na mesma quantidade.
+            if ($unidades) {
+                $marcas  = implode(', ', array_fill(0, count($unidades), '?'));
+                $validas = self::pdo()->prepare(
+                    "SELECT COUNT(*) FROM unidades_fisicas WHERE produto_id = ? AND estado_operacional <> 'INATIVA' AND id IN ($marcas)"
+                );
+                $validas->execute(array_merge([$produtoId], $unidades));
+                if ((int) $validas->fetchColumn() !== count($unidades)) {
+                    $erros[$p . 'unidades'] = 'Selecione contêineres ativos deste produto.';
+                    continue;
+                }
+                if (array_intersect($unidades, $unidadesUsadas)) {
+                    $erros[$p . 'unidades'] = 'O mesmo contêiner foi escolhido em mais de um item.';
+                    continue;
+                }
+                if (count($unidades) !== $qtd) {
+                    $erros[$p . 'unidades'] = 'A quantidade precisa ser igual ao número de contêineres escolhidos.';
+                    continue;
+                }
+                $unidadesUsadas          = array_merge($unidadesUsadas, $unidades);
+                $unidadesEscolhidas[$i]  = $unidades;
             }
 
             $periodos = $perItem === $periodicidade
@@ -508,11 +589,71 @@ final class Contrato extends Modelo
                 'primeiro_vencimento'   => $primeiroVenc,
                 'numero_parcelas'       => $parcelas,
                 'observacoes'           => $observacoes,
+                // Gravados já no rascunho; gerarContrato() os completa com os dados do cadastro.
+                'dados_entrega_snapshot' => $entregaSnapshot !== null ? self::json($entregaSnapshot) : null,
+                'dados_cliente_snapshot' => $responsavel !== null ? self::json($responsavel) : null,
             ] + $valores,
             'itens'         => $itens,
+            'unidades'      => $unidadesEscolhidas,
             'valor_itens_c' => $valorItensC,
             'total_c'       => $totalC,
         ];
+    }
+
+    /**
+     * Endereço de entrega enviado pela tela: { cep, rua, numero, bairro, cidade, uf, complemento, referencia }.
+     * Vazio/ausente = usa o endereço do cliente escolhido em endereco_entrega_id. Erros voltam como "entrega.campo".
+     */
+    private static function validarEntrega(mixed $entrega, array &$erros): ?array
+    {
+        if (!is_array($entrega) || !array_filter($entrega, static fn ($v) => trim((string) $v) !== '')) {
+            return null;
+        }
+
+        $e = [];
+        $campos = ['rua' => 200, 'numero' => 20, 'bairro' => 100, 'cidade' => 100];
+        foreach ($campos as $campo => $maximo) {
+            $e[$campo] = self::campoTexto($entrega, $campo, $maximo, $erros, true);
+        }
+        $e['complemento'] = self::campoTexto($entrega, 'complemento', 150, $erros);
+        $e['referencia']  = self::campoTexto($entrega, 'referencia', 150, $erros);
+
+        $e['cep'] = self::somenteDigitos((string) ($entrega['cep'] ?? ''));
+        if (strlen($e['cep']) !== 8) {
+            $erros['cep'] = 'Informe um CEP com 8 dígitos.';
+        }
+        $e['uf'] = strtoupper(trim((string) ($entrega['uf'] ?? '')));
+        if (!preg_match('/^(AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)$/', $e['uf'])) {
+            $erros['uf'] = 'Selecione o estado.';
+        }
+
+        // Prefixo "entrega." nos erros para a tela marcar o campo certo.
+        foreach (['rua', 'numero', 'bairro', 'cidade', 'complemento', 'referencia', 'cep', 'uf'] as $campo) {
+            if (isset($erros[$campo])) {
+                $erros['entrega.' . $campo] = $erros[$campo];
+                unset($erros[$campo]);
+            }
+        }
+
+        return $e;
+    }
+
+    /** Responsável pela assinatura: { nome, cpf } (os dois juntos) ou nada. */
+    private static function validarResponsavel(mixed $responsavel, array &$erros): ?array
+    {
+        $nome = is_array($responsavel) ? trim((string) ($responsavel['nome'] ?? '')) : '';
+        $cpf  = is_array($responsavel) ? self::somenteDigitos((string) ($responsavel['cpf'] ?? '')) : '';
+        if ($nome === '' && $cpf === '') {
+            return null;
+        }
+        if ($nome === '' || mb_strlen($nome) > 100) {
+            $erros['responsavel.nome'] = 'Informe o nome do responsável (até 100 caracteres).';
+        }
+        if (strlen($cpf) !== 11 || !Cliente::validarCpfCnpj($cpf)) {
+            $erros['responsavel.cpf'] = 'Informe um CPF válido.';
+        }
+
+        return ['representante_legal' => $nome, 'cpf_representante' => $cpf];
     }
 
     /**
