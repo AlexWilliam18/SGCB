@@ -21,6 +21,8 @@ $paginaAtual  = 'locacoes';                // o cadastro pertence ao módulo Con
 
 // Caminho da listagem (botão Voltar, "Descartar e sair" e "Visualizar documento").
 $urlLista = htmlspecialchars(BASE_URL . 'admin/locacoes/index.php');
+// Ícones SVG oficiais (classe .icone, tamanhos no dashboard.css).
+$icones   = htmlspecialchars(BASE_URL . 'assets/img/icones/');
 
 require __DIR__ . '/../../../includes/head.php';
 ?>
@@ -28,7 +30,7 @@ require __DIR__ . '/../../../includes/head.php';
 <?php require __DIR__ . '/../../../includes/nav.php'; ?>
   <div class="workspace">
     <!-- Cabeçalho: botão do menu no celular, título e data de hoje (painel.js) -->
-    <header class="page-header"><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-sidebar" aria-label="Abrir menu"><span></span><span></span><span></span></button><div class="page-heading"><h1>Contratos de Locação</h1><p>Cadastro de contrato</p></div><div class="date-pill"><span class="icon icon-calendar" aria-hidden="true"></span><time id="today"></time></div></header>
+    <header class="page-header"><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-sidebar" aria-label="Abrir menu"><span></span><span></span><span></span></button><div class="page-heading"><h1>Contratos de Locação</h1><p>Cadastro de contrato</p></div><div class="date-pill"><img class="icone icone--p" src="<?= $icones ?>calendario.svg" alt="" width="13" height="13"><time id="today"></time></div></header>
 
     <main class="contract-form-main" id="contract-form-main" data-lista-url="<?= $urlLista ?>" tabindex="-1">
       <!-- Título, caminho e botão Voltar -->
@@ -109,7 +111,7 @@ require __DIR__ . '/../../../includes/head.php';
 
           <!-- 4. Produtos: um bloco por item (modelo #item-template), com os contêineres livres no período -->
           <section class="contract-card" aria-labelledby="products-title">
-            <div class="step-heading"><span class="step-number" aria-hidden="true">4</span><h3 id="products-title">Produtos da locação</h3><button type="button" class="add-item" id="add-item"><span class="icon icon-plus-small" aria-hidden="true"></span>Adicionar item</button></div>
+            <div class="step-heading"><span class="step-number" aria-hidden="true">4</span><h3 id="products-title">Produtos da locação</h3><button type="button" class="add-item" id="add-item"><svg class="icone icone--p" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3.33333 8H12.6667"/><path d="M8 3.33333V12.6667"/></svg>Adicionar item</button></div>
             <p class="section-help">Selecione os equipamentos, os contêineres e os valores acordados.</p>
             <div id="rental-items" class="rental-items"></div>
             <p class="field-hint">O valor do bem identifica o patrimônio. O preço da locação entra no cálculo da cobrança.</p>

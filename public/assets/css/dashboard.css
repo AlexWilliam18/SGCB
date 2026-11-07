@@ -357,6 +357,23 @@ h2 {
   white-space: nowrap;
 }
 
+/* Ícones SVG oficiais (public/assets/img/icones/), usados como <img class="icone" alt="">.
+   Um tamanho por contexto; o ícone não encolhe dentro de flex e fica centralizado com o texto. */
+.icone {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 16px;            /* padrão: botões (Novo, Limpar) e paginação */
+  height: 16px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.icone--p { width: 13px; height: 13px; }     /* data no cabeçalho */
+.icone--m { width: 17px; height: 17px; }     /* campo de pesquisa */
+.icone--g { width: 22px; height: 22px; }     /* campo de data (Período) */
+.icone--xg { width: 32px; height: 32px; }    /* lista vazia */
+.icone--seta { width: 10px; height: 6px; }   /* seta para baixo dos selects */
+
 /* Área principal com os blocos do painel empilhados */
 .dashboard {
   padding: 32px;

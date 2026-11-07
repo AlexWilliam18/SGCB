@@ -102,9 +102,9 @@ final class Dashboard extends Modelo
     }
 
     /**
-     * Últimas locações: { number, client, start, end, days, value, status, pdf_url }.
+     * Últimas locações: { id, number, client, start, end, days, value, status }.
      * Status da tela: ATIVO que ainda não começou aparece como RESERVADO.
-     * pdf_url só existe quando o contrato tem documento gerado.
+     * O id é usado no dashboard.js para abrir a prévia em admin/locacoes/index.php?ver=ID.
      */
     public static function ultimasLocacoes(int $limite = 15): array
     {
@@ -112,8 +112,7 @@ final class Dashboard extends Modelo
         $consulta = self::pdo()->prepare(
             "SELECT c.id, c.numero_contrato, p.nome_razao_social AS cliente, c.data_inicio, c.data_fim, c.status,
                     (SELECT COALESCE(SUM(i.subtotal), 0) FROM contrato_itens i WHERE i.contrato_id = c.id)
-                      + COALESCE(c.frete_deslocamento, 0) + COALESCE(c.outros_valores, 0) AS valor,
-                    EXISTS (SELECT 1 FROM contrato_documentos d WHERE d.contrato_id = c.id AND d.tipo = 'CONTRATO') AS tem_pdf
+                      + COALESCE(c.frete_deslocamento, 0) + COALESCE(c.outros_valores, 0) AS valor
                FROM contratos c JOIN pessoas p ON p.id = c.cliente_id
               WHERE c.status <> 'RASCUNHO'
               ORDER BY c.criado_em DESC, c.id DESC
@@ -126,6 +125,7 @@ final class Dashboard extends Modelo
             $status = $c['status'] === 'ATIVO' && $c['data_inicio'] > $hoje ? 'RESERVADO' : $c['status'];
 
             return [
+                'id'      => (int) $c['id'],
                 'number'  => $c['numero_contrato'],
                 'client'  => $c['cliente'],
                 'start'   => $c['data_inicio'],
@@ -133,7 +133,6 @@ final class Dashboard extends Modelo
                 'days'    => $c['data_fim'] !== null ? Contrato::diasLocacao($c['data_inicio'], $c['data_fim']) : null,
                 'value'   => (float) $c['valor'],
                 'status'  => $status,
-                'pdf_url' => $c['tem_pdf'] ? '/contratos/' . $c['id'] . '/pdf' : null,
             ];
         }, $consulta->fetchAll());
     }
