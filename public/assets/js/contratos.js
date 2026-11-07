@@ -76,12 +76,16 @@
     const tr = document.createElement('tr'),
       td = document.createElement('td'),
       div = document.createElement('div'),
-      icon = document.createElement('span'),
+      icon = document.createElement('img'),
       p = document.createElement('p');
     td.colSpan = 8;
     td.className = 'clients-empty';
-    icon.className = 'icon icon-document';
-    icon.setAttribute('aria-hidden', 'true');
+    // Ícone oficial de documento (public/assets/img/icones/), decorativo: alt vazio.
+    icon.className = 'icone icone--xg';
+    icon.src = window.SGCB_BASE + 'assets/img/icones/documento.svg';
+    icon.alt = '';
+    icon.width = 32;
+    icon.height = 32;
     p.textContent = text;
     div.append(icon, p);
     td.append(div);

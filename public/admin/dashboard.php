@@ -16,6 +16,8 @@ $js     = ['painel.js', 'dashboard.js'];
 $paginaAtual = 'visao-geral';
 
 $img = htmlspecialchars(BASE_URL . 'assets/img/');
+// "Ver todas" das locações recentes leva para a listagem de contratos.
+$urlContratos = htmlspecialchars(BASE_URL . 'admin/locacoes/index.php');
 
 require __DIR__ . '/../../includes/head.php';
 ?>
@@ -39,7 +41,7 @@ require __DIR__ . '/../../includes/head.php';
         <article class="card ranking-card"><div class="card-heading"><h2>Produtos mais alugados</h2><span>Top 5</span></div><div class="ranking-content" id="top-products"><p class="ranking-empty">Carregando dados…</p></div></article>
         <article class="card ranking-card"><div class="card-heading"><h2>Clientes com mais locações</h2><span>Top 5</span></div><div class="ranking-content" id="top-clients"><p class="ranking-empty">Carregando dados…</p></div></article>
       </section>
-      <section class="card recent-card" aria-labelledby="recent-title"><div class="recent-heading"><h2 id="recent-title">15 locações mais recentes</h2><button class="outline-button" type="button" data-module="Contratos de Locação">Ver todas</button></div><div class="table-scroll"><table><caption class="sr-only">Contratos de locação mais recentes</caption><colgroup><col class="col-contract"><col class="col-client"><col class="col-start"><col class="col-end"><col class="col-days"><col class="col-value"><col class="col-status"></colgroup><thead><tr><th scope="col">Contrato</th><th scope="col">Cliente</th><th scope="col">Início</th><th scope="col">Fim</th><th scope="col">Dias</th><th scope="col">Valor</th><th scope="col">Status</th></tr></thead><tbody id="recent-contracts"><tr class="empty-row"><td colspan="7">Carregando locações…</td></tr></tbody></table></div></section>
+      <section class="card recent-card" aria-labelledby="recent-title"><div class="recent-heading"><h2 id="recent-title">15 locações mais recentes</h2><a class="outline-button" href="<?= $urlContratos ?>">Ver todas</a></div><div class="table-scroll"><table><caption class="sr-only">Contratos de locação mais recentes</caption><colgroup><col class="col-contract"><col class="col-client"><col class="col-start"><col class="col-end"><col class="col-days"><col class="col-value"><col class="col-status"></colgroup><thead><tr><th scope="col">Contrato</th><th scope="col">Cliente</th><th scope="col">Início</th><th scope="col">Fim</th><th scope="col">Dias</th><th scope="col">Valor</th><th scope="col">Status</th></tr></thead><tbody id="recent-contracts"><tr class="empty-row"><td colspan="7">Carregando locações…</td></tr></tbody></table></div></section>
       <noscript><p class="data-notice">Ative o JavaScript para carregar os indicadores do painel.</p></noscript>
     </main>
   </div>

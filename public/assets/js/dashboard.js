@@ -141,14 +141,13 @@
         labels[contract.status] || contract.status,
       ].forEach((value, index) => {
         const td = document.createElement('td');
-        if (index === 0 && /^\/contratos\/\d+\/pdf$/.test(contract.pdf_url || '')) {
+        if (index === 0 && Number.isInteger(contract.id)) {
+          // Número do contrato abre a prévia na página de contratos (locacoes/index.php?ver=ID, tratado no contratos.js).
           const a = document.createElement('a');
-          a.href = contract.pdf_url;
+          a.href = window.SGCB_BASE + 'admin/locacoes/index.php?ver=' + encodeURIComponent(contract.id);
           a.className = 'contract-link';
           a.textContent = value;
-          a.target = '_blank';
-          a.rel = 'noopener';
-          a.setAttribute('aria-label', 'Ver PDF do contrato ' + value);
+          a.setAttribute('aria-label', 'Ver contrato ' + value);
           td.append(a);
         } else if (index === 6) {
           const badge = document.createElement('span');

@@ -4,7 +4,7 @@
  * e dos botões do diálogo (acoes.css); aqui ficam os ajustes desta tela.
  *
  * Organização:
- *   1. Ícones desenhados em CSS (sem arquivos SVG)
+ *   1. Base dos ícones extras do cadastro
  *   2. Filtros (status e período)
  *   3. Tabela e etiquetas de status
  *   4. Diálogo "Prévia do contrato"
@@ -13,12 +13,13 @@
  */
 
 /* ==========================================================================
-   1. Ícones desenhados em CSS
-   Cada ícone é um <span class="icon icon-..."> montado com bordas e pseudo-elementos.
-   A cor vem de "currentColor", então o ícone segue a cor do texto onde está.
+   1. Base dos ícones extras do cadastro de contrato
+   Os ícones da listagem são os SVGs oficiais (<img class="icone">, ver dashboard.css).
+   Esta base fica para os ícones sem SVG oficial do cadastro (visto e "×"),
+   montados com pseudo-elementos no cadastro-contrato.css.
    ========================================================================== */
 
-/* Base: caixa de tamanho fixo que não encolhe dentro de flex */
+/* Caixa de tamanho fixo que não encolhe dentro de flex */
 .icon {
     position: relative;
     display: inline-block;
@@ -33,173 +34,6 @@
     content: "";
     position: absolute;
     box-sizing: border-box
-}
-
-/* Lupa: círculo + cabo inclinado */
-.icon-search {
-    width: 17px;
-    height: 17px;
-    color: #5d625e
-}
-
-.icon-search::before {
-    left: 1px;
-    top: 1px;
-    width: 12px;
-    height: 12px;
-    border: 2px solid currentColor;
-    border-radius: 50%
-}
-
-.icon-search::after {
-    left: 11px;
-    top: 12px;
-    width: 6px;
-    height: 2px;
-    background: currentColor;
-    border-radius: 2px;
-    transform: rotate(45deg)
-}
-
-/* Seta para baixo das seleções: "V" com duas bordas giradas */
-.icon-chevron {
-    width: 10px;
-    height: 6px;
-    color: #121212
-}
-
-.icon-chevron::before {
-    left: 2px;
-    top: -3px;
-    width: 6px;
-    height: 6px;
-    border-right: 1.5px solid currentColor;
-    border-bottom: 1.5px solid currentColor;
-    transform: rotate(45deg)
-}
-
-/* Calendário: folha com a faixa superior grossa e as duas argolas */
-.icon-calendar {
-    width: 14px;
-    height: 14px;
-    color: var(--forest)
-}
-
-.icon-calendar::before {
-    inset: 2px 0 0;
-    border: 1.5px solid currentColor;
-    border-top-width: 4px;
-    border-radius: 3px
-}
-
-.icon-calendar::after {
-    left: 3px;
-    top: 0;
-    width: 8px;
-    height: 4px;
-    border-left: 1.5px solid currentColor;
-    border-right: 1.5px solid currentColor
-}
-
-/* Mais (+) do botão "Novo contrato" */
-.icon-plus {
-    width: 14px;
-    height: 14px;
-    color: #fff
-}
-
-.icon-plus::before,
-.icon-plus::after {
-    left: 50%;
-    top: 50%;
-    background: currentColor;
-    border-radius: 2px;
-    transform: translate(-50%, -50%)
-}
-
-.icon-plus::before {
-    width: 14px;
-    height: 2px
-}
-
-.icon-plus::after {
-    width: 2px;
-    height: 14px
-}
-
-/* Limpar: seta circular (círculo aberto + ponta) */
-.icon-clear {
-    color: var(--ink)
-}
-
-.icon-clear::before {
-    inset: 2px;
-    border: 2px solid currentColor;
-    border-top-color: transparent;
-    border-radius: 50%;
-    transform: rotate(45deg)
-}
-
-.icon-clear::after {
-    right: 1px;
-    top: 1px;
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid currentColor;
-    transform: rotate(45deg)
-}
-
-/* Documento (lista vazia): folha com canto dobrado e linhas de texto */
-.icon-document {
-    width: 26px;
-    height: 32px;
-    border: 2px solid #a3a7a3;
-    border-radius: 4px;
-    color: #a3a7a3
-}
-
-.icon-document::before {
-    right: -2px;
-    top: -2px;
-    width: 10px;
-    height: 10px;
-    background: linear-gradient(to bottom left, #fff 50%, currentColor 50%, currentColor calc(50% + 2px), transparent calc(50% + 2px));
-    border-bottom-left-radius: 2px
-}
-
-.icon-document::after {
-    left: 4px;
-    right: 4px;
-    top: 12px;
-    height: 10px;
-    background: linear-gradient(currentColor 0 2px, transparent 2px 4px, currentColor 4px 6px, transparent 6px 8px, currentColor 8px 10px)
-}
-
-/* Setas da paginação: "<" e ">" */
-.icon-arrow-left::before,
-.icon-arrow-right::before {
-    top: 4px;
-    width: 8px;
-    height: 8px;
-    border-left: 2px solid currentColor;
-    border-bottom: 2px solid currentColor
-}
-
-.icon-arrow-left::before {
-    left: 5px;
-    transform: rotate(45deg)
-}
-
-.icon-arrow-right::before {
-    left: 2px;
-    transform: rotate(-135deg)
-}
-
-/* Setas apagadas quando o botão está desativado */
-.pagination button:disabled:not(.selected) .icon {
-    opacity: .35
 }
 
 /* ==========================================================================
@@ -224,14 +58,6 @@
 .contracts-filters .search-field {
     width: 100%;
     min-width: 0
-}
-
-/* Seta desenhada da seleção de status */
-.contract-status-filter .icon-chevron {
-    position: absolute;
-    right: 18px;
-    top: 19px;
-    pointer-events: none
 }
 
 /* Período: rótulo visível acima do campo de data */
@@ -261,7 +87,7 @@
     overflow: hidden
 }
 
-.date-field .icon-calendar {
+.date-field .icone {
     pointer-events: none
 }
 
@@ -270,7 +96,7 @@
     position: absolute;
     inset: 0;
     width: 100%;
-    padding: 0 10px 0 42px;
+    padding: 0 10px 0 48px;
     border: 0;
     border-radius: 12px;
     background: transparent;
@@ -296,7 +122,7 @@
 
 .date-placeholder {
     position: absolute;
-    left: 42px;
+    left: 48px;
     color: #121212b3;
     font-size: 14px;
     pointer-events: none;
@@ -382,7 +208,7 @@
 }
 
 /* Lista vazia com o ícone de documento */
-.contracts-table .clients-empty .icon-document {
+.contracts-table .clients-empty .icone {
     margin-bottom: 4px
 }
 
