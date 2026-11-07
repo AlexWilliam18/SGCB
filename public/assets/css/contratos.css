@@ -8,8 +8,7 @@
  *   2. Filtros (status e período)
  *   3. Tabela e etiquetas de status
  *   4. Diálogo "Prévia do contrato"
- *   5. Impressão / salvar PDF
- *   6. Responsivo
+ *   5. Responsivo
  */
 
 /* ==========================================================================
@@ -271,35 +270,6 @@
 
 .contract-dialog .detail-actions {
     margin-top: 20px
-}
-
-/* ==========================================================================
-   5. Impressão / salvar PDF
-   Com body.printing-contract (contratos.js), só a folha do contrato vai para o papel.
-   ========================================================================== */
-
-@media print {
-    body.printing-contract>*:not(#contract-dialog) {
-        display: none !important
-    }
-
-    body.printing-contract #contract-dialog {
-        position: static;
-        width: 100%;
-        max-height: none;
-        border: 0;
-        padding: 0;
-        overflow: visible
-    }
-
-    body.printing-contract #contract-dialog::backdrop {
-        display: none
-    }
-
-    body.printing-contract .detail-heading,
-    body.printing-contract .detail-actions {
-        display: none
-    }
 }
 
 /* ==========================================================================

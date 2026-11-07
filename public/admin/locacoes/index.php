@@ -1,7 +1,7 @@
 <?php
 /**
  * Listagem de Contratos de Locação: pesquisa (cliente, CPF/CNPJ ou número), filtro de status,
- * filtro de período (data dentro da locação), paginação e prévia do contrato com impressão/PDF.
+ * filtro de período (data dentro da locação), paginação e prévia do contrato (impressão/PDF fora do MVP).
  * Os dados vêm de /api/contratos (contratos.js → public/api/index.php → ContratoController → Contrato).
  * Ícones: SVGs oficiais em public/assets/img/icones/, com a classe .icone (tamanhos no dashboard.css).
  * "Novo contrato" abre cadastro.php; ?ver=ID abre direto a prévia do contrato (usado depois de salvar).
@@ -28,7 +28,7 @@ require __DIR__ . '/../../../includes/head.php';
 
     <main class="clients-main contracts-main" id="contracts-main" tabindex="-1" aria-busy="true">
       <!-- Título da seção e botão "Novo contrato" (abre cadastro.php) -->
-      <div class="page-intro"><div><h2>Contratos de Locação</h2><p>Consulte contratos, abra a prévia em PDF e acompanhe o status das locações.</p></div><a class="new-client" id="new-contract" href="<?= htmlspecialchars(BASE_URL . 'admin/locacoes/cadastro.php') ?>"><img class="icone" src="<?= $icones ?>documento-mais.svg" alt="" width="16" height="16">Novo contrato</a></div>
+      <div class="page-intro"><div><h2>Contratos de Locação</h2><p>Consulte contratos, abra a prévia e acompanhe o status das locações.</p></div><a class="new-client" id="new-contract" href="<?= htmlspecialchars(BASE_URL . 'admin/locacoes/cadastro.php') ?>"><img class="icone" src="<?= $icones ?>documento-mais.svg" alt="" width="16" height="16">Novo contrato</a></div>
 
       <!-- Filtros: pesquisa, status do contrato, data dentro do período e Limpar -->
       <form class="filter-card contracts-filters" id="contract-filters" role="search" aria-label="Pesquisar contratos">
@@ -46,6 +46,6 @@ require __DIR__ . '/../../../includes/head.php';
     </main>
   </div>
 
-  <!-- Diálogo "Prévia do contrato" (aberto pelo número ou pelo botão "Ver" de cada linha); imprime / salva em PDF -->
+  <!-- Diálogo "Prévia do contrato" (aberto pelo número ou pelo botão "Ver" de cada linha); só visualização -->
   <dialog class="client-dialog contract-dialog" id="contract-dialog" aria-labelledby="contract-dialog-title"><div class="detail-heading"><h2 id="contract-dialog-title">Prévia do contrato</h2><form method="dialog"><button class="detail-close" aria-label="Fechar prévia">×</button></form></div><div id="contract-detail" aria-live="polite"></div></dialog>
 <?php require __DIR__ . '/../../../includes/footer.php'; ?>

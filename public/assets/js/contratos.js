@@ -1,7 +1,7 @@
 'use strict';
 /*
  * Listagem de Contratos de Locação: pesquisa, filtros (status e período), paginação
- * e diálogo "Prévia do contrato" com impressão / salvar em PDF.
+ * e diálogo "Prévia do contrato" (o botão de PDF ainda não tem ação: fora do MVP).
  * Os dados vêm de /api/contratos (public/api/index.php → ContratoController → Contrato).
  * O cadastro fica em cadastro.php (cadastro-contrato.js); ?ver=ID abre a prévia ao chegar.
  */
@@ -391,7 +391,7 @@
       sheet.append(note);
       container.append(sheet);
 
-      // Ações: imprimir / salvar como PDF (pelo próprio navegador) e fechar.
+      // Ações: "Imprimir / salvar PDF" é só o botão, sem nenhuma ação (geração de PDF fora do MVP); "Fechar prévia".
       const actions = document.createElement('div');
       actions.className = 'detail-actions';
       const print = document.createElement('button'),
@@ -399,10 +399,6 @@
       print.type = 'button';
       print.className = 'detail-action primaria';
       print.textContent = 'Imprimir / salvar PDF';
-      print.addEventListener('click', () => {
-        document.body.classList.add('printing-contract');
-        window.print();
-      });
       close.type = 'button';
       close.className = 'detail-action';
       close.textContent = 'Fechar prévia';
@@ -415,8 +411,6 @@
       }
     }
   }
-  // Depois da impressão, volta a mostrar a página inteira.
-  window.addEventListener('afterprint', () => document.body.classList.remove('printing-contract'));
   // Fechar o diálogo invalida uma resposta que ainda esteja a caminho.
   $('contract-dialog').addEventListener('close', () => {
     detailRequest++;
