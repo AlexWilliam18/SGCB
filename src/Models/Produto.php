@@ -165,10 +165,10 @@ final class Produto extends Modelo
         return $valor === false ? null : (string) $valor;
     }
 
-    /** Opções do cadastro de produto: categorias ativas e fornecedores ativos. */
+    /** Opções do cadastro de produto: todas as categorias (inativas aparecem desabilitadas) e fornecedores ativos. */
     public static function opcoes(): array
     {
-        return ['categorias' => Categoria::listarAtivas(), 'fornecedores' => Cliente::listarFornecedores()];
+        return ['categorias' => Categoria::listar(), 'fornecedores' => Cliente::listarFornecedores()];
     }
 
     /**
@@ -224,7 +224,7 @@ final class Produto extends Modelo
         }
 
         $erros  = [];
-        $campos = self::validarDados($dados, $erros);
+        $campos = self::validarDados($dados, $erros, (int) $atual['categoria_id']);
         $precos = self::validarPrecos($dados, $erros, false);
         if ($campos['maximo_estoque'] && $atual['total'] - $atual['inativa'] > $campos['maximo_estoque']) {
             $erros['maximo_estoque'] = 'O produto já tem mais unidades ativas que esse máximo.';
@@ -343,8 +343,12 @@ final class Produto extends Modelo
 
     // -------------------------------------------------------------------------
 
-    /** Campos da tabela produtos, validados. */
-    private static function validarDados(array $dados, array &$erros): array
+    /**
+     * Campos da tabela produtos, validados.
+     * $categoriaAtual: na edição, a categoria que o produto já tem continua aceita mesmo se estiver inativa
+     * (o produto segue exibindo a categoria); trocar para outra só vale para uma categoria ativa.
+     */
+    private static function validarDados(array $dados, array &$erros, ?int $categoriaAtual = null): array
     {
         $campos = [
             'categoria_id'    => self::campoInteiro($dados, 'categoria_id', $erros, true, 1),
@@ -376,7 +380,7 @@ final class Produto extends Modelo
 
         if ($campos['categoria_id'] !== null) {
             $categoria = Categoria::buscar($campos['categoria_id']);
-            if ($categoria === null || !$categoria['ativo']) {
+            if ($categoria === null || (!$categoria['ativo'] && $campos['categoria_id'] !== $categoriaAtual)) {
                 $erros['categoria_id'] = 'Selecione uma categoria ativa.';
             }
         }

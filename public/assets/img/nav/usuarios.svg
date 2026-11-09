@@ -1,4 +1,8 @@
-<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="9" cy="5.25" r="3" stroke="white" stroke-opacity="0.8" stroke-width="1.5"/>
-<path d="M3 15.75V14.25C3 12.59 4.34 11.25 6 11.25H12C13.66 11.25 15 12.59 15 14.25V15.75" stroke="white" stroke-opacity="0.8" stroke-width="1.5" stroke-linecap="round"/>
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="&#195;&#141;cone / Usu&#195;&#161;rio protegido">
+<path id="Vector" d="M9.375 5.25C9.375 6.69975 8.19975 7.875 6.75 7.875C5.30025 7.875 4.125 6.69975 4.125 5.25C4.125 3.80025 5.30025 2.625 6.75 2.625C8.19975 2.625 9.375 3.80025 9.375 5.25Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke="white" stroke-opacity="0.8"/>
+<path id="Vector_2" d="M1.875 15.75V14.25C1.87064 13.4102 2.08328 12.5836 2.49231 11.8502C2.90134 11.1168 3.49289 10.5014 4.20964 10.0638C4.92638 9.62625 5.74401 9.38123 6.58329 9.35253C7.42257 9.32382 8.25503 9.5124 9 9.9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke="white" stroke-opacity="0.8"/>
+<path id="Vector_3" d="M13.5 9L16.5 10.275V12.825C16.5 14.475 15.3 15.975 13.5 16.875C11.7 15.975 10.5 14.475 10.5 12.825V10.275L13.5 9Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke="white" stroke-opacity="0.8"/>
+<path id="Vector_4" d="M12.225 12.75L13.125 13.65L14.775 11.775" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke="white" stroke-opacity="0.8"/>
+</g>
 </svg>

@@ -6,18 +6,13 @@
 
 final class Categoria extends Modelo
 {
-    /** Todas as categorias ({ id, nome, ativo }), para o filtro da listagem de produtos. */
+    /**
+     * Todas as categorias ({ id, nome, ativo }): filtro da listagem de produtos, pop-up de categorias
+     * e select do cadastro de produto (onde as inativas aparecem desabilitadas, com "(inativa)").
+     */
     public static function listar(): array
     {
         $linhas = self::pdo()->query('SELECT id, nome, ativo FROM categorias ORDER BY nome')->fetchAll();
-
-        return array_map([self::class, 'formatar'], $linhas);
-    }
-
-    /** Só as ativas, para o select do cadastro de produto. */
-    public static function listarAtivas(): array
-    {
-        $linhas = self::pdo()->query('SELECT id, nome, ativo FROM categorias WHERE ativo = 1 ORDER BY nome')->fetchAll();
 
         return array_map([self::class, 'formatar'], $linhas);
     }
@@ -70,7 +65,11 @@ final class Categoria extends Modelo
         });
     }
 
-    /** Inativar esconde a categoria do cadastro de produto; os produtos dela continuam existindo. */
+    /**
+     * Ativar/inativar (método inativar do diagrama): só faz UPDATE ativo, nunca DELETE.
+     * Inativa, a categoria continua listada mas não pode ser escolhida em produto novo;
+     * os produtos que já a usam continuam exibindo a categoria normalmente.
+     */
     public static function alterarStatus(int $id, bool $ativo, int $usuarioId): void
     {
         self::exigirCategoria($id);

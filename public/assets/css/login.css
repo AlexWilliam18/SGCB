@@ -271,6 +271,12 @@ input::placeholder {
     padding-right: 48px
 }
 
+/* Esconde o olho/limpar nativos do Edge (o Chrome não tem): fica só o botão do olho do projeto */
+.password-field input::-ms-reveal,
+.password-field input::-ms-clear {
+    display: none
+}
+
 /* Botão do olho (mostrar/ocultar senha) dentro do campo */
 .password-toggle {
     position: absolute;

@@ -52,12 +52,15 @@
   // Valor numérico → "R$ 1.234,56" (mesmo formato do blur dos campos de dinheiro).
   const money = value => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value) || 0);
 
-  // Seleciona o valor no select; se a opção não existir (categoria/fornecedor inativo), cria a opção.
+  // Seleciona o valor no select; se a opção não existir (fornecedor inativo), cria a opção.
+  // Categoria inativa já vem na lista desabilitada: a do próprio produto é liberada para continuar
+  // selecionada (e ser enviada no salvar); as outras inativas seguem sem poder ser escolhidas.
   function selectValue(id, value, label) {
     if (!value) return;
     const select = $(id);
-    if (![...select.options].some(option => option.value === String(value)))
-      select.append(new Option((label || '#' + value) + ' (inativo)', String(value)));
+    let option = [...select.options].find(item => item.value === String(value));
+    if (!option) select.append((option = new Option((label || '#' + value) + ' (inativo)', String(value))));
+    option.disabled = false;
     select.value = String(value);
   }
 
@@ -85,15 +88,20 @@
   }
 
   // Preenche um select com os itens da API, mantendo a opção já escolhida.
-  // Na categoria, pré-seleciona "Contêiner" se o usuário ainda não mexeu no formulário.
+  // Item com ativo === false (categoria inativa) aparece com "(inativa)" e desabilitado: visível, mas não selecionável.
+  // Na categoria, pré-seleciona "Contêiner" (se ativa) quando o usuário ainda não mexeu no formulário.
   function fill(id, items, placeholder) {
     const select = $(id),
       previous = select.value;
     select.replaceChildren(new Option(placeholder, ''));
-    items.forEach(item => select.append(new Option(item.nome, String(item.id))));
-    if (previous && [...select.options].some(option => option.value === previous)) select.value = previous;
+    items.forEach(item => {
+      const option = new Option(item.nome + (item.ativo === false ? ' (inativa)' : ''), String(item.id));
+      option.disabled = item.ativo === false;
+      select.append(option);
+    });
+    if (previous && [...select.options].some(option => option.value === previous && !option.disabled)) select.value = previous;
     else if (id === 'categoria_id' && !dirty) {
-      const container = items.find(item => item.nome.toLocaleLowerCase('pt-BR') === 'contêiner');
+      const container = items.find(item => item.ativo !== false && item.nome.toLocaleLowerCase('pt-BR') === 'contêiner');
       if (container) select.value = String(container.id);
     }
   }
@@ -122,10 +130,11 @@
       csrf = data.csrf_token;
       fill('categoria_id', data.categorias, 'Selecione a categoria');
       fill('fornecedor_id', data.fornecedores, 'Selecione o fornecedor');
-      ready = Boolean(data.responsavel_configurado && data.categorias.length && data.fornecedores.length);
+      const activeCategories = data.categorias.filter(category => category.ativo !== false).length;
+      ready = Boolean(data.responsavel_configurado && activeCategories && data.fornecedores.length);
       if (!data.responsavel_configurado)
         notice('Configure um usuário responsável ativo no servidor para salvar produtos.', true);
-      else if (!data.categorias.length) notice('Cadastre uma categoria ativa na tela de Produtos para continuar.', true);
+      else if (!activeCategories) notice('Cadastre uma categoria ativa na tela de Produtos para continuar.', true);
       else if (!data.fornecedores.length) notice('Cadastre um fornecedor ativo em Clientes para continuar.', true);
       else $('form-notice').hidden = true;
       // Edição: com as opções prontas, carrega o produto (uma vez só).

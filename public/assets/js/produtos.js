@@ -2,7 +2,7 @@
 /*
  * Listagem de produtos: filtros, paginação e diálogo de detalhes.
  * Os dados vêm de /api/produtos (atendidos por public/api/index.php → src/Controllers). A lista é recarregada
- * quando o categorias.js dispara o evento "categoria:criada".
+ * quando o categorias.js dispara o evento "categoria:alterada" (categoria cadastrada, editada ou desativada).
  */
 (() => {
   const $ = id => document.getElementById(id),
@@ -345,9 +345,9 @@
     detailRequest++;
     detailController?.abort();
   });
-  // Categoria criada no diálogo (categorias.js): mostra o aviso e recarrega os filtros.
-  document.addEventListener('categoria:criada', event => {
-    $('category-success').textContent = 'Categoria “' + event.detail.nome + '” cadastrada com sucesso.';
+  // Categoria cadastrada, editada ou desativada no diálogo (categorias.js): mostra o aviso e recarrega os filtros.
+  document.addEventListener('categoria:alterada', event => {
+    $('category-success').textContent = event.detail.mensagem;
     $('category-success').hidden = false;
     loadProducts();
   });

@@ -27,16 +27,8 @@
     page: Math.max(1, Number(url.get('page')) || 1),
     pages: 1,
   };
-  const states = 'AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ');
-  states.forEach(uf => {
-    const option = document.createElement('option');
-    option.value = uf;
-    option.textContent = uf;
-    $('client-state').append(option);
-  });
   $('client-search').value = state.q;
   $('client-status').value = state.situacao;
-  $('client-state').value = state.uf;
   function documentNumber(value) {
     const digits = String(value || '').replace(/\D/g, '');
     if (digits.length === 11) return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
@@ -73,12 +65,15 @@
     tr.append(td);
     $('client-rows').replaceChildren(tr);
   }
-  function fillCities(cities) {
-    $('client-city').replaceChildren(new Option('Cidades', ''));
-    const names = [...new Set(cities.map(row => row.cidade))];
-    if (state.cidade && !names.includes(state.cidade)) names.push(state.cidade);
-    names.forEach(city => $('client-city').append(new Option(city, city)));
-    $('client-city').value = state.cidade;
+  // Preenche um select de filtro com as opções vindas da API (lista de textos, já sem repetição e
+  // em ordem, só com o que existe nos endereços dos clientes). O valor escolhido é mantido mesmo
+  // que não esteja mais na lista (ex.: ?cidade= vindo da URL).
+  function fillOptions(select, allLabel, values, current) {
+    select.replaceChildren(new Option(allLabel, ''));
+    const names = values.filter(value => typeof value === 'string' && value !== '');
+    if (current && !names.includes(current)) names.push(current);
+    names.forEach(value => select.append(new Option(value, value)));
+    select.value = current;
   }
   function renderRows(items) {
     if (!items.length) {
@@ -171,6 +166,7 @@
       if (
         !Array.isArray(data.items) ||
         !Array.isArray(data.cities) ||
+        !Array.isArray(data.states) ||
         !Number.isInteger(data.total) ||
         !Number.isInteger(data.pages) ||
         !Number.isInteger(data.page)
@@ -180,7 +176,8 @@
       state.page = data.page;
       state.pages = data.pages;
       renderRows(data.items);
-      fillCities(data.cities);
+      fillOptions($('client-state'), 'Todos os estados', data.states, state.uf);
+      fillOptions($('client-city'), 'Todas as cidades', data.cities, state.cidade);
       renderPages();
       $('page-summary').textContent = `${data.total} cliente(s) • página ${state.page} de ${state.pages}`;
       $('clients-notice').hidden = true;
