@@ -1,19 +1,26 @@
 'use strict';
 /*
- * Diálogo "Cadastre nova Categoria" da listagem de produtos.
- * Ao abrir, busca o token CSRF em /api/categorias/opcoes; ao salvar, faz POST em /api/categorias
- * (atendidos por public/api/index.php → src/Controllers) e dispara o evento "categoria:criada", ouvido pelo produtos.js.
+ * Diálogo de categorias da listagem de produtos: cadastrar, editar e desativar.
+ * Ao abrir, busca a lista e o token CSRF em /api/categorias/opcoes. Gravações (com X-CSRF-Token):
+ *   POST /api/categorias              cadastrar ({ nome })
+ *   POST /api/categorias/{id}         editar o nome ({ nome })
+ *   POST /api/categorias/{id}/status  desativar ({ ativo: false }), um UPDATE ativo = 0; nada é excluído.
+ * Depois de cada gravação dispara o evento "categoria:alterada" ({ mensagem }), ouvido pelo produtos.js.
+ * Categoria inativa continua na lista do diálogo, com estilo de desabilitada e sem ações.
  */
 (() => {
   const $ = id => document.getElementById(id),
     dialog = $('category-dialog'),
     form = $('category-form'),
-    name = $('category-name');
+    name = $('category-name'),
+    list = $('category-items');
   let csrf = '',
     ready = false,
     saving = false,
     generation = 0,
-    optionsController;
+    optionsController,
+    editing = null; // categoria em edição ({ id, nome }) ou null quando o formulário cadastra uma nova
+
   // Mensagens do diálogo: aviso geral (com "Tentar novamente") e erro do campo nome.
   function message(text, retry = false) {
     $('category-message-text').textContent = text;
@@ -28,13 +35,65 @@
       name.focus();
     } else name.removeAttribute('aria-invalid');
   }
+  // Trava os controles enquanto prepara ou grava (inclui os botões Editar/Desativar da lista).
   function saveState() {
     $('save-category').disabled = !ready || saving;
     name.disabled = saving;
     $('cancel-category').disabled = saving;
     $('retry-category').disabled = saving;
+    list.querySelectorAll('button').forEach(button => (button.disabled = !ready || saving));
   }
-  // Prepara o salvamento: token CSRF e confirmação de que existe usuário responsável.
+
+  // Modo do formulário: cadastrar nova categoria ou editar a escolhida na lista.
+  function setMode(category) {
+    editing = category;
+    $('category-title').textContent = category ? 'Editar Categoria' : 'Cadastre nova Categoria';
+    $('cancel-category').textContent = category ? 'Cancelar edição' : 'Cancelar';
+    name.value = category ? category.nome : '';
+    fieldError('');
+  }
+
+  // Lista "Categorias cadastradas": ativas com Editar e Desativar; inativas só com o nome e "(inativa)".
+  function renderList(categories) {
+    list.replaceChildren();
+    if (!categories.length) {
+      const empty = document.createElement('li');
+      empty.className = 'category-empty';
+      empty.textContent = 'Nenhuma categoria cadastrada.';
+      list.append(empty);
+      return;
+    }
+    categories.forEach(category => {
+      const item = document.createElement('li'),
+        label = document.createElement('span');
+      item.className = 'category-item' + (category.ativo ? '' : ' is-inactive');
+      label.className = 'category-item-name';
+      label.textContent = category.nome + (category.ativo ? '' : ' (inativa)');
+      item.append(label);
+      if (category.ativo) {
+        const edit = document.createElement('button'),
+          disable = document.createElement('button');
+        edit.type = disable.type = 'button';
+        edit.textContent = 'Editar';
+        edit.setAttribute('aria-label', 'Editar a categoria ' + category.nome);
+        edit.addEventListener('click', () => {
+          setMode(category);
+          message('');
+          name.focus();
+        });
+        disable.textContent = 'Desativar';
+        disable.className = 'category-disable';
+        disable.setAttribute('aria-label', 'Desativar a categoria ' + category.nome);
+        disable.addEventListener('click', () => deactivate(category));
+        item.append(edit, disable);
+      } else {
+        item.setAttribute('aria-disabled', 'true');
+      }
+      list.append(item);
+    });
+  }
+
+  // Busca a lista e o token CSRF; confirma que existe usuário responsável para gravar.
   async function loadOptions() {
     const current = ++generation;
     optionsController?.abort();
@@ -48,9 +107,10 @@
       if (!response.ok) throw Error();
       const data = await response.json();
       if (current !== generation || !dialog.open) return;
-      if (!data.csrf_token) throw Error();
+      if (!data.csrf_token || !Array.isArray(data.categorias)) throw Error();
       csrf = data.csrf_token;
       ready = data.responsavel_configurado === true;
+      renderList(data.categorias);
       message(
         ready ? '' : 'Solicite ao administrador a configuração de um usuário responsável para habilitar o salvamento.',
         !ready
@@ -66,11 +126,70 @@
       }
     }
   }
+
+  // POST com o token CSRF. Devolve { ok, status, result }; 403 (token vencido) pede para preparar de novo.
+  async function post(path, body) {
+    const controller = new AbortController(),
+      timeout = setTimeout(() => controller.abort(), 20000);
+    try {
+      const response = await fetch(window.SGCB_API + path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        }),
+        result = await response.json();
+      if (response.status === 403) {
+        ready = false;
+        csrf = '';
+      }
+      return { ok: response.ok, status: response.status, result };
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  // Avisa a tela de Produtos (filtro e mensagem de sucesso).
+  function notify(text) {
+    document.dispatchEvent(new CustomEvent('categoria:alterada', { detail: { mensagem: text } }));
+  }
+
+  // Desativar: confirma, grava ativo = 0 e recarrega a lista (a categoria fica como "(inativa)").
+  async function deactivate(category) {
+    if (saving || !ready) return;
+    if (
+      !confirm(
+        'Desativar a categoria “' + category.nome + '”?\n\n' +
+          'Ela continua aparecendo nos produtos já cadastrados, mas não poderá ser escolhida em novos produtos.'
+      )
+    )
+      return;
+    message('');
+    saving = true;
+    saveState();
+    try {
+      const { ok, status, result } = await post('categorias/' + encodeURIComponent(category.id) + '/status', { ativo: false });
+      if (!ok) {
+        message(result.error || 'Não foi possível desativar a categoria.', status === 403);
+        return;
+      }
+      if (editing?.id === category.id) setMode(null);
+      notify('Categoria “' + category.nome + '” desativada.');
+      loadOptions();
+    } catch (_) {
+      message('Não foi possível confirmar a desativação. Abra a lista novamente para conferir.');
+    } finally {
+      saving = false;
+      saveState();
+    }
+  }
+
   // Abrir, cancelar e fechar o diálogo (não fecha enquanto está salvando).
   $('open-category').addEventListener('click', () => {
     form.reset();
-    fieldError('');
+    setMode(null);
     message('');
+    list.replaceChildren();
     csrf = '';
     ready = false;
     dialog.showModal();
@@ -78,8 +197,13 @@
     name.focus();
     loadOptions();
   });
+  // Cancelar: na edição volta ao cadastro de nova categoria; senão fecha o diálogo.
   $('cancel-category').addEventListener('click', () => {
-    if (!saving) dialog.close();
+    if (saving) return;
+    if (editing) {
+      setMode(null);
+      name.focus();
+    } else dialog.close();
   });
   dialog.addEventListener('cancel', event => {
     if (saving) event.preventDefault();
@@ -131,7 +255,8 @@
   });
   name.addEventListener('input', () => fieldError(''));
   $('retry-category').addEventListener('click', loadOptions);
-  // Salvar: valida o nome (obrigatório, até 100 caracteres) e envia para a API.
+
+  // Salvar: valida o nome (obrigatório, até 100 caracteres) e cadastra ou edita pela API.
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (saving || !ready) return;
@@ -150,34 +275,32 @@
     saveState();
     form.setAttribute('aria-busy', 'true');
     $('save-category').textContent = 'Salvando…';
-    const controller = new AbortController(),
-      timeout = setTimeout(() => controller.abort(), 20000);
+    const editedId = editing?.id;
     try {
-      const response = await fetch(window.SGCB_API + 'categorias', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
-          body: JSON.stringify({ nome: value }),
-          signal: controller.signal,
-        }),
-        result = await response.json();
-      if (!response.ok) {
+      const { ok, status, result } = await post(
+        editedId ? 'categorias/' + encodeURIComponent(editedId) : 'categorias',
+        { nome: value }
+      );
+      if (!ok) {
         if (result.fields?.nome) fieldError(result.fields.nome);
-        else message(result.error || 'Não foi possível salvar a categoria.', response.status === 403);
-        if (response.status === 403) {
-          ready = false;
-          csrf = '';
-        }
+        else message(result.error || 'Não foi possível salvar a categoria.', status === 403);
         return;
       }
       if (!Number.isInteger(result.id) || typeof result.nome !== 'string') throw Error();
-      dialog.close();
-      document.dispatchEvent(new CustomEvent('categoria:criada', { detail: result }));
+      if (editedId) {
+        // Edição: continua no diálogo, volta ao modo de cadastro e atualiza a lista.
+        setMode(null);
+        notify('Categoria “' + result.nome + '” atualizada com sucesso.');
+        loadOptions();
+      } else {
+        dialog.close();
+        notify('Categoria “' + result.nome + '” cadastrada com sucesso.');
+      }
     } catch (_) {
       message(
-        'Não foi possível confirmar o cadastro. Consulte as categorias antes de tentar novamente para evitar duplicidade.'
+        'Não foi possível confirmar a gravação. Consulte as categorias antes de tentar novamente para evitar duplicidade.'
       );
     } finally {
-      clearTimeout(timeout);
       saving = false;
       form.setAttribute('aria-busy', 'false');
       $('save-category').textContent = 'Salvar';

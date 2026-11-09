@@ -43,7 +43,7 @@ require __DIR__ . '/../../../includes/head.php';
       <section class="card clients-card" aria-label="Lista de produtos"><div class="table-scroll" tabindex="0" role="region" aria-label="Tabela de produtos, role para ver todas as colunas"><table class="clients-table products-table"><caption class="sr-only">Produtos cadastrados e estoque atual</caption><colgroup><col style="width:13.23%"><col style="width:14.91%"><col style="width:10.77%"><col style="width:10.34%"><col style="width:15.21%"><col style="width:13.37%"><col style="width:11.33%"><col style="width:10.84%"></colgroup><thead><tr><th scope="col">Produto</th><th scope="col">Categoria</th><th scope="col">Diária</th><th scope="col">Total</th><th scope="col">Disponível</th><th scope="col">Alugado</th><th scope="col">Status</th><th scope="col">Ações</th></tr></thead><tbody id="product-rows"><tr><td colspan="8" class="clients-empty"><div><img src="<?= $img ?>produtos/sem-produtos.svg" alt="" width="32" height="32"><p>Carregando produtos…</p></div></td></tr></tbody></table></div><footer class="table-footer"><p id="page-summary" role="status" aria-live="polite">Carregando…</p><nav class="pagination" aria-label="Páginas de produtos"><button type="button" id="previous-page" aria-label="Página anterior" disabled><img src="<?= $img ?>clientes/2b1ce.svg" alt="" width="16" height="16"></button><div id="page-numbers"><button class="selected" type="button" aria-current="page" disabled>1</button></div><button type="button" id="next-page" aria-label="Próxima página" disabled><img src="<?= $img ?>clientes/d440b.svg" alt="" width="16" height="16"></button></nav></footer></section>
     </main>
   </div>
-  <!-- Diálogo "Cadastre nova Categoria" (categorias.js) -->
+  <!-- Diálogo de categorias (categorias.js): cadastrar, editar e desativar -->
   <dialog class="category-dialog" id="category-dialog" aria-labelledby="category-title">
     <form id="category-form" novalidate>
       <h2 id="category-title">Cadastre nova Categoria</h2>
@@ -53,6 +53,8 @@ require __DIR__ . '/../../../includes/head.php';
       <div class="category-message" id="category-message" role="status" hidden><p id="category-message-text"></p><button id="retry-category" type="button" hidden>Tentar novamente</button></div>
       <div class="category-actions"><button class="category-cancel" id="cancel-category" type="button">Cancelar</button><button class="category-save" id="save-category" type="submit" disabled>Salvar</button></div>
     </form>
+    <!-- Categorias cadastradas: ativas com Editar/Desativar; inativas aparecem desabilitadas, sem ações -->
+    <section class="category-list" aria-labelledby="category-list-title"><h3 id="category-list-title">Categorias cadastradas</h3><ul id="category-items"></ul></section>
   </dialog>
   <!-- Diálogo "Dados do produto" (aberto pelo botão Ver produto de cada linha) -->
   <dialog class="client-dialog" id="product-dialog" aria-labelledby="product-dialog-title"><div class="detail-heading"><h2 id="product-dialog-title">Dados do produto</h2><form method="dialog"><button class="detail-close" aria-label="Fechar produto">×</button></form></div><div id="product-detail" aria-live="polite"></div></dialog>

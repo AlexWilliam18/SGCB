@@ -30,7 +30,7 @@ require __DIR__ . '/../../../includes/head.php';
         <div class="search-field"><img src="<?= $img ?>clientes/68819.svg" alt="" width="17" height="17"><label class="sr-only" for="client-search">Nome, CPF ou CNPJ</label><input id="client-search" name="q" type="search" placeholder="Nome, CPF ou CNPJ" maxlength="200" autocomplete="off"></div>
         <div class="select-field status-filter"><label class="sr-only" for="client-status">Situação</label><select id="client-status" name="situacao"><option value="">Situação</option><option value="ativos">Ativos</option><option value="inativos">Inativos</option><option value="todos">Todos</option></select><img src="<?= $img ?>clientes/fb51c.svg" alt="" width="10" height="6"></div>
         <div class="select-field state-filter"><label class="sr-only" for="client-state">Estado</label><select id="client-state" name="uf"><option value="">Todos os estados</option></select><img src="<?= $img ?>clientes/fb51c.svg" alt="" width="10" height="6"></div>
-        <div class="select-field city-filter"><label class="sr-only" for="client-city">Cidade</label><select id="client-city" name="cidade"><option value="">Cidades</option></select></div>
+        <div class="select-field city-filter"><label class="sr-only" for="client-city">Cidade</label><select id="client-city" name="cidade"><option value="">Todas as cidades</option></select></div>
         <button class="clear-filters" id="clear-filters" type="button"><img src="<?= $img ?>clientes/ac3e7.svg" alt="" width="16" height="16">Limpar</button><button class="sr-only" type="submit">Pesquisar</button>
       </form>
       <div class="data-notice saved-notice" id="saved-notice" role="status" hidden></div>

@@ -81,9 +81,24 @@ final class Cliente extends Modelo
             $c['ativo'] = (bool) $c['ativo'];
             return $c;
         }, $resultado['items']);
+        // Opções dos filtros: só UFs e cidades que existem nos endereços dos clientes cadastrados.
+        $resultado['states'] = self::listarUfs();
         $resultado['cities'] = self::listarCidades($uf !== '' ? $uf : null);
 
         return $resultado;
+    }
+
+    /** UFs dos endereços principais dos clientes (filtro de estado da listagem), sem repetir, em ordem. */
+    public static function listarUfs(): array
+    {
+        $consulta = self::pdo()->prepare(
+            "SELECT DISTINCT e.uf FROM enderecos_pessoa e JOIN pessoas p ON p.id = e.principal_pessoa_id
+              WHERE p.tipo_cadastro IN ('CLIENTE', 'AMBOS') AND e.uf IS NOT NULL AND e.uf <> ''
+              ORDER BY e.uf"
+        );
+        $consulta->execute();
+
+        return $consulta->fetchAll(PDO::FETCH_COLUMN);
     }
 
     /** Cidades dos endereços principais dos clientes (filtro da listagem), opcionalmente de uma UF. */
