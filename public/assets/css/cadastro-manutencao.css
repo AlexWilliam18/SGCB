@@ -1,0 +1,391 @@
+/*
+ * Formulário de cadastro de manutenção. Complementa o dashboard.css.
+ * As regras com .maintenance-form-page só valem nesta página (classe definida em $classeBody).
+ *
+ * Organização:
+ *   1. Área principal, título e botões contornados
+ *   2. Cartão e grades do formulário
+ *   3. Campos (selects, data e descrição)
+ *   4. Botões finais, avisos e diálogo
+ *   5. Responsivo
+ */
+
+/* ==========================================================================
+   1. Área principal, título e botões contornados
+   ========================================================================== */
+
+.maintenance-main {
+    padding: 32px;
+    outline: none
+}
+
+.maintenance-intro {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px
+}
+
+.maintenance-intro h2 {
+    font-size: 30px;
+    line-height: 36px;
+    font-weight: 800;
+    letter-spacing: -.75px
+}
+
+/* Espaço reservado abaixo do título (mantém o alinhamento do layout) */
+.intro-subtitle {
+    height: 27px;
+    padding-top: 4px
+}
+
+/* Voltar, Cancelar e Continuar preenchendo: completa o .outline-button do dashboard.css com ícone e fonte maior */
+.maintenance-form-page .outline-button {
+    gap: 8px;
+    color: var(--ink);
+    font: 700 14px/20px Figtree, Arial, sans-serif
+}
+
+/* ==========================================================================
+   2. Cartão e grades do formulário
+   ========================================================================== */
+
+.maintenance-card {
+    margin-top: 20px;
+    overflow: hidden;
+    box-shadow: 0 6px 12px #14291e40
+}
+
+.maintenance-section {
+    padding: 24px;
+    border-bottom: 1px solid var(--line)
+}
+
+.maintenance-section h3 {
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 24px;
+    margin: 0
+}
+
+/* 1ª linha: contêiner (mais largo), tipo e prioridade */
+.maintenance-first-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px
+}
+
+/* 2ª linha: data prevista e responsável (3 colunas, a última livre) */
+.maintenance-second-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+    min-height: 88.5px
+}
+
+/* ==========================================================================
+   3. Campos (selects, data e descrição)
+   ========================================================================== */
+
+.maintenance-field {
+    min-width: 0
+}
+
+.maintenance-field label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 16px
+}
+
+/* Asterisco vermelho dos campos obrigatórios */
+.maintenance-field label span {
+    color: #e7000b
+}
+
+.maintenance-field input,
+.maintenance-field select,
+.maintenance-field textarea {
+    display: block;
+    width: 100%;
+    height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: white;
+    color: var(--ink);
+    font: 400 14px/20px Figtree, Arial, sans-serif;
+    min-width: 0
+}
+
+.maintenance-field :is(input, select, textarea):focus-visible {
+    outline: 2px solid var(--forest);
+    outline-offset: 2px
+}
+
+/* Campo com erro (aria-invalid definido pelo cadastro-manutencao.js) */
+.maintenance-field [aria-invalid=true] {
+    border-color: #a7342c
+}
+
+.field-error {
+    color: #a7342c;
+    font-size: 11px;
+    line-height: 16px;
+    margin-top: 6px
+}
+
+.field-hint {
+    font-size: 11px;
+    line-height: 16.5px;
+    color: var(--muted);
+    margin-top: 6px
+}
+
+/* Selects sem a seta nativa; com a opção vazia escolhida, o texto fica cinza como um placeholder */
+.maintenance-field select {
+    appearance: none;
+    cursor: pointer
+}
+
+.maintenance-field select:has(option[value='']:checked) {
+    color: #a1a1a1
+}
+
+/* Prioridade: a única com seta (imagem posicionada à direita) */
+.maintenance-field .priority-control select {
+    color: var(--ink);
+    padding-left: 14px;
+    padding-right: 40px
+}
+
+.field-tipo select {
+    padding-left: 9px
+}
+
+.maintenance-control {
+    position: relative
+}
+
+.maintenance-control > img {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none
+}
+
+/* Data prevista: o ícone nativo do calendário é escondido e trocado pelo botão com imagem */
+.date-control {
+    position: relative;
+    width: 269px;
+    max-width: 100%
+}
+
+.date-control input {
+    padding-left: 57px;
+    color: #121212b3
+}
+
+.date-control input::-webkit-calendar-picker-indicator {
+    display: none
+}
+
+.date-control button {
+    position: absolute;
+    left: 14px;
+    top: 7px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    background: none;
+    border-radius: 4px
+}
+
+.date-control button img {
+    display: block
+}
+
+.maintenance-description {
+    padding-top: 16px
+}
+
+.maintenance-description textarea {
+    height: 112px;
+    min-height: 112px;
+    resize: vertical;
+    padding: 13px;
+    line-height: 20px
+}
+
+.maintenance-description textarea::placeholder {
+    color: #a1a1a1;
+    opacity: 1
+}
+
+/* ==========================================================================
+   4. Botões finais, avisos e diálogo
+   ========================================================================== */
+
+.maintenance-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding: 20px
+}
+
+.save-maintenance {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 12px;
+    background: #264636;
+    color: white;
+    box-shadow: 0 8px 18px #14291e99;
+    font: 700 14px/20px Figtree, Arial, sans-serif
+}
+
+.save-maintenance img {
+    flex-shrink: 0
+}
+
+.save-maintenance:hover:not(:disabled) {
+    background: var(--forest-light)
+}
+
+/* Desabilitado enquanto as opções não carregam ou durante o salvamento */
+.save-maintenance:disabled {
+    opacity: .6;
+    cursor: default
+}
+
+.maintenance-main > .data-notice {
+    margin-top: 16px
+}
+
+/* Mensagem verde "Manutenção #N cadastrada com sucesso." */
+.maintenance-success {
+    padding: 14px 18px;
+    border: 1px solid #a7cbb2;
+    border-radius: 12px;
+    background: #eaf6ed;
+    color: #1b4332;
+    line-height: 21px;
+    margin-top: 16px
+}
+
+/* Botões do diálogo "Descartar alterações?" */
+.leave-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px
+}
+
+/* ==========================================================================
+   5. Responsivo
+   ========================================================================== */
+
+/* Até 1200px: grades com 2 colunas, contêiner na linha inteira */
+@media (max-width: 1200px) {
+    .maintenance-main {
+        padding: 24px
+    }
+
+    .maintenance-first-grid,
+    .maintenance-second-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .field-unidade_id {
+        grid-column: 1/-1
+    }
+
+    .date-control {
+        width: 100%
+    }
+}
+
+/* Até 760px (celular, menu recolhido): uma coluna */
+@media (max-width: 760px) {
+    .maintenance-main {
+        padding: 20px 16px
+    }
+
+    .maintenance-form-page .page-heading h1 {
+        font-size: 18px;
+        white-space: normal
+    }
+
+    .maintenance-intro {
+        gap: 12px
+    }
+
+    .maintenance-intro h2 {
+        font-size: 24px;
+        line-height: 32px
+    }
+
+    .intro-subtitle {
+        height: 10px
+    }
+
+    .maintenance-section {
+        padding: 22px 20px
+    }
+
+    .maintenance-first-grid,
+    .maintenance-second-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        min-height: 0
+    }
+
+    .field-unidade_id {
+        grid-column: auto
+    }
+
+    .maintenance-description {
+        padding-top: 20px
+    }
+
+    .maintenance-field input,
+    .maintenance-field select {
+        min-height: 44px
+    }
+
+    .maintenance-actions {
+        flex-wrap: wrap;
+        padding: 20px
+    }
+}
+
+@media (max-width: 380px) {
+    .maintenance-actions {
+        gap: 10px;
+        padding: 18px 14px
+    }
+
+    .maintenance-actions .outline-button {
+        padding: 0 12px
+    }
+
+    .save-maintenance {
+        padding: 0 12px;
+        font-size: 13px
+    }
+
+    .maintenance-section {
+        padding: 20px 16px
+    }
+}

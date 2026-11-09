@@ -1,21 +1,25 @@
 <?php
 /**
- * footer.php — fechamento padrão do HTML (scripts, </body> e </html>) das páginas do SGCB.
+ * Fim do HTML: scripts da página, </body> e </html>. Último require de cada página.
  *
- * Finalidade: carregar os scripts da página e fechar o documento aberto por includes/head.php.
- * Depende de: src/bootstrap.php já carregado (constante BASE_URL) e includes/head.php já incluído.
- * Usado por:  páginas de public/ (ex.: public/login.php), via require, como última instrução.
- *
- * Variáveis esperadas (definidas pela página antes do require):
- *   @var string[] $js (opcional) Arquivos de public/assets/js/ a carregar, ex.: ['login.js'].
+ * @var string[] $js (opcional) Arquivos de public/assets/js/ a carregar, ex.: ['login.js'].
  */
 
 $js = $js ?? [];
+?>
+  <!-- Para os scripts: endereço da API (ex.: "/SGCB/api/"; os fetch usam SGCB_API + 'clientes'),
+       endereço base do site (imagens enviadas) e token CSRF das ações dos diálogos (acoes.js) -->
+  <script>
+    window.SGCB_API = <?= json_encode(BASE_URL . 'api/', JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?>;
+    window.SGCB_BASE = <?= json_encode(BASE_URL, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?>;
+    window.SGCB_CSRF = <?= json_encode(Autenticacao::tokenCsrf(), JSON_HEX_TAG) ?>;
+  </script>
+<?php
 
-// Scripts da página com caminho montado a partir da BASE_URL (funciona em qualquer nível de pasta).
-// "defer" mantém o mesmo comportamento do arquivo original: o script roda após o HTML ser lido.
-foreach ($js as $arquivoJs): ?>
-  <script src="<?= htmlspecialchars(BASE_URL . 'assets/js/' . $arquivoJs) ?>" defer></script>
+// "defer" roda o script depois que o HTML é lido; "?v=" (data de modificação) evita JS antigo em cache.
+foreach ($js as $arquivoJs):
+  $versaoJs = @filemtime(__DIR__ . '/../public/assets/js/' . $arquivoJs) ?: 0; ?>
+  <script src="<?= htmlspecialchars(BASE_URL . 'assets/js/' . $arquivoJs . '?v=' . $versaoJs) ?>" defer></script>
 <?php endforeach; ?>
 </body>
 

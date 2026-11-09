@@ -1,0 +1,273 @@
+/*
+ * Cadastro de contrato de locação (public/admin/locacoes/cadastro.php).
+ * Complementa o dashboard.css (menu, cabeçalho) e o contratos.css (ícones em CSS e a folha da prévia).
+ *
+ * Organização:
+ *   1. Área principal, título e botões
+ *   2. Cartões das etapas e campos
+ *   3. Cliente e responsável
+ *   4. Endereço de entrega
+ *   5. Itens e contêineres
+ *   6. Resumo lateral
+ *   7. Diálogos (prévia, sucesso, cancelar)
+ *   8. Ícones extras desta tela
+ *   9. Responsivo
+ */
+
+/* ==========================================================================
+   1. Área principal, título e botões
+   ========================================================================== */
+
+/* Cores da tela (cinzas do Figma) */
+.contract-form-page {
+  --contract-border: #e5e7eb;
+  --contract-ink: #111827;
+  --contract-muted: #6b7280;
+}
+
+.contract-form-main {
+  max-width: 1600px;
+  padding: 32px;
+  color: var(--contract-ink);
+  font-family: Inter, Arial, sans-serif;
+  outline: none;
+}
+
+/* Título com o caminho em cima e o botão Voltar à direita (mesmas medidas do Novo produto / Novo cliente) */
+.contract-intro { display: flex; justify-content: space-between; align-items: center; gap: 20px; min-height: 58px; margin-bottom: 20px; }
+.contract-breadcrumb { color: var(--contract-muted); font-size: 10px; font-weight: 700; line-height: 15px; }
+.contract-intro h2 { margin-top: 4px; font-family: Figtree, Arial, sans-serif; font-size: 28px; line-height: 34px; font-weight: 700; }
+.contract-intro p:last-child { margin-top: 6px; font-size: 13px; line-height: 18px; color: #6f746f; }
+
+/* Botão "← Voltar": o outline-button do dashboard.css com o ajuste usado no cadastro de produto */
+.contract-intro .outline-button { min-width: 96px; min-height: 40px; margin-right: 6px; padding: 0 20px; flex-shrink: 0; border-radius: 9px; color: var(--ink); font-family: Figtree, Arial, sans-serif; font-size: 13px; font-weight: 700; }
+.contract-form-main > .data-notice { margin-bottom: 18px; }
+
+/* Botão padrão (contorno) e botão principal (verde) */
+.contract-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 11px 20px; border: 1px solid var(--contract-border); border-radius: 8px; background: #fff; color: var(--forest); font: 700 13px/20px Inter, Arial, sans-serif; text-align: center; cursor: pointer; }
+.contract-button:hover { background: #f0f5f1; }
+.contract-button:disabled { opacity: .6; cursor: default; }
+.contract-primary { color: #fff; background: var(--forest); border-color: var(--forest); }
+.contract-primary:hover { background: #123b28; }
+
+/* ==========================================================================
+   2. Cartões das etapas e campos
+   ========================================================================== */
+
+/* Formulário à esquerda, resumo à direita */
+.contract-layout { display: grid; grid-template-columns: minmax(0, 1fr) 374px; gap: 24px; align-items: start; }
+.contract-fields { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.contract-card { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 24px; background: #fff; border: 1px solid var(--contract-border); border-radius: 10px; }
+
+/* Número da etapa no quadrado verde claro + título */
+.step-heading { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.step-number { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border-radius: 8px; background: #d8f3dc; color: var(--forest); font-size: 13px; font-weight: 700; }
+.contract-card h3 { font-size: 17px; line-height: 25px; }
+.section-help { font-size: 12px; line-height: 18px; color: var(--contract-muted); }
+
+/* Rótulo em cima e campo embaixo */
+.contract-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: 12px; line-height: 18px; font-weight: 700; }
+.contract-field input, .contract-field select, .contract-field textarea, .readonly-output, .item-subtotal { width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--contract-border); border-radius: 10px; background: #fff; color: var(--contract-ink); font: 400 13px/normal Inter, Arial, sans-serif; }
+/* Seta oficial (icones/seta-baixo.svg) no lugar da seta nativa, que fica colada na borda.
+   Fica a 16px da borda direita, como nos filtros; o padding evita que o texto passe por baixo dela. */
+.contract-field select { appearance: none; -webkit-appearance: none; padding-right: 40px; background: #fff url("../img/icones/seta-baixo.svg") no-repeat right 16px center / 10px 6px; cursor: pointer; }
+.contract-field input[readonly], .readonly-output { background: #f8f9fa; color: #4b5563; }
+.contract-field input:disabled { background: #f3f4f6; color: #9ca3af; cursor: default; }
+.contract-field textarea { height: auto; min-height: 110px; padding: 12px; resize: vertical; line-height: 21px; }
+.contract-field input::placeholder, .contract-field textarea::placeholder { color: #9ca3af; }
+/* Campo recusado (pela tela ou pelo servidor) */
+.contract-field [aria-invalid=true] { border-color: #ad4137; background-color: #fffafa; }
+.readonly-output, .item-subtotal { display: flex; align-items: center; overflow-wrap: anywhere; }
+.item-subtotal { background: #edf6ee; color: var(--forest); font-weight: 700; }
+.field-hint { font-size: 11px; line-height: 18px; font-weight: 400; color: var(--contract-muted); }
+.optional-label { font-weight: 400; color: var(--contract-muted); }
+.character-count { margin-top: -10px; text-align: right; font-size: 10px; color: var(--contract-muted); }
+
+/* Grades de colunas usadas nas etapas */
+.field-grid { display: grid; gap: 16px; }
+.two-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.three-columns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.four-columns { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+/* ==========================================================================
+   3. Cliente e responsável
+   ========================================================================== */
+
+.client-search { max-width: 640px; }
+/* Caixa cinza com os dados cadastrais do cliente */
+.client-data { display: flex; flex-direction: column; gap: 14px; padding: 16px; border: 1px solid var(--contract-border); border-radius: 10px; background: #f8f9fa; }
+.client-data-heading { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.client-data-heading strong { font-size: 15px; line-height: 23px; }
+.source-tag { padding: 2px 7px; border: 1px solid #d6e4d9; border-radius: 5px; background: #edf6ee; color: var(--forest); font-size: 10px; line-height: 16px; white-space: nowrap; }
+.client-data-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 20px; margin: 0; }
+.client-data-grid dt, .registered-address > span { font-size: 11px; line-height: 17px; color: var(--contract-muted); }
+.client-data-grid dd { margin: 3px 0 0; font-size: 13px; line-height: 20px; overflow-wrap: anywhere; }
+.client-data-grid .data-wide { grid-column: span 2; }
+.registered-address { border-top: 1px solid var(--contract-border); padding-top: 12px; }
+.registered-address p { margin-top: 3px; font-size: 13px; line-height: 21px; white-space: pre-line; }
+/* "Selecione um cliente…" com borda tracejada */
+.selection-empty { padding: 20px; border: 1px dashed var(--contract-border); border-radius: 10px; font-size: 13px; line-height: 22px; color: var(--contract-muted); }
+/* Responsável pela assinatura (pessoa jurídica) */
+.signatory-fields { min-width: 0; margin: 0; padding: 12px 0 0; border: 0; border-top: 1px solid var(--contract-border); }
+.signatory-fields legend { padding: 0 8px 0 0; font-size: 12px; font-weight: 700; }
+.signatory-fields .field-grid { margin-top: 12px; }
+
+/* ==========================================================================
+   4. Endereço de entrega (cartões verdes do Figma)
+   ========================================================================== */
+
+.address-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.address-options:empty { display: none; }
+.address-option { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 16px; border: 1px solid var(--contract-border); border-radius: 10px; cursor: pointer; }
+/* Cartão marcado: fundo verde claro e borda verde */
+.address-option:has(input:checked) { border-color: var(--forest); background: #d8f3dc; }
+.address-option-title { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 20px; font-weight: 700; }
+.address-option:has(input:checked) .address-option-title { color: var(--forest); }
+.address-option input { width: 14px; height: 14px; margin: 0; accent-color: var(--forest); }
+.address-option small { font-size: 11px; line-height: 18px; color: var(--contract-muted); overflow-wrap: anywhere; }
+/* "✓ Usar endereço do cliente" */
+.use-client-address { display: flex; align-items: center; gap: 6px; margin-top: -4px; color: var(--forest); font-size: 12px; font-weight: 700; }
+.address-grid { grid-template-columns: 148fr 330fr 110fr 184fr; }
+.address-bottom-grid { grid-template-columns: 200fr 80fr 220fr 272fr; }
+
+/* ==========================================================================
+   5. Itens e contêineres
+   ========================================================================== */
+
+/* "+ Adicionar item" à direita do título */
+.add-item { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 5px 0 5px 10px; border: 0; background: none; color: var(--forest); font: 700 12px Inter, Arial, sans-serif; cursor: pointer; }
+.add-item:hover, .remove-item:hover { text-decoration: underline; }
+.rental-items { display: flex; flex-direction: column; gap: 20px; }
+.rental-item { display: flex; flex-direction: column; gap: 16px; min-width: 0; margin: 0; padding: 18px; border: 1px solid var(--contract-border); border-radius: 10px; }
+.item-legend { padding: 0 8px; font-size: 11px; line-height: 18px; font-weight: 700; color: var(--contract-muted); }
+.product-top-grid { grid-template-columns: minmax(0, 1fr) 130px; }
+
+/* Contêineres do produto como "chips" de seleção */
+.physical-units { min-width: 0; margin: 0; padding: 0; border: 0; }
+.physical-units legend { margin-bottom: 8px; padding: 0; font-size: 12px; line-height: 18px; font-weight: 700; }
+.unit-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.unit-option { display: flex; align-items: center; gap: 7px; padding: 9px 10px; border: 1px solid var(--contract-border); border-radius: 8px; font-size: 12px; cursor: pointer; }
+.unit-option:has(input:checked) { border-color: #8eb59a; background: #edf6ee; color: var(--forest); }
+/* Ocupado no período ou já escolhido em outro item: riscado e apagado */
+.unit-option:has(input:disabled) { background: #f9fafb; color: #9ca3af; text-decoration: line-through; cursor: default; }
+.unit-option input { width: 14px; height: 14px; margin: 0; accent-color: var(--forest); }
+.unit-availability { margin-top: 8px; }
+.unit-availability.has-selection { color: var(--forest); }
+.item-bottom { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+.remove-item { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 5px 0; border: 0; background: none; color: #9b3d35; font: 11px Inter, Arial, sans-serif; cursor: pointer; }
+
+/* ==========================================================================
+   6. Resumo lateral (fica parado enquanto o formulário rola)
+   ========================================================================== */
+
+.contract-summary { position: sticky; top: 24px; max-height: calc(100dvh - 48px); overflow: hidden; gap: 16px; }
+.summary-details { display: flex; flex-direction: column; flex: 1; gap: 18px; min-height: 100px; padding-right: 6px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #cad8ce transparent; }
+.summary-details > * { flex-shrink: 0; }
+.summary-footer { display: flex; flex-direction: column; flex-shrink: 0; gap: 10px; }
+.contract-summary h3 { font-size: 20px; line-height: 29px; }
+.contract-summary > div:first-child .section-help { margin-top: 6px; }
+.summary-list { display: flex; flex-direction: column; gap: 12px; margin: 0; }
+.summary-list > div { display: grid; grid-template-columns: 108px minmax(0, 1fr); gap: 10px; }
+.summary-list dt { font-size: 11px; line-height: 18px; font-weight: 400; color: var(--contract-muted); }
+.summary-list dd { margin: 0; font-size: 12px; line-height: 19px; overflow-wrap: anywhere; white-space: pre-line; }
+.summary-list .emphasis dd { font-weight: 700; }
+.summary-section { padding-top: 16px; border-top: 1px solid var(--contract-border); }
+.summary-section h4 { margin: 0 0 12px; font-size: 12px; line-height: 18px; }
+.summary-products { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.summary-products li { font-size: 12px; line-height: 20px; }
+.summary-products strong { display: block; font-size: 12px; }
+.summary-products span { display: block; font-size: 11px; color: var(--contract-muted); }
+.summary-notes { font-size: 12px; line-height: 20px; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* Caixa verde com o total */
+.summary-total { padding: 16px; border-radius: 10px; background: var(--forest); color: #fff; }
+.summary-total span { display: block; font-size: 12px; font-weight: 700; line-height: 18px; }
+.summary-total strong { display: block; margin-top: 4px; font-size: 28px; line-height: 40px; overflow-wrap: anywhere; }
+/* Pendências: verde quando completo, amarelo quando falta algo */
+.completeness { padding: 14px; border-radius: 8px; background: #d8f3dc; color: var(--forest); }
+.completeness strong { display: block; font-size: 13px; line-height: 20px; }
+.completeness p, .completeness li { font-size: 11px; line-height: 18px; }
+.completeness p { margin-top: 6px; }
+.completeness ul { max-height: 90px; margin: 8px 0 0; padding-left: 18px; overflow-y: auto; }
+.completeness.is-pending { background: #fff5df; color: #805b16; }
+.summary-footer > .contract-button { width: 100%; }
+.contract-error { font-size: 12px; line-height: 19px; color: #a42e28; }
+
+/* ==========================================================================
+   7. Diálogos (Prévia do contrato, Contrato gerado com sucesso, Cancelar cadastro?)
+   ========================================================================== */
+
+.contract-modal { width: min(460px, calc(100% - 32px)); max-height: 88vh; padding: 24px; overflow: auto; border: 1px solid var(--contract-border); border-radius: 12px; color: var(--contract-ink); font-family: Inter, Arial, sans-serif; }
+#preview-dialog { width: min(560px, calc(100% - 32px)); }
+.contract-modal::backdrop { background: #14291e80; backdrop-filter: blur(3px); }
+.contract-modal h2 { font-size: 18px; line-height: 26px; }
+.contract-modal .contract-sheet { margin-top: 10px; }
+.modal-text { margin-top: 8px; font-size: 12px; line-height: 18px; color: var(--contract-muted); }
+.modal-error { margin-top: 12px; font-size: 12px; color: #a42e28; }
+.modal-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+.modal-actions .contract-button { width: 100%; }
+
+/* ==========================================================================
+   8. Ícones sem SVG oficial desta tela (base .icon no contratos.css)
+   ========================================================================== */
+
+/* Visto (✓) pequeno de "Usar endereço do cliente" */
+.icon-check { width: 12px; height: 12px; color: var(--forest); }
+.icon-check::before { left: 3px; top: 0; width: 5px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); }
+
+/* Visto grande do diálogo de sucesso */
+.icon-success { display: block; width: 28px; height: 28px; margin: 16px 0 4px; color: var(--forest); }
+.icon-success::before { left: 8px; top: 0; width: 11px; height: 21px; border-right: 4px solid currentColor; border-bottom: 4px solid currentColor; transform: rotate(45deg); }
+
+/* "×" de "Remover item" (sem SVG oficial; o "+" de "Adicionar item" já usa o SVG oficial inline) */
+.icon-close-small { width: 10px; height: 10px; }
+.icon-close-small::before, .icon-close-small::after { left: 50%; top: 50%; background: currentColor; border-radius: 1px; transform: translate(-50%, -50%) rotate(45deg); }
+.icon-close-small::before { width: 10px; height: 2px; }
+.icon-close-small::after { width: 2px; height: 10px; }
+
+/* ==========================================================================
+   9. Responsivo
+   ========================================================================== */
+
+/* Notebook: resumo mais estreito, campos em duas colunas */
+@media (max-width: 1400px) {
+  .contract-layout { grid-template-columns: minmax(0, 1fr) 330px; gap: 20px; }
+  .contract-card { padding: 20px; }
+  .four-columns, .three-columns, .address-grid, .address-bottom-grid, .client-data-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .client-data-grid .data-wide { grid-column: auto; }
+  .summary-list > div { grid-template-columns: 95px minmax(0, 1fr); }
+}
+
+/* Tablet: resumo vai para baixo do formulário */
+@media (max-width: 1150px) {
+  .contract-form-main { padding: 24px; }
+  .contract-layout { grid-template-columns: minmax(0, 1fr); }
+  .contract-summary { position: static; max-height: none; overflow: visible; }
+  .summary-details { flex: auto; min-height: 0; padding-right: 0; overflow: visible; }
+  .summary-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .summary-footer > .contract-button { max-width: 400px; align-self: flex-end; }
+}
+
+/* Celular: tudo em uma coluna */
+@media (max-width: 760px) {
+  .contract-form-main { padding: 20px 16px; }
+  .contract-intro { align-items: flex-start; gap: 12px; }
+  .contract-intro h2 { font-size: 25px; }
+  .contract-intro .outline-button { margin-right: 0; }
+  .contract-card { padding: 20px 16px; }
+  .contract-card h3 { font-size: 16px; }
+  .address-options, .client-data-grid, .two-columns, .three-columns, .four-columns, .address-grid, .address-bottom-grid { grid-template-columns: minmax(0, 1fr); }
+  .field-grid { gap: 14px; }
+  .contract-field input, .contract-field select, .contract-field textarea { font-size: 16px; }
+  .product-top-grid { grid-template-columns: minmax(0, 1fr) 72px; gap: 10px; }
+  .rental-item { padding: 14px 12px; }
+  .item-bottom { flex-direction: column; gap: 8px; }
+  .summary-list { display: flex; }
+  .summary-list > div { grid-template-columns: 105px minmax(0, 1fr); }
+  .summary-footer > .contract-button { max-width: none; }
+}
+
+/* Telas baixas: o resumo deixa de ficar parado para não cortar os botões */
+@media (min-width: 1151px) and (max-height: 850px) {
+  .contract-summary { position: static; max-height: none; overflow: visible; }
+  .summary-details { flex: auto; min-height: 0; padding-right: 0; overflow: visible; }
+}
