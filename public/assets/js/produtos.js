@@ -46,7 +46,7 @@
   // Opções do filtro de categoria; mantém a categoria da URL mesmo se ela não vier na lista.
   function fillCategories(categories) {
     const select = $('product-category');
-    select.replaceChildren(new Option('Categorias', ''));
+    select.replaceChildren(new Option('Todas as categorias', ''));
     categories.forEach(c => select.append(new Option(c.nome + (c.ativo ? '' : ' (inativa)'), String(c.id))));
     if (state.categoria && ![...select.options].some(o => o.value === state.categoria))
       select.append(new Option('Categoria #' + state.categoria, state.categoria));

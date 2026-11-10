@@ -14,15 +14,13 @@ Autenticacao::exigirLogin();
 
 $titulo       = 'Novo contrato';
 $css          = ['dashboard.css', 'contratos.css', 'cadastro-contrato.css'];
-$js           = ['painel.js', 'cadastro-contrato.js'];
+$js           = ['painel.js', 'descartar.js', 'cadastro-contrato.js'];
 $fontesExtras = ['Inter:wght@400;700'];   // usada no formulário
 $classeBody   = 'contract-form-page';      // ajustes de layout do cadastro-contrato.css
 $paginaAtual  = 'locacoes';                // o cadastro pertence ao módulo Contratos no menu
 
-// Caminho da listagem (botão Voltar, "Descartar e sair" e "Visualizar documento").
+// Caminho da listagem (botões Voltar e Cancelar e "Visualizar documento").
 $urlLista = htmlspecialchars(BASE_URL . 'admin/locacoes/index.php');
-// Ícones SVG oficiais (classe .icone, tamanhos no dashboard.css).
-$icones   = htmlspecialchars(BASE_URL . 'assets/img/icones/');
 
 require __DIR__ . '/../../../includes/head.php';
 ?>
@@ -36,7 +34,7 @@ require __DIR__ . '/../../../includes/head.php';
       <!-- Título, caminho e botão Voltar -->
       <div class="contract-intro">
         <div><p class="contract-breadcrumb">CONTRATOS DE LOCAÇÃO / NOVO CONTRATO</p><h2>Novo contrato</h2><p>Preencha os dados da locação e confira o resumo antes de salvar.</p></div>
-        <a class="outline-button" href="<?= $urlLista ?>">← Voltar</a>
+        <a class="outline-button" href="<?= $urlLista ?>"><img class="icone" src="<?= $icones ?>voltar.svg" alt="" width="16" height="16">Voltar</a>
       </div>
 
       <!-- Aviso quando as opções (clientes, produtos, condições) não carregam -->
@@ -158,7 +156,7 @@ require __DIR__ . '/../../../includes/head.php';
             <div class="completeness" id="completeness"><strong id="completeness-title"></strong><ul id="pending-fields"></ul><p id="completeness-description"></p></div>
             <p id="form-error" class="contract-error" role="alert" hidden></p>
             <button type="submit" class="contract-button contract-primary" id="save-contract">Conferir e salvar</button>
-            <button type="button" class="contract-button" id="cancel-contract">Cancelar</button>
+            <a class="contract-button" href="<?= $urlLista ?>">Cancelar</a>
           </div>
           <span class="sr-only" id="summary-announcement" role="status"></span>
         </aside>
@@ -190,6 +188,5 @@ require __DIR__ . '/../../../includes/head.php';
   <!-- Diálogo "Contrato gerado com sucesso" (depois de salvar) -->
   <dialog class="contract-modal" id="success-dialog" aria-labelledby="success-title"><h2 id="success-title">Contrato gerado com sucesso</h2><span class="icon icon-success" aria-hidden="true"></span><p class="modal-text" id="success-text">O documento está pronto para conferência.</p><div class="modal-actions"><a class="contract-button contract-primary" id="view-document" href="<?= $urlLista ?>">Visualizar documento</a><button class="contract-button" type="button" id="new-contract">Voltar ao cadastro</button></div></dialog>
 
-  <!-- Diálogo "Cancelar cadastro?" -->
-  <dialog class="contract-modal" id="cancel-dialog" aria-labelledby="cancel-title"><h2 id="cancel-title">Cancelar cadastro?</h2><p class="modal-text">Os dados preenchidos neste contrato ainda não foram salvos.</p><div class="modal-actions"><button class="contract-button contract-primary" type="button" id="keep-editing">Continuar preenchendo</button><a class="contract-button" href="<?= $urlLista ?>">Descartar e sair</a></div></dialog>
+<?php require __DIR__ . '/../../../includes/dialogo-descartar.php'; ?>
 <?php require __DIR__ . '/../../../includes/footer.php'; ?>

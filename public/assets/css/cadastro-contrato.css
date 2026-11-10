@@ -40,7 +40,7 @@
 .contract-intro p:last-child { margin-top: 6px; font-size: 13px; line-height: 18px; color: #6f746f; }
 
 /* Botão "← Voltar": o outline-button do dashboard.css com o ajuste usado no cadastro de produto */
-.contract-intro .outline-button { min-width: 96px; min-height: 40px; margin-right: 6px; padding: 0 20px; flex-shrink: 0; border-radius: 9px; color: var(--ink); font-family: Figtree, Arial, sans-serif; font-size: 13px; font-weight: 700; }
+.contract-intro .outline-button { gap: 6px; min-width: 96px; min-height: 40px; margin-right: 6px; padding: 0 20px; flex-shrink: 0; border-radius: 9px; color: var(--ink); font-family: Figtree, Arial, sans-serif; font-size: 13px; font-weight: 700; }
 .contract-form-main > .data-notice { margin-bottom: 18px; }
 
 /* Botão padrão (contorno) e botão principal (verde) */

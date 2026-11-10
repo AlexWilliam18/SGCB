@@ -84,7 +84,7 @@
       p = document.createElement('p');
     td.colSpan = 7;
     td.className = 'clients-empty';
-    img.src = imgUrl + 'manutencoes/49f98.svg';
+    img.src = imgUrl + 'icones/documento.svg';
     img.width = 32;
     img.height = 32;
     img.alt = '';
