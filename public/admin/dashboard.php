@@ -24,7 +24,7 @@ require __DIR__ . '/../../includes/head.php';
   <a class="skip-link" href="#dashboard">Ir para o painel</a>
 <?php require __DIR__ . '/../../includes/nav.php'; ?>
   <div class="workspace">
-    <header class="page-header"><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-sidebar" aria-label="Abrir menu"><span></span><span></span><span></span></button><div class="page-heading"><h1>Visão Geral</h1><p>Visão geral das locações e indicadores</p></div><div class="date-pill"><img src="<?= $img ?>dashboard/e6378.svg" alt="" width="13" height="13"><time id="today"></time></div></header>
+    <header class="page-header"><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-sidebar" aria-label="Abrir menu"><span></span><span></span><span></span></button><div class="page-heading"><h1>Visão Geral</h1><p>Visão geral das locações e indicadores</p></div><div class="date-pill"><img src="<?= $icones ?>calendario.svg" alt="" width="13" height="13"><time id="today"></time></div></header>
     <main class="dashboard" id="dashboard" tabindex="-1" aria-busy="true">
       <div class="data-notice" id="data-notice" role="status" hidden><p id="notice-message"></p><button id="retry-data" type="button">Tentar novamente</button></div>
       <section class="stats-grid" aria-label="Indicadores das locações">

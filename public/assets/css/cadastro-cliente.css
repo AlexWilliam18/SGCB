@@ -107,8 +107,10 @@
 
 /* Botão "← Voltar" para a listagem */
 .return-button {
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     width: 97px;
     min-width: 97px;
     height: 41px;
@@ -565,15 +567,22 @@
     display: none
 }
 
-/* Botão de recolher/expandir o endereço */
+/* Botão de recolher/expandir o endereço: seta oficial para baixo (recolhido) e girada para cima (aberto) */
 .collapse-address {
+    display: grid;
+    place-items: center;
     width: 24px;
     height: 24px;
     border: 0;
-    background: none;
-    color: #171917;
-    font-size: 18px;
-    line-height: 24px
+    background: none
+}
+
+.collapse-address img {
+    transition: transform .15s
+}
+
+.collapse-address[aria-expanded=true] img {
+    transform: rotate(180deg)
 }
 
 /* Campos do endereço em três linhas */
@@ -823,18 +832,6 @@
     border-color: #a7cbb2;
     background: #eaf6ed;
     color: #1b4332
-}
-
-/* Botão "Descartar e voltar" do diálogo de alterações não salvas */
-.discard-button {
-    display: block;
-    width: 100%;
-    height: 40px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: white;
-    margin-top: 10px;
-    color: #913c34
 }
 
 /* Remove sublinhado do link "Novo cliente" */

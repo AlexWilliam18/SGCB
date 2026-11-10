@@ -162,10 +162,9 @@
     color: var(--muted)
 }
 
-/* Seleção de cidade (sem seta) */
+/* Seleção de cidade: texto um pouco mais claro (a seta segue o padrão das outras seleções) */
 .city-filter select {
-    color: #121212b3;
-    padding-right: 14px
+    color: #121212b3
 }
 
 /* Seta da seleção, posicionada à direita */

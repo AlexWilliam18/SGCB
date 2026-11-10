@@ -7,7 +7,6 @@
  */
 (() => {
   // URL da listagem de manutenções, vinda do data-lista-url do <main>.
-  const listaUrl = document.getElementById('maintenance-main').dataset.listaUrl;
   const $ = id => document.getElementById(id),
     form = $('maintenance-form');
   const fieldNames = ['unidade_id', 'tipo', 'prioridade', 'data_prevista', 'responsavel_usuario_id', 'descricao'];
@@ -17,7 +16,6 @@
     dirty = false, // há dados digitados ainda não salvos
     leaving = false, // saída já confirmada (não pergunta de novo)
     csrf = '',
-    nextUrl = listaUrl,
     optionsRequest = 0,
     optionsController;
 
@@ -240,16 +238,10 @@
       if (!dirty || leaving || event.ctrlKey || event.metaKey || event.shiftKey || link.getAttribute('href').startsWith('#'))
         return;
       event.preventDefault();
-      nextUrl = link.href;
-      $('leave-dialog').showModal();
-      $('stay-form').focus();
+      // Diálogo padrão (descartar.js): "Descartar e sair" marca a saída como confirmada.
+      SgcbDescartar.abrir(link.href, () => (leaving = true));
     })
   );
-  $('stay-form').addEventListener('click', () => $('leave-dialog').close());
-  $('discard-form').addEventListener('click', () => {
-    leaving = true;
-    location.assign(nextUrl);
-  });
   // Fechar a aba ou recarregar com dados não salvos: confirmação nativa do navegador.
   window.addEventListener('beforeunload', event => {
     if ((dirty || busy) && !leaving) {

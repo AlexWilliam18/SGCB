@@ -145,9 +145,11 @@
     margin-top: 6px
 }
 
-/* Selects sem a seta nativa; com a opção vazia escolhida, o texto fica cinza como um placeholder */
+/* Selects sem a seta nativa (a seta é a imagem icones/seta-baixo.svg); com a opção vazia escolhida,
+   o texto fica cinza como um placeholder. O padding deixa espaço para a seta. */
 .maintenance-field select {
     appearance: none;
+    padding-right: 40px;
     cursor: pointer
 }
 
@@ -155,7 +157,7 @@
     color: #a1a1a1
 }
 
-/* Prioridade: a única com seta (imagem posicionada à direita) */
+/* Prioridade: texto sempre escuro */
 .maintenance-field .priority-control select {
     color: var(--ink);
     padding-left: 14px;
@@ -281,15 +283,6 @@
     color: #1b4332;
     line-height: 21px;
     margin-top: 16px
-}
-
-/* Botões do diálogo "Descartar alterações?" */
-.leave-actions {
-    display: flex;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 24px
 }
 
 /* ==========================================================================

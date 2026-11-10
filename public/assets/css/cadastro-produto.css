@@ -83,6 +83,7 @@
 
 /* Botões contornados (Voltar, Cancelar, Continuar cadastro) */
 .product-form-page .outline-button {
+    gap: 6px;
     border-radius: 9px;
     font-size: 13px;
     min-height: 40px;
@@ -393,13 +394,6 @@
 
 .product-form-page .data-notice {
     font-family: Inter, Arial, sans-serif
-}
-
-/* Botões do diálogo "Descartar alterações?" */
-.info-dialog .form-actions {
-    padding: 0;
-    margin-top: 24px;
-    flex-wrap: wrap
 }
 
 /* ==========================================================================

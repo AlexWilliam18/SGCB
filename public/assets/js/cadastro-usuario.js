@@ -21,7 +21,6 @@
   let dirty = false,
     leaving = false,
     saving = false,
-    nextUrl = '',
     csrf = window.SGCB_CSRF || '';
 
   // ---------------------------------------------------------------------------
@@ -290,18 +289,14 @@
       )
         return;
       event.preventDefault();
-      nextUrl = link.href;
-      $('user-leave-dialog').showModal();
-      $('stay-user').focus();
+      // Diálogo padrão (descartar.js): "Descartar e sair" limpa o formulário e marca a saída como confirmada.
+      SgcbDescartar.abrir(link.href, () => {
+        form.reset();
+        dirty = false;
+        leaving = true;
+      });
     })
   );
-  $('stay-user').addEventListener('click', () => $('user-leave-dialog').close());
-  $('discard-user').addEventListener('click', () => {
-    form.reset();
-    dirty = false;
-    leaving = true;
-    location.assign(nextUrl);
-  });
   // Fechar a aba ou recarregar: aviso padrão do navegador.
   window.addEventListener('beforeunload', event => {
     if (dirty && !leaving) {

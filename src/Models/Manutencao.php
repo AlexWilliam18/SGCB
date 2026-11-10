@@ -28,7 +28,7 @@ final class Manutencao extends Modelo
 
     /**
      * Listagem da tela Manutenções.
-     * Filtros: q (código, contêiner, tipo, descrição ou responsável), prioridade, localidade, data (dia previsto), page.
+     * Filtros: q (código, contêiner, tipo, descrição ou responsável), prioridade, status, localidade, data (dia previsto), page.
      *
      * @return array{items: array, localidades: array, metrics: array, total: int, page: int, pages: int}
      */
@@ -48,6 +48,12 @@ final class Manutencao extends Modelo
         if (isset(self::PRIORIDADES[$prioridade])) {
             $where[]              = 'm.prioridade = :prioridade';
             $params['prioridade'] = $prioridade;
+        }
+        // Status: só os valores do ENUM da tabela (lista branca); qualquer outro valor é ignorado.
+        $status = strtoupper((string) ($filtros['status'] ?? ''));
+        if (in_array($status, ['AGENDADA', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA'], true)) {
+            $where[]          = 'm.status = :status';
+            $params['status'] = $status;
         }
         $localidade = trim((string) ($filtros['localidade'] ?? ''));
         if ($localidade !== '') {

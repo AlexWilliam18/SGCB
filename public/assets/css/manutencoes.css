@@ -209,15 +209,6 @@
     color: var(--muted)
 }
 
-.filter-feedback button {
-    background: none;
-    border: 0;
-    padding: 5px;
-    color: var(--forest);
-    font: 600 12px Figtree, Arial, sans-serif;
-    text-decoration: underline
-}
-
 /* ==========================================================================
    4. Tabela, selos de status/prioridade e avisos
    ========================================================================== */
