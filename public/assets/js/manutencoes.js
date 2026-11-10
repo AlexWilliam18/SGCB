@@ -2,7 +2,7 @@
 /*
  * Gerenciamento de manutenções: indicadores, pesquisa, filtros, paginação e diálogo de detalhes.
  * Os dados vêm de /api/manutencoes e /api/manutencoes/{id} (atendidos por public/api/index.php → src/Controllers).
- * Os filtros e a página ficam na URL (?q=&prioridade=&localidade=&data=&page=), então
+ * Os filtros e a página ficam na URL (?q=&prioridade=&status=&localidade=&data=&page=), então
  * recarregar ou compartilhar o link mantém a mesma consulta.
  */
 (() => {
@@ -13,6 +13,7 @@
   const state = {
     q: params.get('q') || '',
     prioridade: params.get('prioridade') || '',
+    status: params.get('status') || '',
     localidade: params.get('localidade') || '',
     data: params.get('data') || '',
     page: Math.max(1, Number(params.get('page')) || 1),
@@ -25,6 +26,7 @@
   const fields = {
     q: 'maintenance-search',
     prioridade: 'maintenance-priority',
+    status: 'maintenance-status',
     localidade: 'maintenance-location',
     data: 'maintenance-date',
   };
@@ -48,7 +50,6 @@
   // Mostra/esconde o texto "Selecione uma data" e a linha "Filtros aplicados".
   function updateFilters() {
     document.querySelector('.date-input').classList.toggle('has-value', Boolean($('maintenance-date').value));
-    $('filter-feedback').hidden = !Object.keys(fields).some(key => state[key]);
   }
 
   // Linha única da tabela com ícone e mensagem (carregando, vazio ou erro).
@@ -60,7 +61,7 @@
       text = document.createElement('p');
     cell.colSpan = 7;
     cell.className = 'clients-empty';
-    img.src = imgUrl + 'manutencoes/49f98.svg';
+    img.src = imgUrl + 'icones/documento.svg';
     img.alt = '';
     img.width = img.height = 32;
     text.textContent = message;
@@ -231,7 +232,7 @@
     clearTimeout(debounce);
     debounce = setTimeout(applyFilters, 350);
   });
-  ['maintenance-priority', 'maintenance-location', 'maintenance-date'].forEach(id =>
+  ['maintenance-priority', 'maintenance-status', 'maintenance-location', 'maintenance-date'].forEach(id =>
     $(id).addEventListener('change', applyFilters)
   );
   $('clear-maintenance-filters').addEventListener('click', () => {

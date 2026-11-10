@@ -31,8 +31,7 @@
     photo = null,
     photoURL = null,
     attachments = [],
-    sequence = 0,
-    leave = listaUrl;
+    sequence = 0;
   $('data_nascimento').max = new Intl.DateTimeFormat('en-CA', {
     year: 'numeric',
     month: '2-digit',
@@ -148,7 +147,8 @@
     collapse.addEventListener('click', () => {
       body.hidden = !body.hidden;
       collapse.setAttribute('aria-expanded', String(!body.hidden));
-      collapse.textContent = body.hidden ? '⌄' : '⌃';
+      // A seta gira pelo CSS conforme o aria-expanded; aqui só o texto para leitores de tela.
+      collapse.setAttribute('aria-label', body.hidden ? 'Expandir endereço' : 'Recolher endereço');
     });
     node.querySelector('.make-primary').addEventListener('click', () => {
       node.querySelector('.principal-input').checked = true;
@@ -547,17 +547,11 @@
       }
       if (dirty) {
         event.preventDefault();
-        leave = link.href;
-        $('discard-dialog').showModal();
+        // Diálogo padrão (descartar.js): "Descartar e sair" zera o dirty e segue para o link.
+        SgcbDescartar.abrir(link.href, () => (dirty = false));
       }
     })
   );
-  $('discard-dialog').addEventListener('close', () => {
-    if ($('discard-dialog').returnValue === 'descartar') {
-      dirty = false;
-      location.assign(leave);
-    }
-  });
   window.addEventListener('beforeunload', event => {
     if (dirty) {
       event.preventDefault();

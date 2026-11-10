@@ -16,7 +16,6 @@ $css         = ['dashboard.css', 'clientes.css', 'acoes.css', 'contratos.css'];
 $js          = ['painel.js', 'contratos.js'];
 $classeBody  = 'contracts-page';   // ajustes de layout do contratos.css
 $paginaAtual = 'locacoes';         // item destacado no menu
-$icones      = htmlspecialchars(BASE_URL . 'assets/img/icones/');
 
 require __DIR__ . '/../../../includes/head.php';
 ?>

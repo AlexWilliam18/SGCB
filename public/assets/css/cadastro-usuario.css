@@ -27,7 +27,7 @@
    ========================================================================== */
 
 .user-outline,.user-save{display:inline-flex;justify-content:center;align-items:center;padding:12px 20px;border-radius:9px;min-height:43px;font:700 13px/19px Inter,Arial,sans-serif;text-decoration:none;white-space:nowrap}
-.user-outline{border:1px solid #e5e3dd;background:white;color:#171917}
+.user-outline{gap:6px;border:1px solid #e5e3dd;background:white;color:#171917}
 .user-outline:hover{background:#f4f7f4}
 .user-save{border:0;background:#184c39;color:white}
 .user-save:hover:not(:disabled){background:#245c47}
@@ -67,10 +67,10 @@
 /* Campo com erro fica com borda vermelha */
 .user-field [aria-invalid=true]{border-color:#a53831}
 
-/* Select com seta própria (⌄) */
+/* Select com a seta oficial (icones/seta-baixo.svg), centralizada na altura e sem bloquear o clique */
 .user-select{position:relative}
 .user-select select{appearance:none;padding-right:38px;color:#6f746f}
-.user-select>span{position:absolute;right:12px;top:12px;font-size:14px;line-height:20px;pointer-events:none}
+.user-select>img{position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none}
 
 /* Texto de ajuda e mensagem de erro abaixo do campo */
 .user-help{font-size:11px;line-height:16px;color:#6f746f}
@@ -116,8 +116,6 @@
 .user-create-actions{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
 .user-create-actions>p{font-size:11px;line-height:16px;color:#6f746f}
 .user-create-actions>div{display:flex;gap:12px}
-.user-dialog-actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:24px}
-.user-form-dialog{font-family:Inter,Arial,sans-serif}
 .user-noscript{font-size:13px;line-height:20px;color:#6f746f}
 
 /* ==========================================================================

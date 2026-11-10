@@ -17,7 +17,7 @@ $editando = $idEdicao > 0;
 
 $titulo       = $editando ? 'Editar usuário' : 'Novo usuário';
 $css          = ['dashboard.css', 'cadastro-usuario.css'];
-$js           = ['painel.js', 'cadastro-usuario.js'];
+$js           = ['painel.js', 'descartar.js', 'cadastro-usuario.js'];
 $fontesExtras = ['Inter:wght@400;700'];   // usada nos campos do formulário
 $classeBody   = 'user-create-page';        // ajustes de layout do cadastro-usuario.css
 $paginaAtual  = 'usuarios';                // o cadastro pertence ao módulo Usuários no menu
@@ -32,12 +32,12 @@ require __DIR__ . '/../../../includes/head.php';
 <?php require __DIR__ . '/../../../includes/nav.php'; ?>
   <div class="workspace">
     <!-- Cabeçalho: botão do menu no celular, título e data de hoje (painel.js) -->
-    <header class="page-header"><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-sidebar" aria-label="Abrir menu"><span></span><span></span><span></span></button><div class="page-heading"><h1>Controle de Usuários</h1><p>Gerencie as pessoas com acesso ao sistema</p></div><div class="date-pill"><img src="<?= $img ?>usuarios/calendario.svg" alt="" width="13" height="13"><time id="today"></time></div></header>
+    <header class="page-header"><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-sidebar" aria-label="Abrir menu"><span></span><span></span><span></span></button><div class="page-heading"><h1>Controle de Usuários</h1><p>Gerencie as pessoas com acesso ao sistema</p></div><div class="date-pill"><img src="<?= $icones ?>calendario.svg" alt="" width="13" height="13"><time id="today"></time></div></header>
     <!-- data-edit-id: id do usuário em edição (vazio = cadastro novo), lido pelo cadastro-usuario.js -->
     <main class="user-create-main" id="user-create-main" data-lista-url="<?= $urlLista ?>" data-edit-id="<?= $editando ? $idEdicao : '' ?>" tabindex="-1">
       <div class="user-create-content">
         <!-- Título e botão Voltar (o texto muda no modo edição) -->
-        <div class="user-create-intro"><div class="user-create-heading"><h2><?= $editando ? 'Editar usuário' : 'Novo usuário' ?></h2><p><?= $editando ? 'Altere os dados e o acesso do usuário ao sistema de locações.' : 'Preencha os dados e defina o acesso ao sistema de locações.' ?></p></div><a class="user-outline" href="<?= $urlLista ?>">← Voltar</a></div>
+        <div class="user-create-intro"><div class="user-create-heading"><h2><?= $editando ? 'Editar usuário' : 'Novo usuário' ?></h2><p><?= $editando ? 'Altere os dados e o acesso do usuário ao sistema de locações.' : 'Preencha os dados e defina o acesso ao sistema de locações.' ?></p></div><a class="user-outline" href="<?= $urlLista ?>"><img class="icone" src="<?= $icones ?>voltar.svg" alt="" width="16" height="16">Voltar</a></div>
         <!-- Aviso geral (erro da API, sem permissão, cargos não carregados) -->
         <div class="user-notice" id="user-notice" role="alert" hidden><p id="user-notice-text"></p><button class="user-outline" id="reload-options" type="button" hidden>Tentar novamente</button></div>
         <form id="user-create-form" class="user-create-form" novalidate autocomplete="off">
@@ -50,7 +50,7 @@ require __DIR__ . '/../../../includes/head.php';
             </div>
             <div class="user-form-grid user-contact-grid">
               <div class="user-field"><label for="telefone">Telefone</label><input id="telefone" name="telefone" type="tel" placeholder="(00) 00000-0000" maxlength="25" autocomplete="tel"><p class="user-error" id="error-telefone" hidden></p></div>
-              <div class="user-field user-state"><label for="status"><?= $editando ? 'Status *' : 'Status inicial *' ?></label><div class="user-select"><select id="status" name="status" required><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select><span aria-hidden="true">⌄</span></div><p class="user-error" id="error-status" hidden></p></div>
+              <div class="user-field user-state"><label for="status"><?= $editando ? 'Status *' : 'Status inicial *' ?></label><div class="user-select"><select id="status" name="status" required><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select><img class="icone icone--seta" src="<?= $icones ?>seta-baixo.svg" alt="" width="10" height="6"></div><p class="user-error" id="error-status" hidden></p></div>
             </div>
           </section>
           <!-- 2. Dados de acesso (a senha é enviada só no POST e gravada como hash; escondida na edição) -->
@@ -81,5 +81,5 @@ require __DIR__ . '/../../../includes/head.php';
     </main>
   </div>
   <!-- Confirmação ao sair com dados preenchidos e ainda não salvos -->
-  <dialog class="info-dialog user-form-dialog" id="user-leave-dialog" aria-labelledby="user-leave-title"><h2 id="user-leave-title">Descartar alterações?</h2><p>Os dados preenchidos serão descartados ao sair.</p><div class="user-dialog-actions"><button class="user-outline" id="stay-user" type="button">Continuar preenchendo</button><button class="user-save" id="discard-user" type="button">Descartar e voltar</button></div></dialog>
+<?php require __DIR__ . '/../../../includes/dialogo-descartar.php'; ?>
 <?php require __DIR__ . '/../../../includes/footer.php'; ?>

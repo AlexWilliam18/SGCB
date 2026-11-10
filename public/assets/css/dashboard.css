@@ -890,6 +890,51 @@ td {
   margin-top: 24px;
 }
 
+/* Diálogo padrão "Descartar alterações?" dos cadastros (includes/dialogo-descartar.php + descartar.js) */
+.discard-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.discard-actions button {
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 12px;
+  font: 700 14px/20px Figtree, Arial, sans-serif;
+  cursor: pointer;
+}
+
+/* Ação segura em destaque (verde); descartar com contorno e texto vermelho */
+.discard-stay {
+  border: 0;
+  background: var(--forest);
+  color: #fff;
+}
+
+.discard-stay:hover {
+  background: var(--forest-light);
+}
+
+.discard-confirm {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: #a7342c;
+}
+
+.discard-confirm:hover {
+  background: #fbf1f0;
+}
+
+/* Celular: um botão por linha, ocupando a largura toda */
+@media (max-width: 480px) {
+  .discard-actions button {
+    flex: 1 1 100%;
+  }
+}
+
 /* Controles do menu no celular: escondidos no desktop */
 .menu-toggle,
 .close-menu,

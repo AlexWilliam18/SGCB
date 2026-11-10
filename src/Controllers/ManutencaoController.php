@@ -2,7 +2,7 @@
 /**
  * API de Manutenções (telas admin/manutencoes: manutencoes.js e cadastro-manutencao.js).
  *
- *   GET  api/manutencoes                   listar (filtros q, prioridade, localidade, data, page)
+ *   GET  api/manutencoes                   listar (filtros q, prioridade, status, localidade, data, page)
  *   GET  api/manutencoes/opcoes            opcoes do cadastro (contêineres, responsáveis, tipos, prioridades + token)
  *   GET  api/manutencoes/{id}              buscar
  *   POST api/manutencoes                   salvar (agenda a manutenção)

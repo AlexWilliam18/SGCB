@@ -27,6 +27,8 @@
   let calcMessage = '';         // motivo de não haver cálculo (ex.: produto sem preço)
   let firstDueEdited = false;   // o usuário mudou o 1º vencimento à mão: não recalcular sozinho
   let itemSequence = 0;
+  let dirty = false;            // há dados digitados ainda não salvos (pergunta antes de sair)
+  let leaving = false;          // saída já confirmada no diálogo padrão (descartar.js)
   const items = [];             // { id, element, units: [{id, codigo, livre}], loading }
 
   // ---------------------------------------------------------------------------
@@ -667,6 +669,7 @@
     const gerar = field('status').value === 'ATIVO';
     try {
       const contrato = await api('contratos', { ...payload(), gerar });
+      dirty = false; // salvo: sair da página não precisa mais perguntar
       $('#preview-dialog').close();
       $('#success-title').textContent = gerar ? 'Contrato gerado com sucesso' : 'Rascunho salvo com sucesso';
       $('#success-text').textContent = gerar
@@ -689,11 +692,15 @@
   // ---------------------------------------------------------------------------
 
   form.addEventListener('input', event => {
+    dirty = true;
     event.target.removeAttribute('aria-invalid');
     $('#form-error').hidden = true;
     update();
   });
-  form.addEventListener('change', update);
+  form.addEventListener('change', () => {
+    dirty = true;
+    update();
+  });
   field('client').addEventListener('change', selectCustomer);
   field('paymentCondition').addEventListener('change', applyCondition);
   field('firstDue').addEventListener('input', () => { firstDueEdited = true; });
@@ -722,14 +729,26 @@
   $('#retry-options').addEventListener('click', loadOptions);
 
   // Diálogos.
-  $('#cancel-contract').addEventListener('click', () => $('#cancel-dialog').showModal());
-  $('#keep-editing').addEventListener('click', () => $('#cancel-dialog').close());
   $('#close-preview').addEventListener('click', () => $('#preview-dialog').close());
   $('#new-contract').addEventListener('click', () => location.reload());
-  // Clique fora da caixa fecha a prévia e o "Cancelar cadastro?".
-  ['#preview-dialog', '#cancel-dialog'].forEach(id => $(id).addEventListener('click', event => {
-    if (event.target === $(id)) $(id).close();
+  // Clique fora da caixa fecha a prévia.
+  $('#preview-dialog').addEventListener('click', event => {
+    if (event.target === $('#preview-dialog')) $('#preview-dialog').close();
+  });
+
+  // Links da página (menu, Voltar, Cancelar, Sair) com dados não salvos: diálogo padrão "Descartar alterações?".
+  document.querySelectorAll('a[href]').forEach(link => link.addEventListener('click', event => {
+    if (!dirty || leaving || event.ctrlKey || event.metaKey || event.shiftKey || link.getAttribute('href').startsWith('#')) return;
+    event.preventDefault();
+    SgcbDescartar.abrir(link.href, () => (leaving = true));
   }));
+  // Fechar a aba ou recarregar com dados não salvos: confirmação nativa do navegador.
+  window.addEventListener('beforeunload', event => {
+    if (dirty && !leaving) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  });
 
   // ---------------------------------------------------------------------------
   // Valores iniciais: estados, hoje como emissão/início e fim em 30 dias

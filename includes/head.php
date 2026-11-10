@@ -12,6 +12,8 @@ $titulo       = $titulo ?? 'SGCB';
 $css          = $css ?? [];
 $fontesExtras = $fontesExtras ?? [];
 $classeBody   = $classeBody ?? '';
+// Pasta dos ícones SVG oficiais (classe .icone no dashboard.css), disponível em todas as páginas.
+$icones       = htmlspecialchars(BASE_URL . 'assets/img/icones/');
 
 // Fontes da identidade visual + as extras pedidas pela página.
 $familias = array_merge($fontesExtras, ['Figtree:wght@400;600;700;800', 'Libre+Caslon+Text:wght@400;700']);
