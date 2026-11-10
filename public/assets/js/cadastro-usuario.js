@@ -101,12 +101,24 @@
       }
       // Na edição, só libera o Salvar depois de carregar os dados do usuário.
       if (editId && !(await loadUser())) return;
+      syncAdminStatus();
       $('save-user').disabled = false;
     } catch (_) {
       notice('Não foi possível carregar os perfis de acesso. Verifique a conexão e tente novamente.', true);
     }
   }
   $('reload-options').addEventListener('click', loadOptions);
+
+  // Perfil Administrador: por segurança o status fica sempre "Ativo" (o servidor também recusa).
+  // A opção "Inativo" fica desabilitada e aparece a explicação abaixo do campo.
+  function syncAdminStatus() {
+    const admin = form.querySelector('input[name="perfil"]:checked')?.dataset.cargo === 'ADMIN';
+    const inactive = $('status').querySelector('option[value="inativo"]');
+    inactive.disabled = admin;
+    if (admin && $('status').value === 'inativo') $('status').value = 'ativo';
+    $('status-admin-help').hidden = !admin;
+  }
+  form.querySelectorAll('input[name="perfil"]').forEach(radio => radio.addEventListener('change', syncAdminStatus));
 
   // ---------------------------------------------------------------------------
   // Modo edição: preenche o formulário com o usuário salvo (GET /api/usuarios/{id})

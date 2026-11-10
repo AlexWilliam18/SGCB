@@ -131,3 +131,6 @@
   .users-intro h2{font-size:24px}
   .users-table .clients-empty>div{width:calc(100vw - 26px)}
 }
+
+/* Aviso no diálogo "Dados do usuário": administrador não pode ser inativado (sem o botão Inativar) */
+.user-admin-note{margin-top:14px;font-size:12px;line-height:18px;color:#6f746f}

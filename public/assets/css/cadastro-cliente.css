@@ -27,15 +27,8 @@
     background: var(--paper) url('../img/cadastro-cliente/99018.svg') top left/100% auto no-repeat
 }
 
-/* Menu acompanha a altura da página (rola junto com o formulário longo) */
-.form-page .sidebar {
-    position: absolute;
-    min-height: 100vh
-}
-
 /* Área de trabalho com a fonte Inter do formulário */
 .form-page .workspace {
-    min-height: 1624px;
     font-family: Inter, Arial, sans-serif
 }
 
@@ -977,13 +970,8 @@
     }
 }
 
-/* Celulares: tudo em uma coluna, menu volta a ser gaveta fixa */
+/* Celulares: tudo em uma coluna */
 @media(max-width:760px) {
-    .form-page .sidebar {
-        position: fixed;
-        min-height: 100vh
-    }
-
     .form-page .page-header {
         padding: 16px 20px
     }

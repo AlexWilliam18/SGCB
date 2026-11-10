@@ -154,7 +154,101 @@
     color: #34569a
 }
 
+/* Card "Faturamento": o card inteiro é clicável (botão transparente por cima) e mostra uma seta no título */
+.revenue-card {
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s
+}
+
+.revenue-card:hover,
+.revenue-card:has(.revenue-trigger:focus-visible) {
+    border-color: #b9cbbd;
+    box-shadow: 0 10px 28px -16px #14291e66
+}
+
+.revenue-trigger {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border: 0;
+    border-radius: inherit;
+    background: none;
+    cursor: pointer
+}
+
+.revenue-trigger:focus-visible {
+    outline: 2px solid #b58b36;
+    outline-offset: -2px
+}
+
+.revenue-card h2 {
+    display: flex;
+    align-items: center;
+    gap: 6px
+}
+
+.revenue-caret {
+    transition: transform .15s
+}
+
+.revenue-card:has(.revenue-trigger[aria-expanded=true]) .revenue-caret {
+    transform: rotate(180deg)
+}
+
+/* Lista de períodos: abre logo abaixo do card (posição calculada no financeiro.js) */
+.revenue-menu {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    min-width: 220px;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 16px 40px -12px #14291e4d;
+    color: var(--ink)
+}
+
+.revenue-menu button {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 9px;
+    background: none;
+    color: var(--ink);
+    text-align: left;
+    font-size: 13px;
+    line-height: 18px
+}
+
+.revenue-menu button:hover,
+.revenue-menu button:focus-visible {
+    background: var(--paper);
+    outline: none
+}
+
+/* Período escolhido: fundo verde-claro e texto em negrito */
+.revenue-menu button[aria-checked=true] {
+    background: #eaf6ed;
+    color: var(--forest);
+    font-weight: 700
+}
+
 /* "Parcela N" abaixo do número do contrato */
+/* Linha pequena embaixo do valor: "Recebido R$ 2.800,00" em parcelas com pagamento parcial */
+.received-amount {
+    display: block;
+    font-size: 10px;
+    line-height: 16px;
+    color: var(--forest)
+}
+
+/* Formulário "Corrigir pagamento" aberto dentro do histórico */
+.payment-entry .detail-form {
+    margin-top: 10px
+}
+
 .installment-number {
     display: block;
     font-size: 10px;

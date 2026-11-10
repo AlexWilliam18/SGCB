@@ -136,17 +136,33 @@ final class Parcela extends Modelo
             (int) ($filtros['page'] ?? 1)
         );
         $resultado['items']   = array_map([self::class, 'formatar'], $resultado['items']);
-        $resultado['metrics'] = self::indicadores();
+        $resultado['metrics'] = self::indicadores((string) ($filtros['periodo'] ?? 'mes'));
 
         return $resultado;
     }
 
     /**
-     * Indicadores dos cards do Financeiro (globais, sem filtros).
+     * Períodos do card de faturamento: chave da tela → [rótulo, primeiro mês do período].
+     * O primeiro mês é relativo ao mês atual (0 = este mês, -2 = 3 meses contando o atual);
+     * null em "total" = desde o primeiro pagamento; "ano" começa em janeiro.
+     */
+    public const PERIODOS = [
+        'mes'   => ['Este mês', 0],
+        '3m'    => ['Últimos 3 meses', -2],
+        '6m'    => ['Últimos 6 meses', -5],
+        '12m'   => ['Últimos 12 meses', -11],
+        'ano'   => ['Este ano', 'ano'],
+        'total' => ['Todo o período', null],
+    ];
+
+    /**
+     * Indicadores dos cards do Financeiro (não mudam com os filtros da lista).
+     * O faturamento soma os pagamentos não estornados recebidos no período escolhido (lista branca em PERIODOS).
      * prestes_vencer usa os "dias de alerta" das preferências do contrato (padrão 7).
      */
-    public static function indicadores(): array
+    public static function indicadores(string $periodo = 'mes'): array
     {
+        $periodo = isset(self::PERIODOS[$periodo]) ? $periodo : 'mes';
         $empresa = Empresa::obterEmpresa();
         $alerta  = $empresa !== null ? Empresa::obterPreferencias($empresa['id'])['dias_alerta_vencimento'] : 7;
         $hoje    = self::hoje();
@@ -161,16 +177,25 @@ final class Parcela extends Modelo
         $consulta->execute(['hoje' => $hoje]);
         $metricas = array_map('intval', $consulta->fetch());
 
-        // Faturamento do mês = pagamentos não estornados recebidos no mês atual.
-        $mes = self::pdo()->prepare(
+        // Faturamento do período = pagamentos não estornados recebidos de :inicio até o fim do mês atual.
+        [$rotulo, $inicioRelativo] = self::PERIODOS[$periodo];
+        $inicio = match (true) {
+            $inicioRelativo === null  => '1000-01-01 00:00:00',
+            $inicioRelativo === 'ano' => date('Y-01-01 00:00:00'),
+            default                   => date('Y-m-01 00:00:00', strtotime("first day of $inicioRelativo month")),
+        };
+        $consultaPeriodo = self::pdo()->prepare(
             'SELECT COALESCE(SUM(valor), 0) AS total, COUNT(*) AS quantidade FROM pagamentos
               WHERE estornado_em IS NULL AND pago_em >= :inicio AND pago_em < :fim'
         );
-        $mes->execute(['inicio' => date('Y-m-01 00:00:00'), 'fim' => date('Y-m-01 00:00:00', strtotime('first day of next month'))]);
-        $faturamento = $mes->fetch();
+        $consultaPeriodo->execute(['inicio' => $inicio, 'fim' => date('Y-m-01 00:00:00', strtotime('first day of next month'))]);
+        $faturamento = $consultaPeriodo->fetch();
 
         return [
-            'faturamento_mes'      => (float) $faturamento['total'],
+            'periodo'              => $periodo,
+            'periodo_rotulo'       => $rotulo,
+            'periodo_inicio'       => $inicioRelativo === null ? null : substr($inicio, 0, 10),
+            'faturamento'          => (float) $faturamento['total'],
             'pagamentos_recebidos' => (int) $faturamento['quantidade'],
         ] + $metricas;
     }

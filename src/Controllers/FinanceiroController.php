@@ -2,12 +2,13 @@
 /**
  * API do Financeiro (tela admin/financeiro: financeiro.js): parcelas e pagamentos.
  *
- *   GET  api/financeiro                               listar parcelas (filtros q, prioridade, status, data, page)
+ *   GET  api/financeiro                               listar parcelas (filtros q, prioridade, status, data, page; periodo dos indicadores)
  *   GET  api/financeiro/parcelas/{id}                 buscar parcela (com histórico de pagamentos)
  *   POST api/financeiro/parcelas/{id}/pagamentos      registrar pagamento ({ forma, valor, pago_em, ... })
  *   POST api/financeiro/parcelas/{id}/ajuste          acréscimo/desconto ({ acrescimo, desconto, observacoes })
  *   POST api/financeiro/parcelas/{id}/cancelar        cancelar parcela sem pagamento ({ motivo })
  *   POST api/financeiro/pagamentos/{id}/estorno       estornar ({ motivo_estorno })
+ *   POST api/financeiro/pagamentos/{id}/corrigir      corrigir ({ forma, valor, pago_em, motivo }): estorna e registra o novo
  *   GET  api/financeiro/pagamentos/{id}/recibo        dados do recibo
  */
 
@@ -67,6 +68,19 @@ final class FinanceiroController
         Pagamento::estornar($id, (string) (Api::dados()['motivo_estorno'] ?? ''), $usuario['id']);
 
         return ['id' => $id, 'estornado' => true];
+    }
+
+    /**
+     * Corrige um pagamento: estorna o original e registra o novo numa transação só (Pagamento::corrigir).
+     * Exige a permissão de estornar, porque a correção começa com um estorno.
+     */
+    public static function corrigirPagamento(int $id): array
+    {
+        $usuario = Api::permitir('financeiro', 'estornar');
+        $dados   = Api::dados();
+        $novoId  = Pagamento::corrigir($id, $dados, (string) ($dados['motivo'] ?? ''), $usuario['id']);
+
+        return ['id' => $novoId, 'substitui' => $id];
     }
 
     public static function recibo(int $id): array

@@ -322,9 +322,12 @@
       container.append(dl);
       // Ações (acoes.js): Editar abre o cadastro preenchido (cadastro.php?id=);
       // Ativar/Inativar grava na hora em /api/usuarios/{id}/status e atualiza a lista.
-      // A API não deixa o usuário logado inativar a si mesmo.
-      SGCBAcoes.barra(container, [
-        {
+      // A API não deixa o usuário logado inativar a si mesmo nem inativar um administrador (cargo ADMIN):
+      // por segurança, para administrador ativo o botão "Inativar" nem aparece.
+      const adminAtivo = user.cargo_codigo === 'ADMIN' && user.ativo;
+      const acoes = [{ texto: 'Editar usuário', classe: 'primaria', href: 'cadastro.php?id=' + encodeURIComponent(id) }];
+      if (!adminAtivo)
+        acoes.unshift({
           texto: user.ativo ? 'Inativar' : 'Reativar',
           classe: user.ativo ? 'perigo' : '',
           confirmar: user.ativo ? 'Inativar ' + user.nome + '? Ele não poderá mais entrar no sistema.' : null,
@@ -333,9 +336,14 @@
             loadUsers();
             showUser(id);
           },
-        },
-        { texto: 'Editar usuário', classe: 'primaria', href: 'cadastro.php?id=' + encodeURIComponent(id) },
-      ]);
+        });
+      else {
+        const aviso = document.createElement('p');
+        aviso.className = 'user-admin-note';
+        aviso.textContent = 'Administrador: por segurança, não pode ser inativado.';
+        container.append(aviso);
+      }
+      SGCBAcoes.barra(container, acoes);
     } catch (_) {
       if (current === detailRequest) {
         container.textContent = 'Não foi possível abrir o usuário. Feche esta janela e tente novamente.';
