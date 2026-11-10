@@ -212,6 +212,48 @@ abstract class Pagamento extends Modelo
     }
 
     /**
+     * Corrige um pagamento lançado errado (valor, forma ou data).
+     * Nada é apagado nem alterado no lançamento original: numa única transação, o pagamento antigo
+     * é estornado ("Correção: motivo") e o novo é registrado com as mesmas regras do processarPagamento
+     * (saldo, contrato ativo, data não futura). Se o novo for recusado, o estorno também é desfeito.
+     *
+     * @param array $dados forma, valor, pago_em (e os campos próprios da forma, se houver).
+     * @return int id do novo pagamento.
+     */
+    public static function corrigir(int $pagamentoId, array $dados, string $motivo, int $usuarioId): int
+    {
+        $erros  = [];
+        $motivo = self::campoTexto(['motivo' => $motivo], 'motivo', 480, $erros, true);
+        if (isset($erros['motivo'])) {
+            $erros['motivo'] = 'Informe o motivo da correção.';
+        }
+        self::lancarSeErros($erros);
+
+        return self::transacao(static function (PDO $pdo) use ($pagamentoId, $dados, $motivo, $usuarioId): int {
+            $consulta = $pdo->prepare('SELECT parcela_id, estornado_em FROM pagamentos WHERE id = :id FOR UPDATE');
+            $consulta->execute(['id' => $pagamentoId]);
+            $original = $consulta->fetch();
+            if (!$original) {
+                throw new ErroValidacao('Pagamento não encontrado.', [], 404);
+            }
+            if ($original['estornado_em'] !== null) {
+                throw new ErroValidacao('Este pagamento já foi estornado e não pode ser corrigido.', [], 409);
+            }
+
+            // 1) Estorna o original (devolve o valor ao saldo da parcela).
+            self::estornar($pagamentoId, 'Correção: ' . $motivo, $usuarioId);
+
+            // 2) Registra o lançamento correto na mesma parcela (forma decide a classe: Pix, Cartão...).
+            $novo = self::criarPorForma(['parcela_id' => (int) $original['parcela_id']] + $dados);
+            $id   = $novo->processarPagamento($usuarioId);
+
+            self::auditar($usuarioId, 'pagamentos', $id, 'CORRIGIR', ['substitui_pagamento_id' => $pagamentoId, 'motivo' => $motivo]);
+
+            return $id;
+        });
+    }
+
+    /**
      * Dados do recibo (método emitirRecibo do diagrama). null se não existe ou foi estornado,
      * porque pagamento estornado não tem recibo válido.
      */

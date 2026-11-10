@@ -1,12 +1,15 @@
 'use strict';
 /*
- * Diálogo de categorias da listagem de produtos: cadastrar, editar e desativar.
+ * Diálogo de categorias da listagem de produtos: cadastrar, editar, desativar, ativar e excluir.
  * Ao abrir, busca a lista e o token CSRF em /api/categorias/opcoes. Gravações (com X-CSRF-Token):
  *   POST /api/categorias              cadastrar ({ nome })
  *   POST /api/categorias/{id}         editar o nome ({ nome })
- *   POST /api/categorias/{id}/status  desativar ({ ativo: false }), um UPDATE ativo = 0; nada é excluído.
+ *   POST /api/categorias/{id}/status  desativar/ativar ({ ativo: false|true }), um UPDATE ativo; qualquer usuário
+ *                                     com permissão de editar produtos.
+ *   POST /api/categorias/{id}/excluir excluir de vez: só o administrador (pode_excluir), categoria já desativada
+ *                                     e sem produtos; o servidor confere tudo de novo.
  * Depois de cada gravação dispara o evento "categoria:alterada" ({ mensagem }), ouvido pelo produtos.js.
- * Categoria inativa continua na lista do diálogo, com estilo de desabilitada e sem ações.
+ * Categoria inativa continua na lista do diálogo, com estilo de desabilitada, e ganha Ativar (e Excluir para o admin).
  */
 (() => {
   const $ = id => document.getElementById(id),
@@ -19,6 +22,7 @@
     saving = false,
     generation = 0,
     optionsController,
+    podeExcluir = false, // vem da API: só o cargo ADMIN vê o botão Excluir
     editing = null; // categoria em edição ({ id, nome }) ou null quando o formulário cadastra uma nova
 
   // Mensagens do diálogo: aviso geral (com "Tentar novamente") e erro do campo nome.
@@ -41,7 +45,7 @@
     name.disabled = saving;
     $('cancel-category').disabled = saving;
     $('retry-category').disabled = saving;
-    list.querySelectorAll('button').forEach(button => (button.disabled = !ready || saving));
+    list.querySelectorAll('button').forEach(button => (button.disabled = !ready || saving || button.dataset.blocked === 'true'));
   }
 
   // Modo do formulário: cadastrar nova categoria ou editar a escolhida na lista.
@@ -53,7 +57,19 @@
     fieldError('');
   }
 
-  // Lista "Categorias cadastradas": ativas com Editar e Desativar; inativas só com o nome e "(inativa)".
+  // Botão de ação da lista (link pequeno). className: '' (verde) ou 'category-disable' (vermelho).
+  function actionButton(text, label, className, onClick) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = text;
+    button.className = className;
+    button.setAttribute('aria-label', label);
+    button.addEventListener('click', onClick);
+    return button;
+  }
+
+  // Lista "Categorias cadastradas": ativas com Editar e Desativar; inativas com "(inativa)", Ativar e,
+  // para o administrador, Excluir (desabilitado quando a categoria ainda tem produtos).
   function renderList(categories) {
     list.replaceChildren();
     if (!categories.length) {
@@ -71,23 +87,25 @@
       label.textContent = category.nome + (category.ativo ? '' : ' (inativa)');
       item.append(label);
       if (category.ativo) {
-        const edit = document.createElement('button'),
-          disable = document.createElement('button');
-        edit.type = disable.type = 'button';
-        edit.textContent = 'Editar';
-        edit.setAttribute('aria-label', 'Editar a categoria ' + category.nome);
-        edit.addEventListener('click', () => {
-          setMode(category);
-          message('');
-          name.focus();
-        });
-        disable.textContent = 'Desativar';
-        disable.className = 'category-disable';
-        disable.setAttribute('aria-label', 'Desativar a categoria ' + category.nome);
-        disable.addEventListener('click', () => deactivate(category));
-        item.append(edit, disable);
+        item.append(
+          actionButton('Editar', 'Editar a categoria ' + category.nome, '', () => {
+            setMode(category);
+            message('');
+            name.focus();
+          }),
+          actionButton('Desativar', 'Desativar a categoria ' + category.nome, 'category-disable', () => setStatus(category, false))
+        );
       } else {
-        item.setAttribute('aria-disabled', 'true');
+        item.append(actionButton('Ativar', 'Ativar a categoria ' + category.nome, '', () => setStatus(category, true)));
+        if (podeExcluir) {
+          const remove = actionButton('Excluir', 'Excluir a categoria ' + category.nome, 'category-disable', () => removeCategory(category));
+          // Com produtos vinculados não dá para excluir (o servidor também bloqueia): explica no próprio botão.
+          if (category.produtos > 0) {
+            remove.dataset.blocked = 'true';
+            remove.title = 'Tem ' + category.produtos + ' produto(s) vinculado(s): pode ficar desativada, mas não pode ser excluída.';
+          }
+          item.append(remove);
+        }
       }
       list.append(item);
     });
@@ -110,6 +128,7 @@
       if (!data.csrf_token || !Array.isArray(data.categorias)) throw Error();
       csrf = data.csrf_token;
       ready = data.responsavel_configurado === true;
+      podeExcluir = data.pode_excluir === true;
       renderList(data.categorias);
       message(
         ready ? '' : 'Solicite ao administrador a configuração de um usuário responsável para habilitar o salvamento.',
@@ -154,34 +173,54 @@
     document.dispatchEvent(new CustomEvent('categoria:alterada', { detail: { mensagem: text } }));
   }
 
-  // Desativar: confirma, grava ativo = 0 e recarrega a lista (a categoria fica como "(inativa)").
-  async function deactivate(category) {
-    if (saving || !ready) return;
-    if (
-      !confirm(
-        'Desativar a categoria “' + category.nome + '”?\n\n' +
-          'Ela continua aparecendo nos produtos já cadastrados, mas não poderá ser escolhida em novos produtos.'
-      )
-    )
-      return;
+  // Grava uma ação da lista (desativar, ativar ou excluir) depois da confirmação e recarrega a lista.
+  async function runAction(category, question, path, body, doneText, failText) {
+    if (saving || !ready || !confirm(question)) return;
     message('');
     saving = true;
     saveState();
     try {
-      const { ok, status, result } = await post('categorias/' + encodeURIComponent(category.id) + '/status', { ativo: false });
+      const { ok, status, result } = await post('categorias/' + encodeURIComponent(category.id) + path, body);
       if (!ok) {
-        message(result.error || 'Não foi possível desativar a categoria.', status === 403);
+        message(result.error || failText, status === 403 && !result.error);
         return;
       }
       if (editing?.id === category.id) setMode(null);
-      notify('Categoria “' + category.nome + '” desativada.');
+      notify(doneText);
       loadOptions();
     } catch (_) {
-      message('Não foi possível confirmar a desativação. Abra a lista novamente para conferir.');
+      message('Não foi possível confirmar a ação. Abra a lista novamente para conferir.');
     } finally {
       saving = false;
       saveState();
     }
+  }
+
+  // Desativar (ativo = 0) ou ativar de novo (ativo = 1); nada é apagado.
+  function setStatus(category, active) {
+    runAction(
+      category,
+      active
+        ? 'Ativar a categoria “' + category.nome + '”?\n\nEla volta a poder ser escolhida no cadastro de produtos.'
+        : 'Desativar a categoria “' + category.nome + '”?\n\n' +
+            'Ela continua aparecendo nos produtos já cadastrados, mas não poderá ser escolhida em novos produtos.',
+      '/status',
+      { ativo: active },
+      'Categoria “' + category.nome + '” ' + (active ? 'ativada.' : 'desativada.'),
+      'Não foi possível ' + (active ? 'ativar' : 'desativar') + ' a categoria.'
+    );
+  }
+
+  // Excluir de vez (só administrador; categoria inativa e sem produtos).
+  function removeCategory(category) {
+    runAction(
+      category,
+      'Excluir definitivamente a categoria “' + category.nome + '”?\n\nEsta ação não pode ser desfeita.',
+      '/excluir',
+      {},
+      'Categoria “' + category.nome + '” excluída.',
+      'Não foi possível excluir a categoria.'
+    );
   }
 
   // Abrir, cancelar e fechar o diálogo (não fecha enquanto está salvando).

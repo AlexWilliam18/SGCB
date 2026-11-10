@@ -50,7 +50,7 @@ require __DIR__ . '/../../../includes/head.php';
             </div>
             <div class="user-form-grid user-contact-grid">
               <div class="user-field"><label for="telefone">Telefone</label><input id="telefone" name="telefone" type="tel" placeholder="(00) 00000-0000" maxlength="25" autocomplete="tel"><p class="user-error" id="error-telefone" hidden></p></div>
-              <div class="user-field user-state"><label for="status"><?= $editando ? 'Status *' : 'Status inicial *' ?></label><div class="user-select"><select id="status" name="status" required><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select><img class="icone icone--seta" src="<?= $icones ?>seta-baixo.svg" alt="" width="10" height="6"></div><p class="user-error" id="error-status" hidden></p></div>
+              <div class="user-field user-state"><label for="status"><?= $editando ? 'Status *' : 'Status inicial *' ?></label><div class="user-select"><select id="status" name="status" required><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select><img class="icone icone--seta" src="<?= $icones ?>seta-baixo.svg" alt="" width="10" height="6"></div><p class="user-error" id="error-status" hidden></p><p class="user-help" id="status-admin-help" hidden>O administrador não pode ser desativado.</p></div>
             </div>
           </section>
           <!-- 2. Dados de acesso (a senha é enviada só no POST e gravada como hash; escondida na edição) -->

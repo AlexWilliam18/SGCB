@@ -2,7 +2,7 @@
 /*
  * Gerenciamento financeiro: indicadores, pesquisa, filtros, paginação e diálogo de detalhes da parcela.
  * Os dados vêm de /api/financeiro e /api/financeiro/parcelas/{id} (atendidos por public/api/index.php → src/Controllers).
- * Os filtros e a página ficam na URL (?q=&prioridade=&status=&data=&page=), então
+ * Os filtros, a página e o período do faturamento ficam na URL (?q=&prioridade=&status=&data=&page=&periodo=), então
  * recarregar ou compartilhar o link mantém a mesma consulta.
  */
 (() => {
@@ -15,6 +15,7 @@
     prioridade: url.get('prioridade') || '',
     status: url.get('status') || '',
     data: url.get('data') || '',
+    periodo: url.get('periodo') || 'mes', // período do card de faturamento (lista branca no servidor)
     page: Math.max(1, Number(url.get('page')) || 1),
     pages: 1,
   };
@@ -27,6 +28,17 @@
     DINHEIRO: 'Dinheiro',
     TRANSFERENCIA: 'Transferência',
   };
+  // Formas aceitas nos formulários "Registrar pagamento" e "Corrigir pagamento" (valores do banco).
+  const paymentOptions = [
+    ['PIX', 'Pix'],
+    ['CARTAO_CREDITO', 'Cartão de crédito'],
+    ['CARTAO_DEBITO', 'Cartão de débito'],
+    ['DINHEIRO', 'Dinheiro'],
+    ['BOLETO', 'Boleto'],
+    ['TRANSFERENCIA', 'Transferência'],
+  ];
+  // Código da tela (CREDITO/DEBITO) → valor do banco, para pré-selecionar a forma ao corrigir.
+  const methodToDb = { CREDITO: 'CARTAO_CREDITO', DEBITO: 'CARTAO_DEBITO' };
   // Explicação mostrada na linha "Filtros aplicados" quando há prioridade escolhida.
   const priorities = {
     URGENTE: 'Urgente: parcelas vencidas com saldo.',
@@ -97,8 +109,16 @@
 
   // Indicadores dos cards; sem dados (erro), volta tudo para "—".
   function metrics(data) {
-    for (const key of ['faturamento_mes', 'em_aberto', 'em_atraso', 'prestes_vencer'])
-      $('metric-' + key).textContent = data ? (key === 'faturamento_mes' ? money(data[key]) : String(data[key])) : '—';
+    for (const key of ['faturamento', 'em_aberto', 'em_atraso', 'prestes_vencer'])
+      $('metric-' + key).textContent = data ? (key === 'faturamento' ? money(data[key]) : String(data[key])) : '—';
+    // Título do card com o período: "Faturamento • Últimos 3 meses"; a dica do card mostra desde quando.
+    $('metric-periodo_rotulo').textContent = 'Faturamento' + (data ? ' • ' + data.periodo_rotulo : '');
+    $('revenue-trigger').title =
+      'Clique para escolher o período do faturamento' + (data?.periodo_inicio ? ' (desde ' + shortDate(data.periodo_inicio) + ')' : '');
+    // Marca na lista o período em uso.
+    $('revenue-menu').querySelectorAll('[data-periodo]').forEach(item =>
+      item.setAttribute('aria-checked', String(item.dataset.periodo === state.periodo))
+    );
     $('metric-pagamentos_recebidos').textContent = (data ? data.pagamentos_recebidos : '—') + ' pagamentos recebidos';
     $('metric-clientes_atraso').textContent = (data ? data.clientes_atraso : '—') + ' clientes em atraso';
   }
@@ -123,7 +143,16 @@
           span.textContent = 'Parcela ' + item.numero;
           td.append(span);
         }
-        if (index === 3) td.className = 'money-cell';
+        if (index === 3) {
+          td.className = 'money-cell';
+          // Pagamento parcial: mostra quanto já entrou, para o valor pago não "sumir" da lista.
+          if (item.valor_recebido > 0 && item.status !== 'PAGA') {
+            const received = document.createElement('span');
+            received.className = 'received-amount';
+            received.textContent = 'Recebido ' + money(item.valor_recebido);
+            td.append(received);
+          }
+        }
         tr.append(td);
       });
       // Selo de status; a classe CSS vem do status em minúsculas (ver financeiro.css).
@@ -206,8 +235,9 @@
         !['em_aberto', 'em_atraso', 'clientes_atraso', 'prestes_vencer', 'pagamentos_recebidos'].every(k =>
           Number.isInteger(data.metrics[k])
         ) ||
-        data.metrics.faturamento_mes === null ||
-        !Number.isFinite(Number(data.metrics.faturamento_mes))
+        data.metrics.faturamento === null ||
+        !Number.isFinite(Number(data.metrics.faturamento)) ||
+        typeof data.metrics.periodo_rotulo !== 'string'
       )
         throw Error('O servidor retornou dados inválidos. Tente novamente.');
       if (current !== requestId) return;
@@ -268,6 +298,38 @@
       load();
     }, 350);
   });
+  // Período do faturamento: clicar no card abre a lista (popover). Escolher um período só recarrega
+  // os indicadores e a lista (não mexe nos filtros nem na página).
+  const revenueMenu = $('revenue-menu');
+  revenueMenu.addEventListener('toggle', event => {
+    const open = event.newState === 'open';
+    $('revenue-trigger').setAttribute('aria-expanded', String(open));
+    if (!open) return;
+    // Abre logo abaixo do card, alinhado à esquerda dele (sem passar da borda direita da tela).
+    const card = $('revenue-trigger').getBoundingClientRect();
+    revenueMenu.style.top = card.bottom + 6 + 'px';
+    revenueMenu.style.left = Math.max(8, Math.min(card.left, innerWidth - revenueMenu.offsetWidth - 8)) + 'px';
+    (revenueMenu.querySelector('[aria-checked=true]') || revenueMenu.querySelector('button')).focus();
+  });
+  revenueMenu.querySelectorAll('[data-periodo]').forEach(item =>
+    item.addEventListener('click', () => {
+      revenueMenu.hidePopover();
+      $('revenue-trigger').focus();
+      if (item.dataset.periodo === state.periodo) return;
+      state.periodo = item.dataset.periodo;
+      load();
+    })
+  );
+  // Setas ↑/↓ andam pela lista.
+  revenueMenu.addEventListener('keydown', event => {
+    if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return;
+    event.preventDefault();
+    const items = [...revenueMenu.querySelectorAll('button')],
+      index = items.indexOf(document.activeElement);
+    items[(index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length].focus();
+  });
+  // Rolar a página fecha a lista (ela é fixa na tela e ficaria longe do card).
+  addEventListener('scroll', () => revenueMenu.matches(':popover-open') && revenueMenu.hidePopover(), { passive: true });
   ['finance-priority', 'finance-status', 'finance-date'].forEach(id =>
     $(id).addEventListener('change', () => {
       clearTimeout(debounce);
@@ -396,7 +458,39 @@
                 reverse.disabled = false;
               }
             });
-            entry.append(reverse);
+            // Corrigir: abre o formulário já preenchido; ao salvar, o servidor estorna este pagamento
+            // e registra o novo numa transação só (o original fica no histórico como estornado).
+            const fix = document.createElement('button');
+            fix.type = 'button';
+            fix.className = 'detail-action pequena';
+            fix.textContent = 'Corrigir';
+            fix.setAttribute('aria-expanded', 'false');
+            fix.addEventListener('click', () => {
+              const aberto = entry.querySelector('.detail-form');
+              if (aberto) {
+                aberto.remove();
+                fix.setAttribute('aria-expanded', 'false');
+                return;
+              }
+              fix.setAttribute('aria-expanded', 'true');
+              const form = SGCBAcoes.formulario(
+                entry,
+                'Corrigir pagamento de ' + money(payment.valor),
+                [
+                  { nome: 'forma', rotulo: 'Forma', tipo: 'select', opcoes: paymentOptions, valor: methodToDb[payment.forma] || payment.forma, obrigatorio: true },
+                  { nome: 'valor', rotulo: 'Valor correto (R$)', valor: Number(payment.valor).toFixed(2).replace('.', ','), obrigatorio: true },
+                  { nome: 'pago_em', rotulo: 'Data do pagamento', tipo: 'datetime-local', valor: String(payment.pago_em || '').slice(0, 16).replace(' ', 'T'), obrigatorio: true },
+                  { nome: 'motivo', rotulo: 'Motivo da correção', placeholder: 'Ex.: valor digitado errado', obrigatorio: true },
+                ],
+                'Salvar correção',
+                async dados => {
+                  await SGCBAcoes.executar('financeiro/pagamentos/' + encodeURIComponent(payment.id) + '/corrigir', dados);
+                  atualizar();
+                }
+              );
+              form.querySelector('[name=valor]').focus();
+            });
+            entry.append(fix, reverse);
           }
           section.append(entry);
         });
@@ -417,14 +511,7 @@
               nome: 'forma',
               rotulo: 'Forma',
               tipo: 'select',
-              opcoes: [
-                ['PIX', 'Pix'],
-                ['CARTAO_CREDITO', 'Cartão de crédito'],
-                ['CARTAO_DEBITO', 'Cartão de débito'],
-                ['DINHEIRO', 'Dinheiro'],
-                ['BOLETO', 'Boleto'],
-                ['TRANSFERENCIA', 'Transferência'],
-              ],
+              opcoes: paymentOptions,
               obrigatorio: true,
             },
             // Começa com o saldo inteiro; pode ser menor (pagamento parcial).

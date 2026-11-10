@@ -55,6 +55,29 @@ final class Api
         return $usuario;
     }
 
+    /**
+     * Só o cargo ADMIN (acesso geral) + token válido. Usado em exclusões definitivas: nem um operador
+     * com permissões extras passa aqui, porque a checagem é pelo cargo e não pela tabela de permissões.
+     *
+     * @return array o usuário logado.
+     */
+    public static function apenasAdmin(): array
+    {
+        $usuario = self::usuario();
+        self::verificarToken();
+        if (!self::ehAdmin($usuario)) {
+            throw new ErroValidacao('Somente o administrador pode excluir.', [], 403);
+        }
+
+        return $usuario;
+    }
+
+    /** O usuário tem o cargo ADMIN? (as telas usam para mostrar ou esconder o botão Excluir) */
+    public static function ehAdmin(array $usuario): bool
+    {
+        return ($usuario['cargo_codigo'] ?? '') === Usuario::CARGO_ADMIN;
+    }
+
     /** Corpo da requisição em JSON (fetch com Content-Type: application/json) ou o $_POST do formulário. */
     public static function dados(): array
     {

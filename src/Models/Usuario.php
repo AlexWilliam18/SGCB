@@ -11,7 +11,7 @@
 final class Usuario extends Modelo
 {
     /** Cargo que tem acesso total, sem precisar de permissões cadastradas. */
-    private const CARGO_ADMIN = 'ADMIN';
+    public const CARGO_ADMIN = 'ADMIN'; // cargo com acesso geral (pode tudo, inclusive excluir)
 
     /** Validade do link de recuperação de senha. */
     private const HORAS_RECUPERACAO = 1;
@@ -122,6 +122,10 @@ final class Usuario extends Modelo
         // "Status inicial" e "Solicitar alteração de senha" do formulário (padrão: sim para os dois).
         $ativo       = array_key_exists('ativo', $dados) ? self::campoBool($dados, 'ativo') : 1;
         $deveAlterar = array_key_exists('deve_alterar_senha', $dados) ? self::campoBool($dados, 'deve_alterar_senha') : 1;
+        // Segurança: administrador nunca fica inativo (nem já nasce inativo).
+        if (!$ativo && self::cargoEhAdmin($campos['cargo_id'])) {
+            throw new ErroValidacao('O administrador não pode ser cadastrado como inativo.', ['status' => 'O administrador não pode ficar inativo.']);
+        }
 
         return self::transacao(static function (PDO $pdo) use ($campos, $senha, $ativo, $deveAlterar, $criadoPor): int {
             $agora = self::agora();
@@ -141,7 +145,11 @@ final class Usuario extends Modelo
         });
     }
 
-    /** Atualiza nome, e-mail, telefone e cargo. */
+    /**
+     * Atualiza nome, e-mail, telefone e cargo.
+     * Segurança: o último administrador ativo não pode deixar de ser administrador (o sistema
+     * nunca fica sem administrador, e não dá para "rebaixar e depois desativar" o administrador).
+     */
     public static function atualizarUsuario(int $id, array $dados, int $alteradoPor): void
     {
         self::exigirUsuario($id);
@@ -149,6 +157,16 @@ final class Usuario extends Modelo
         $campos = self::validarDados($dados, $erros);
         self::lancarSeErros($erros);
         self::exigirEmailLivre($campos['email'], $id);
+
+        $atual = self::buscarPorId($id);
+        if ($atual['cargo_codigo'] === self::CARGO_ADMIN && $atual['ativo'] && !self::cargoEhAdmin($campos['cargo_id'])
+            && self::adminsAtivos() <= 1) {
+            throw new ErroValidacao(
+                'Este é o único administrador ativo: ele não pode deixar de ser administrador.',
+                ['cargo_id' => 'Mantenha o perfil Administrador (é o único administrador ativo).'],
+                409
+            );
+        }
 
         self::transacao(static function (PDO $pdo) use ($id, $campos, $alteradoPor): void {
             $pdo->prepare(
@@ -159,12 +177,18 @@ final class Usuario extends Modelo
         });
     }
 
-    /** Ativa ou desativa o acesso. Ninguém pode desativar a si mesmo. */
+    /**
+     * Ativa ou desativa o acesso. Ninguém pode desativar a si mesmo e, por segurança,
+     * usuário com o cargo ADMIN (administrador geral) nunca pode ser desativado.
+     */
     public static function alterarStatus(int $id, bool $ativo, int $alteradoPor): void
     {
         self::exigirUsuario($id);
         if (!$ativo && $id === $alteradoPor) {
             throw new ErroValidacao('Você não pode desativar o seu próprio usuário.');
+        }
+        if (!$ativo && self::buscarPorId($id)['cargo_codigo'] === self::CARGO_ADMIN) {
+            throw new ErroValidacao('O administrador não pode ser desativado.', ['status' => 'O administrador não pode ficar inativo.'], 409);
         }
 
         self::transacao(static function (PDO $pdo) use ($id, $ativo, $alteradoPor): void {
@@ -175,6 +199,29 @@ final class Usuario extends Modelo
             }
             self::auditar($alteradoPor, 'usuarios', $id, $ativo ? 'ATIVAR' : 'INATIVAR');
         });
+    }
+
+    /** O cargo informado é o ADMIN? */
+    private static function cargoEhAdmin(?int $cargoId): bool
+    {
+        if ($cargoId === null) {
+            return false;
+        }
+        $consulta = self::pdo()->prepare('SELECT codigo FROM cargos WHERE id = :id');
+        $consulta->execute(['id' => $cargoId]);
+
+        return $consulta->fetchColumn() === self::CARGO_ADMIN;
+    }
+
+    /** Quantos administradores ativos existem. */
+    private static function adminsAtivos(): int
+    {
+        $consulta = self::pdo()->prepare(
+            'SELECT COUNT(*) FROM usuarios u JOIN cargos c ON c.id = u.cargo_id WHERE c.codigo = :admin AND u.ativo = 1'
+        );
+        $consulta->execute(['admin' => self::CARGO_ADMIN]);
+
+        return (int) $consulta->fetchColumn();
     }
 
     /**

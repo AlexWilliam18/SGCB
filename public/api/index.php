@@ -35,6 +35,7 @@ $rotas = [
     ['POST', 'categorias',                             [CategoriaController::class, 'salvar']],
     ['POST', 'categorias/{id}',                        [CategoriaController::class, 'atualizar']],
     ['POST', 'categorias/{id}/status',                 [CategoriaController::class, 'alterarStatus']],
+    ['POST', 'categorias/{id}/excluir',                [CategoriaController::class, 'excluir']],
 
     ['GET',  'produtos',                               [ProdutoController::class, 'listar']],
     ['POST', 'produtos',                               [ProdutoController::class, 'salvar']],
@@ -58,6 +59,7 @@ $rotas = [
     ['POST', 'financeiro/parcelas/{id}/ajuste',        [FinanceiroController::class, 'ajustar']],
     ['POST', 'financeiro/parcelas/{id}/cancelar',      [FinanceiroController::class, 'cancelarParcela']],
     ['POST', 'financeiro/pagamentos/{id}/estorno',     [FinanceiroController::class, 'estornar']],
+    ['POST', 'financeiro/pagamentos/{id}/corrigir',    [FinanceiroController::class, 'corrigirPagamento']],
     ['GET',  'financeiro/pagamentos/{id}/recibo',      [FinanceiroController::class, 'recibo']],
 
     ['GET',  'contratos',                              [ContratoController::class, 'listar']],
