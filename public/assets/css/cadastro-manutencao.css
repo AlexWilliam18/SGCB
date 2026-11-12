@@ -53,7 +53,7 @@
 .maintenance-card {
     margin-top: 20px;
     overflow: hidden;
-    box-shadow: 0 6px 12px #14291e40
+    box-shadow: 0 6px 12px var(--shadow)
 }
 
 .maintenance-section {
@@ -103,7 +103,7 @@
 
 /* Asterisco vermelho dos campos obrigatórios */
 .maintenance-field label span {
-    color: #e7000b
+    color: var(--danger)
 }
 
 .maintenance-field input,
@@ -115,24 +115,24 @@
     padding: 0 16px;
     border: 1px solid var(--line);
     border-radius: 12px;
-    background: white;
+    background: var(--surface);
     color: var(--ink);
     font: 400 14px/20px Figtree, Arial, sans-serif;
     min-width: 0
 }
 
 .maintenance-field :is(input, select, textarea):focus-visible {
-    outline: 2px solid var(--forest);
+    outline: 2px solid var(--accent-ink);
     outline-offset: 2px
 }
 
 /* Campo com erro (aria-invalid definido pelo cadastro-manutencao.js) */
 .maintenance-field [aria-invalid=true] {
-    border-color: #a7342c
+    border-color: var(--danger)
 }
 
 .field-error {
-    color: #a7342c;
+    color: var(--danger);
     font-size: 11px;
     line-height: 16px;
     margin-top: 6px
@@ -154,7 +154,7 @@
 }
 
 .maintenance-field select:has(option[value='']:checked) {
-    color: #a1a1a1
+    color: var(--subtle)
 }
 
 /* Prioridade: texto sempre escuro */
@@ -189,7 +189,7 @@
 
 .date-control input {
     padding-left: 57px;
-    color: #121212b3
+    color: color-mix(in srgb, var(--ink) 70%, transparent)
 }
 
 .date-control input::-webkit-calendar-picker-indicator {
@@ -225,7 +225,7 @@
 }
 
 .maintenance-description textarea::placeholder {
-    color: #a1a1a1;
+    color: var(--subtle);
     opacity: 1
 }
 
@@ -250,9 +250,9 @@
     padding: 0 16px;
     border: 0;
     border-radius: 12px;
-    background: #264636;
-    color: white;
-    box-shadow: 0 8px 18px #14291e99;
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 8px 18px var(--shadow);
     font: 700 14px/20px Figtree, Arial, sans-serif
 }
 
@@ -261,7 +261,7 @@
 }
 
 .save-maintenance:hover:not(:disabled) {
-    background: var(--forest-light)
+    background: var(--accent-hover)
 }
 
 /* Desabilitado enquanto as opções não carregam ou durante o salvamento */
@@ -277,10 +277,10 @@
 /* Mensagem verde "Manutenção #N cadastrada com sucesso." */
 .maintenance-success {
     padding: 14px 18px;
-    border: 1px solid #a7cbb2;
+    border: 1px solid var(--accent-line);
     border-radius: 12px;
-    background: #eaf6ed;
-    color: #1b4332;
+    background: var(--accent-soft);
+    color: var(--accent-ink);
     line-height: 21px;
     margin-top: 16px
 }

@@ -38,7 +38,7 @@
     padding: 0 16px;
     border: 1px solid var(--line);
     border-radius: 12px;
-    background: white;
+    background: var(--surface);
     font-size: 14px;
     font-weight: 700;
     color: var(--ink);
@@ -46,12 +46,12 @@
 }
 
 .category-button:hover {
-    background: var(--paper)
+    background: var(--surface-2)
 }
 
-/* Botão "Novo produto" um pouco mais escuro que o "Novo cliente" */
+/* Botão "Novo produto" na cor de destaque do tema (antes um verde um pouco mais escuro que o "Novo cliente") */
 .products-page .new-client {
-    background: #264636
+    background: var(--accent)
 }
 
 /* ==========================================================================
@@ -94,9 +94,9 @@
 
 /* Aviso verde de sucesso */
 .category-success {
-    background: #eaf6ed;
-    border-color: #a7cbb2;
-    color: #1b4332
+    background: var(--accent-soft);
+    border-color: var(--accent-line);
+    color: var(--accent-ink)
 }
 
 /* ==========================================================================
@@ -128,15 +128,15 @@
     display: inline-block;
     border-radius: 6px;
     padding: 2px 7px;
-    background: #eaf2ec;
-    color: #235338;
+    background: var(--success-soft);
+    color: var(--success);
     font-size: 11px;
     font-weight: 600
 }
 
 .product-status-badge.inactive {
-    background: #f7efe1;
-    color: #805619
+    background: var(--warning-soft);
+    color: var(--warning)
 }
 
 /* Números de estoque com algarismos de mesma largura (alinham na coluna) */
@@ -156,7 +156,7 @@
 
 /* Contorno de foco quando a área da tabela recebe o teclado (para rolar) */
 .products-page .table-scroll:focus-visible {
-    outline: 2px solid #b58b36;
+    outline: 2px solid var(--focus);
     outline-offset: -2px
 }
 
@@ -196,14 +196,14 @@
     padding: 23px 29px 23px;
     border: 1px solid var(--line);
     border-radius: 12px;
-    background: white;
+    background: var(--surface);
     color: var(--ink);
     overflow: auto
 }
 
 /* Fundo escurecido e desfocado atrás do diálogo */
 .category-dialog::backdrop {
-    background: rgba(18, 18, 18, .18);
+    background: var(--overlay);
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px)
 }
@@ -215,7 +215,7 @@
     line-height: 24px;
     text-align: center;
     white-space: nowrap;
-    color: #000
+    color: var(--ink)
 }
 
 /* Rótulo e campo "Nome" */
@@ -223,7 +223,7 @@
     display: block;
     margin-top: 8px;
     margin-bottom: 8px;
-    color: #121212b3;
+    color: color-mix(in srgb, var(--ink) 70%, transparent);
     font-size: 14px;
     line-height: 17px
 }
@@ -235,7 +235,7 @@
     margin: 0;
     border: 1px solid var(--line);
     border-radius: 12px;
-    background: white;
+    background: var(--surface);
     color: var(--ink);
     font: inherit;
     font-size: 14px;
@@ -244,13 +244,13 @@
 }
 
 .category-dialog input::placeholder {
-    color: #121212b3;
+    color: color-mix(in srgb, var(--ink) 70%, transparent);
     opacity: 1
 }
 
 /* Campo com erro em vermelho */
 .category-dialog input[aria-invalid=true] {
-    border-color: #a7342c
+    border-color: var(--danger)
 }
 
 /* Botões Cancelar e Salvar */
@@ -274,7 +274,7 @@
 
 .category-cancel {
     border: 1px solid var(--line);
-    background: white;
+    background: var(--surface);
     color: var(--ink)
 }
 
@@ -282,17 +282,17 @@
     width: 133px;
     flex-shrink: 0;
     border: 0;
-    background: #264636;
-    color: white;
-    box-shadow: 0 8px 18px #14291e99
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 8px 18px var(--shadow)
 }
 
 .category-save:hover:not(:disabled) {
-    background: var(--forest-light)
+    background: var(--accent-hover)
 }
 
 .category-cancel:hover:not(:disabled) {
-    background: var(--paper)
+    background: var(--surface-2)
 }
 
 /* Botões desabilitados enquanto prepara/salva */
@@ -303,7 +303,7 @@
 
 /* Mensagem de erro do campo */
 .category-dialog .category-error {
-    color: #a7342c;
+    color: var(--danger);
     font-size: 12px;
     line-height: 17px;
     margin: 7px 0 0
@@ -323,7 +323,7 @@
     border: 0;
     background: none;
     text-decoration: underline;
-    color: var(--forest);
+    color: var(--accent-ink);
     font-size: 12px
 }
 
@@ -369,7 +369,7 @@
     padding: 4px 0;
     border: 0;
     background: none;
-    color: var(--forest);
+    color: var(--accent-ink);
     font: inherit;
     font-size: 12px;
     font-weight: 700;
@@ -378,7 +378,7 @@
 }
 
 .category-item .category-disable {
-    color: #a7342c
+    color: var(--danger)
 }
 
 .category-item button:disabled {
@@ -388,7 +388,7 @@
 
 /* Categoria inativa: o nome fica apagado (aparência de desabilitada); os botões Ativar/Excluir seguem normais */
 .category-item.is-inactive .category-item-name {
-    color: #121212b3;
+    color: color-mix(in srgb, var(--ink) 70%, transparent);
     opacity: .6
 }
 

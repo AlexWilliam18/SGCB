@@ -56,9 +56,46 @@
     })
   );
 
+  // ---------------------------------------------------------------------------
+  // Menu do perfil (nav.php): Perfil, Tema, Cor de destaque e Sair
+  // ---------------------------------------------------------------------------
+  const profile = $('open-profile'),
+    menu = $('profile-menu');
+
+  // O menu fica "position: fixed" (a sidebar tem rolagem e cortaria um menu absoluto):
+  // abre logo acima do botão do usuário, alinhado à esquerda dele.
+  function placeMenu() {
+    const box = profile.getBoundingClientRect();
+    menu.style.left = box.left + 'px';
+    menu.style.bottom = window.innerHeight - box.top + 8 + 'px';
+  }
+  function setProfileMenu(open) {
+    menu.hidden = !open;
+    profile.setAttribute('aria-expanded', String(open));
+    if (open) {
+      placeMenu();
+      menu.querySelector('.profile-menu-item').focus();
+    }
+  }
+  profile.addEventListener('click', () => setProfileMenu(menu.hidden));
+  // Fecha ao clicar fora, com Esc, ao rolar a sidebar ou redimensionar a janela.
+  document.addEventListener('click', event => {
+    if (!menu.hidden && !menu.contains(event.target) && !profile.contains(event.target)) setProfileMenu(false);
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !menu.hidden) {
+      setProfileMenu(false);
+      profile.focus();
+    }
+  });
+  window.addEventListener('resize', () => setProfileMenu(false));
+  $('primary-sidebar').addEventListener('scroll', () => setProfileMenu(false));
+
   // Perfil: dados do usuário logado vêm dos atributos data-* preenchidos pelo PHP.
-  const profile = $('open-profile');
-  profile.addEventListener('click', () => {
+  $('profile-info').addEventListener('click', () => {
+    setProfileMenu(false);
     showInfo(profile.dataset.name, `${profile.dataset.email} · ${profile.dataset.role}`);
   });
+
+  // Tema e cor de destaque (itens do menu): comportamento no tema.js, carregado em todas as páginas.
 })();

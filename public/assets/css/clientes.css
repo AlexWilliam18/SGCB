@@ -56,16 +56,16 @@
     flex-shrink: 0;
     border: 0;
     border-radius: 12px;
-    background: var(--forest);
-    color: #fff;
+    background: var(--accent);
+    color: var(--on-accent);
     font-size: 14px;
     font-weight: 700;
     line-height: 20px;
-    box-shadow: 0 8px 18px #14291e99
+    box-shadow: 0 8px 18px var(--shadow)
 }
 
 .new-client:hover {
-    background: var(--forest-light)
+    background: var(--accent-hover)
 }
 
 /* ==========================================================================
@@ -80,10 +80,10 @@
     align-items: center;
     gap: 18px;
     padding: 20px;
-    background: #fff;
+    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 24px;
-    box-shadow: 0 6px 12px #14291e40
+    box-shadow: 0 6px 12px var(--shadow)
 }
 
 /* Campo de pesquisa (nome, CPF ou CNPJ) com a lupa */
@@ -107,7 +107,7 @@
     border: 1px solid var(--line);
     border-radius: 12px;
     padding: 0 14px 0 40px;
-    background: #fff;
+    background: var(--surface);
     color: var(--ink);
     font: inherit;
     font-size: 14px;
@@ -116,7 +116,7 @@
 
 /* Texto de exemplo da pesquisa em cinza claro */
 .search-field input::placeholder {
-    color: #a1a1a1;
+    color: var(--subtle);
     opacity: 1
 }
 
@@ -149,7 +149,7 @@
     border: 1px solid var(--line);
     border-radius: 12px;
     padding: 0 34px 0 18px;
-    background: #fff;
+    background: var(--surface);
     color: var(--ink);
     font: inherit;
     font-size: 14px;
@@ -164,7 +164,7 @@
 
 /* Seleção de cidade: texto um pouco mais claro (a seta segue o padrão das outras seleções) */
 .city-filter select {
-    color: #121212b3
+    color: color-mix(in srgb, var(--ink) 70%, transparent)
 }
 
 /* Seta da seleção, posicionada à direita */
@@ -196,20 +196,20 @@
     flex-shrink: 0;
     border: 1px solid var(--line);
     border-radius: 12px;
-    background: #fff;
+    background: var(--surface);
     color: var(--ink);
     font-size: 14px;
     font-weight: 700
 }
 
 .clear-filters:hover {
-    background: var(--paper)
+    background: var(--surface-2)
 }
 
 /* Contorno de foco (teclado) nos campos e seleções */
 input:focus-visible,
 select:focus-visible {
-    outline: 3px solid #b58b36;
+    outline: 3px solid var(--focus);
     outline-offset: 3px
 }
 
@@ -221,7 +221,7 @@ select:focus-visible {
 .clients-card {
     margin-top: 16px;
     overflow: hidden;
-    box-shadow: 0 6px 24px -16px #14291e40
+    box-shadow: 0 6px 24px -16px var(--shadow)
 }
 
 /* Largura mínima: abaixo disso a tabela rola na horizontal */
@@ -263,7 +263,7 @@ select:focus-visible {
 .clients-empty p {
     font-size: 12px;
     line-height: 16px;
-    color: #737373
+    color: var(--muted)
 }
 
 /* ==========================================================================
@@ -301,7 +301,7 @@ select:focus-visible {
     padding: 0;
     display: grid;
     place-items: center;
-    background: #fff;
+    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 8px;
     font-size: 12px;
@@ -319,35 +319,35 @@ select:focus-visible {
 
 /* Página atual em verde escuro */
 .pagination button.selected {
-    background: #1b3527;
-    color: #fff;
-    border-color: #1b3527
+    background: var(--accent);
+    color: var(--on-accent);
+    border-color: var(--accent)
 }
 
 .pagination button:not(:disabled):hover {
-    background: var(--paper)
+    background: var(--surface-2)
 }
 
 /* Botão "Ver cadastro" de cada linha da tabela */
 .view-client {
     border: 1px solid var(--line);
     border-radius: 8px;
-    background: white;
+    background: var(--surface);
     padding: 5px 9px;
     font-size: 11px;
     font-weight: 600;
-    color: var(--forest-light)
+    color: var(--accent-ink)
 }
 
 .view-client:hover {
-    background: var(--paper)
+    background: var(--surface-2)
 }
 
 /* Marcação "Inativo" abaixo do nome do cliente */
 .inactive-badge {
     display: block;
     font-size: 10px;
-    color: #8b5a20
+    color: var(--warning)
 }
 
 /* ==========================================================================
@@ -376,7 +376,7 @@ select:focus-visible {
 
 /* Fundo escurecido e desfocado atrás da janela */
 .client-dialog::backdrop {
-    background: #14291e80;
+    background: var(--overlay);
     backdrop-filter: blur(3px)
 }
 
@@ -396,7 +396,7 @@ select:focus-visible {
 .detail-close {
     width: 36px;
     height: 36px;
-    background: var(--paper);
+    background: var(--surface-2);
     border: 1px solid var(--line);
     border-radius: 10px;
     font-size: 24px;
@@ -446,7 +446,7 @@ select:focus-visible {
 /* Mensagem de erro dentro da janela */
 .detail-error {
     margin-top: 20px;
-    color: #8d3f30;
+    color: var(--danger);
     line-height: 22px
 }
 
@@ -599,8 +599,8 @@ select:focus-visible {
 
 /* Aviso verde de cadastro salvo */
 .saved-notice {
-    background: #eaf6ed;
-    border-color: #a7cbb2;
-    color: #1b4332
+    background: var(--accent-soft);
+    border-color: var(--accent-line);
+    color: var(--accent-ink)
 }
 

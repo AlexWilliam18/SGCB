@@ -17,16 +17,7 @@
    1. Variáveis e base
    ========================================================================== */
 
-/* Paleta da identidade Casa Barretto */
-:root {
-  --forest: #1b4332;
-  --forest-light: #2e5440;
-  --paper: #f8f7f4;
-  --line: #e8e6e0;
-  --ink: #121212;
-  --muted: #5d625e;
-  --gold: #e8bd62;
-}
+/* Paleta da identidade Casa Barretto: as cores ficam em tema.css (claro/escuro e cor de destaque) */
 
 /* Reset: medidas incluem borda e padding */
 * {
@@ -36,7 +27,7 @@
 /* Página: fundo areia claro e fonte Figtree */
 body {
   margin: 0;
-  background: var(--paper);
+  background: var(--bg);
   color: var(--ink);
   font-family: Figtree, Arial, sans-serif;
   font-size: 14px;
@@ -63,7 +54,7 @@ a {
 button:focus-visible,
 a:focus-visible,
 main:focus-visible {
-  outline: 3px solid #b58b36;
+  outline: 3px solid var(--focus);
   outline-offset: 4px;
 }
 
@@ -107,7 +98,7 @@ h2 {
   top: -80px;
   left: 20px;
   z-index: 100;
-  background: #fff;
+  background: var(--surface);
   padding: 12px;
   border-radius: 8px;
 }
@@ -130,8 +121,8 @@ h2 {
   z-index: 30;
   display: flex;
   flex-direction: column;
-  background: var(--forest);
-  color: #fff;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-ink);
   overflow-y: auto;
 }
 
@@ -140,7 +131,7 @@ h2 {
   position: relative;
   margin: 0 18px;
   padding: 32px 12px 20px;
-  border-bottom: 1px solid #ffffff1a;
+  border-bottom: 1px solid var(--sidebar-line);
   min-height: 121px;
 }
 
@@ -165,7 +156,7 @@ h2 {
   line-height: 15px;
   letter-spacing: .5px;
   text-transform: uppercase;
-  color: #ffffffcc;
+  color: var(--sidebar-muted);
 }
 
 /* Lista de links do menu */
@@ -189,7 +180,7 @@ h2 {
   border: 0;
   border-radius: 12px;
   background: none;
-  color: #ffffffcc;
+  color: var(--sidebar-muted);
   text-decoration: none;
   text-align: left;
   font-size: 15px;
@@ -217,8 +208,8 @@ h2 {
 /* Item ativo ou com o mouse em cima: fundo claro translúcido */
 .nav-link.active,
 .nav-link:hover {
-  background: #ffffff26;
-  color: #fff;
+  background: var(--sidebar-hover);
+  color: var(--sidebar-ink);
 }
 
 /* Marcador dourado à esquerda do item ativo */
@@ -234,12 +225,12 @@ h2 {
 }
 
 .nav-link[data-module] {
-  color: #fff;
+  color: var(--sidebar-ink);
 }
 
 /* Rodapé do menu: perfil do usuário e botão Sair */
 .user-box {
-  border-top: 1px solid #ffffff1a;
+  border-top: 1px solid var(--sidebar-line);
   padding: 16px 18px 20px;
 }
 
@@ -252,7 +243,7 @@ h2 {
   background: none;
   border: 0;
   text-align: left;
-  color: #fff;
+  color: var(--sidebar-ink);
   border-radius: 8px;
 }
 
@@ -264,7 +255,7 @@ h2 {
   place-items: center;
   flex-shrink: 0;
   border-radius: 50%;
-  background: #ffffff26;
+  background: var(--sidebar-hover);
   font-weight: 700;
   font-size: 14px;
 }
@@ -283,7 +274,7 @@ h2 {
 .user-info > span {
   font-size: 10px;
   line-height: 15px;
-  color: #ffffffb3;
+  color: var(--sidebar-muted);
 }
 
 /* Botão Sair com contorno */
@@ -294,16 +285,16 @@ h2 {
   gap: 8px;
   width: 100%;
   height: 44px;
-  border: 1px solid #fff3;
+  border: 1px solid color-mix(in srgb, var(--sidebar-ink) 20%, transparent);
   border-radius: 12px;
   margin-top: 12px;
-  color: #fff;
+  color: var(--sidebar-ink);
   text-decoration: none;
   font-weight: 600;
 }
 
 .logout:hover {
-  background: #ffffff1a;
+  background: var(--sidebar-line);
 }
 
 /* ==========================================================================
@@ -351,7 +342,7 @@ h2 {
   padding: 6px 12px;
   border: 1px solid var(--line);
   border-radius: 100px;
-  background: #fff;
+  background: var(--surface);
   font-size: 12px;
   line-height: 16px;
   white-space: nowrap;
@@ -403,8 +394,8 @@ h2 {
   border-radius: 24px;
   padding: 20px;
   overflow: hidden;
-  background: #fff;
-  box-shadow: 0 6px 24px -16px #14291e40;
+  background: var(--surface);
+  box-shadow: 0 6px 24px -16px var(--shadow);
 }
 
 /* Círculo decorativo no canto inferior direito do cartão */
@@ -416,7 +407,7 @@ h2 {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: #2646361a;
+  background: color-mix(in srgb, var(--accent-ink) 10%, transparent);
   pointer-events: none;
 }
 
@@ -441,7 +432,7 @@ h2 {
   place-items: center;
   width: 40px;
   height: 40px;
-  background: #2646361a;
+  background: color-mix(in srgb, var(--accent-ink) 10%, transparent);
   border-radius: 12px;
   flex-shrink: 0;
 }
@@ -483,7 +474,7 @@ h2 {
 /* Cartão branco genérico */
 .card {
   min-width: 0;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 24px;
 }
@@ -491,7 +482,7 @@ h2 {
 .chart-card,
 .ranking-card {
   padding: 20px;
-  box-shadow: 0 6px 12px #14291e40;
+  box-shadow: 0 6px 12px var(--shadow);
 }
 
 .chart-card {
@@ -587,14 +578,14 @@ h2 {
   min-height: 0;
   padding: 0;
   border: 0;
-  background: var(--forest-light);
+  background: var(--accent-hover);
   position: relative;
   border-radius: 3px 3px 0 0;
 }
 
 .chart-bar:hover,
 .chart-bar:focus-visible {
-  background: var(--forest);
+  background: var(--accent);
   z-index: 4;
 }
 
@@ -606,8 +597,8 @@ h2 {
   transform: translateX(-50%);
   width: max-content;
   max-width: 220px;
-  background: var(--forest);
-  color: #fff;
+  background: var(--accent);
+  color: var(--on-accent);
   padding: 7px 10px;
   border-radius: 6px;
   line-height: 16px;
@@ -692,7 +683,7 @@ h2 {
 
 .ranking-count {
   font-weight: 700;
-  color: var(--forest-light);
+  color: var(--accent-ink);
   white-space: nowrap;
 }
 
@@ -701,14 +692,14 @@ h2 {
   grid-column: 2 / 4;
   height: 4px;
   border-radius: 4px;
-  background: var(--paper);
+  background: var(--surface-3);
   margin-top: -7px;
   overflow: hidden;
 }
 
 .ranking-track > span {
   display: block;
-  background: var(--forest-light);
+  background: var(--accent-hover);
   height: 100%;
   border-radius: 4px;
   width: var(--rank-width);
@@ -720,7 +711,7 @@ h2 {
 
 .recent-card {
   overflow: hidden;
-  box-shadow: 0 6px 24px -16px #14291e40;
+  box-shadow: 0 6px 24px -16px var(--shadow);
 }
 
 .recent-heading {
@@ -746,11 +737,11 @@ h2 {
   font-weight: 700;
   line-height: 16px;
   white-space: nowrap;
-  background: #fff;
+  background: var(--surface);
 }
 
 .outline-button:hover {
-  background: var(--paper);
+  background: var(--surface-2);
 }
 
 /* Rolagem horizontal da tabela em telas estreitas */
@@ -768,7 +759,7 @@ table {
 }
 
 th {
-  background: var(--paper);
+  background: var(--surface-2);
   padding: 12px 16px;
   font-size: 10px;
   line-height: 13.333px;
@@ -808,7 +799,7 @@ td {
 
 .contract-link {
   font-weight: 700;
-  color: var(--forest-light);
+  color: var(--accent-ink);
   text-underline-offset: 3px;
 }
 
@@ -817,15 +808,15 @@ td {
   display: inline-block;
   padding: 3px 8px;
   border-radius: 6px;
-  background: #edf3ef;
-  color: var(--forest-light);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
   font-size: 10px;
   font-weight: 600;
 }
 
-.status-cancelado  { background: #fbeceb; color: #973f36; }
-.status-reservado  { background: #faf2df; color: #7e622c; }
-.status-finalizado { background: #edf0f3; color: #53616e; }
+.status-cancelado  { background: var(--danger-soft); color: var(--danger); }
+.status-reservado  { background: var(--warning-soft); color: var(--warning); }
+.status-finalizado { background: var(--surface-3); color: var(--muted); }
 
 /* ==========================================================================
    8. Avisos, diálogo e botões
@@ -837,22 +828,22 @@ td {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  border: 1px solid #dfc69b;
+  border: 1px solid var(--warning-line);
   padding: 14px 18px;
   border-radius: 12px;
-  background: #fff9eb;
+  background: var(--warning-soft);
   font-size: 12px;
   line-height: 18px;
-  color: #705324;
+  color: var(--warning);
 }
 
 .data-notice button {
   flex-shrink: 0;
   padding: 8px 12px;
-  border: 1px solid #dcc398;
+  border: 1px solid var(--warning-line);
   border-radius: 8px;
-  background: #fff;
-  color: #705324;
+  background: var(--surface);
+  color: var(--warning);
   font-weight: 600;
 }
 
@@ -862,13 +853,14 @@ td {
   padding: 28px;
   border: 1px solid var(--line);
   border-radius: 24px;
+  background: var(--surface); /* fundo do diálogo acompanha o tema */
   color: var(--ink);
-  box-shadow: 0 20px 80px #0003;
+  box-shadow: 0 20px 80px var(--shadow);
 }
 
 /* Fundo escurecido e desfocado atrás do diálogo */
 .info-dialog::backdrop {
-  background: #14291e80;
+  background: var(--overlay);
   backdrop-filter: blur(3px);
 }
 
@@ -890,8 +882,8 @@ td {
   border-radius: 12px;
   width: 100%;
   height: 44px;
-  background: var(--forest);
-  color: white;
+  background: var(--accent);
+  color: var(--on-accent);
   font-weight: 700;
   margin-top: 24px;
 }
@@ -916,22 +908,22 @@ td {
 /* Ação segura em destaque (verde); descartar com contorno e texto vermelho */
 .discard-stay {
   border: 0;
-  background: var(--forest);
-  color: #fff;
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 .discard-stay:hover {
-  background: var(--forest-light);
+  background: var(--accent-hover);
 }
 
 .discard-confirm {
   border: 1px solid var(--line);
-  background: #fff;
-  color: #a7342c;
+  background: var(--surface);
+  color: var(--danger);
 }
 
 .discard-confirm:hover {
-  background: #fbf1f0;
+  background: var(--danger-soft);
 }
 
 /* Celular: um botão por linha, ocupando a largura toda */
@@ -1052,7 +1044,7 @@ td {
     display: block;
     width: 18px;
     height: 2px;
-    background: var(--forest);
+    background: var(--accent-ink);
   }
 
   /* Botão × dentro do menu aberto */
@@ -1063,7 +1055,7 @@ td {
     top: 25px;
     background: none;
     border: 0;
-    color: white;
+    color: var(--sidebar-ink);
     font-size: 26px;
     width: 36px;
     height: 36px;
@@ -1085,7 +1077,7 @@ td {
     position: fixed;
     inset: 0;
     z-index: 29;
-    background: #14291e80;
+    background: var(--overlay);
     border: 0;
     padding: 0;
   }

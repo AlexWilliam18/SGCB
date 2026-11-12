@@ -16,19 +16,19 @@
 
 /* Fundo colorido do ícone de cada card */
 .finance-page .stat-icon.received {
-    background: #00f27933
+    background: var(--tint-green)
 }
 
 .finance-page .stat-icon.open {
-    background: #e5b7004d
+    background: var(--tint-yellow)
 }
 
 .finance-page .stat-icon.overdue {
-    background: #f3040733
+    background: var(--tint-red)
 }
 
 .finance-page .stat-icon.upcoming {
-    background: #044bff33
+    background: var(--tint-blue)
 }
 
 /* Cada ícone fica dentro de uma "janela" com overflow escondido e é deslocado
@@ -114,28 +114,28 @@
     line-height: 15px;
     padding: 3px 7px;
     border-radius: 6px;
-    background: #fff4d9;
-    color: #795c1f
+    background: var(--warning-soft);
+    color: var(--warning)
 }
 
 .finance-badge.paga {
-    background: #e7f5ec;
-    color: #235338
+    background: var(--success-soft);
+    color: var(--success)
 }
 
 .finance-badge.atrasada {
-    background: #fdebea;
-    color: #a53232
+    background: var(--danger-soft);
+    color: var(--danger)
 }
 
 .finance-badge.cancelada {
-    background: #eee;
-    color: #616761
+    background: var(--surface-3);
+    color: var(--muted)
 }
 
 .finance-badge.parcial {
-    background: #e9efff;
-    color: #34569a
+    background: var(--info-soft);
+    color: var(--info)
 }
 
 /* Card "Faturamento": o card inteiro é clicável (botão transparente por cima) e mostra uma seta no título */
@@ -146,8 +146,8 @@
 
 .revenue-card:hover,
 .revenue-card:has(.revenue-trigger:focus-visible) {
-    border-color: #b9cbbd;
-    box-shadow: 0 10px 28px -16px #14291e66
+    border-color: var(--accent-line);
+    box-shadow: 0 10px 28px -16px var(--shadow)
 }
 
 .revenue-trigger {
@@ -161,7 +161,7 @@
 }
 
 .revenue-trigger:focus-visible {
-    outline: 2px solid #b58b36;
+    outline: 2px solid var(--focus);
     outline-offset: -2px
 }
 
@@ -188,8 +188,8 @@
     padding: 6px;
     border: 1px solid var(--line);
     border-radius: 14px;
-    background: #fff;
-    box-shadow: 0 16px 40px -12px #14291e4d;
+    background: var(--surface);
+    box-shadow: 0 16px 40px -12px var(--shadow);
     color: var(--ink)
 }
 
@@ -208,14 +208,14 @@
 
 .revenue-menu button:hover,
 .revenue-menu button:focus-visible {
-    background: var(--paper);
+    background: var(--surface-2);
     outline: none
 }
 
 /* Período escolhido: fundo verde-claro e texto em negrito */
 .revenue-menu button[aria-checked=true] {
-    background: #eaf6ed;
-    color: var(--forest);
+    background: var(--accent-soft);
+    color: var(--accent-ink);
     font-weight: 700
 }
 
@@ -225,7 +225,7 @@
     display: block;
     font-size: 10px;
     line-height: 16px;
-    color: var(--forest)
+    color: var(--accent-ink)
 }
 
 /* Formulário "Corrigir pagamento" aberto dentro do histórico */
@@ -267,7 +267,7 @@
 
 /* Linha "Estornado em…" em vermelho */
 .payment-reversed {
-    color: #a53232
+    color: var(--danger)
 }
 
 /* Observações da parcela (mantém as quebras de linha digitadas) */

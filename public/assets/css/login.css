@@ -2,26 +2,20 @@
  * Tela de login.
  *
  * Organização:
- *   1. Variáveis e base
+ *   1. Base (as cores vêm do tema.css)
  *   2. Cartão de login
  *   3. Painel de boas-vindas (lado esquerdo, com foto)
  *   4. Painel da conta (lado direito, formulário)
  *   5. Campos, "Lembrar de mim" e botões
- *   6. Diálogos ("Esqueceu a senha?" e biblioteca de componentes)
+ *   6. Diálogo "Esqueceu a senha?"
  *   7. Responsivo
  */
 
 /* ==========================================================================
-   1. Variáveis e base
+   1. Base (as cores vêm do tema.css)
    ========================================================================== */
 
-/* Paleta da identidade Casa Barretto */
-:root {
-    --ink: #121212;
-    --green: #1b4332;
-    --border: #e8e6e0;
-    --muted: #5d625e
-}
+/* Paleta da identidade Casa Barretto: as cores ficam em tema.css (claro/escuro e cor de destaque) */
 
 /* Reset: medidas incluem borda e padding */
 * {
@@ -36,7 +30,7 @@ body {
     padding: 32px;
     display: grid;
     place-items: center;
-    background: linear-gradient(180deg, rgba(231, 226, 214, .6), #e7e2d6), #f8f7f4;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--line) 60%, transparent), var(--line)), var(--bg);
     color: var(--ink);
     font-family: Figtree, Arial, sans-serif
 }
@@ -62,7 +56,7 @@ button {
 button:focus-visible,
 a:focus-visible,
 input:focus-visible {
-    outline: 3px solid #609b7d;
+    outline: 3px solid color-mix(in srgb, var(--accent-ink) 65%, var(--surface));
     outline-offset: 4px
 }
 
@@ -79,8 +73,8 @@ input:focus-visible {
     grid-template-columns: 10fr 11fr;
     overflow: hidden;
     border-radius: 32px;
-    background: #fff;
-    box-shadow: 0 30px 70px -25px rgba(60, 50, 30, .45)
+    background: var(--surface);
+    box-shadow: 0 30px 70px -25px var(--shadow)
 }
 
 /* ==========================================================================
@@ -105,7 +99,8 @@ input:focus-visible {
     object-fit: cover
 }
 
-/* Película escura sobre a foto, para dar contraste ao painel */
+/* Película escura sobre a foto, para dar contraste ao painel.
+   Cor fixa de propósito: escurece a fotografia igual nos dois temas. */
 .photo-shade {
     position: absolute;
     inset: 0;
@@ -128,9 +123,9 @@ input:focus-visible {
     width: 340px;
     max-width: calc(100% - 48px);
     padding: 32px;
-    border: 2px solid rgba(255, 255, 255, .8);
+    border: 2px solid color-mix(in srgb, var(--surface) 80%, transparent);
     border-radius: 32px;
-    background: rgba(255, 255, 255, .4);
+    background: color-mix(in srgb, var(--surface) 40%, transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     text-align: center
@@ -167,7 +162,7 @@ input:focus-visible {
     gap: 8px;
     margin-top: 24px;
     padding: 12px 24px;
-    border: 1px solid rgba(18, 18, 18, .7);
+    border: 1px solid color-mix(in srgb, var(--ink) 70%, transparent);
     border-radius: 100px;
     font-size: 15px;
     line-height: 22.5px;
@@ -177,7 +172,7 @@ input:focus-visible {
 }
 
 .instagram:hover {
-    background: rgba(255, 255, 255, .3)
+    background: color-mix(in srgb, var(--surface) 30%, transparent)
 }
 
 /* ==========================================================================
@@ -242,9 +237,9 @@ input:not([type=checkbox]) {
     display: block;
     width: 100%;
     height: 48px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 12px;
-    background: #fff;
+    background: var(--surface);
     padding: 0 16px;
     font-size: 15px;
     color: var(--ink)
@@ -292,7 +287,7 @@ input::placeholder {
 }
 
 .password-toggle:hover {
-    background: #f8f7f4
+    background: var(--surface-2)
 }
 
 /* Linha com "Lembrar de mim" à esquerda e "Esqueceu a senha?" à direita */
@@ -331,9 +326,9 @@ input::placeholder {
     place-items: center;
     width: 13px;
     height: 13px;
-    border: 1px solid #767676;
+    border: 1px solid var(--subtle);
     border-radius: 2px;
-    background: #fff
+    background: var(--surface)
 }
 
 /* Ícone de check: escondido até marcar */
@@ -343,8 +338,8 @@ input::placeholder {
 
 /* Marcado: caixa azul com o check visível */
 .remember input:checked+.checkbox-art {
-    background: #155dfc;
-    border-color: #155dfc
+    background: var(--info);
+    border-color: var(--info)
 }
 
 .remember input:checked+.checkbox-art img {
@@ -353,7 +348,7 @@ input::placeholder {
 
 /* Foco pelo teclado aparece na caixa desenhada */
 .remember input:focus-visible+.checkbox-art {
-    outline: 3px solid #609b7d;
+    outline: 3px solid color-mix(in srgb, var(--accent-ink) 65%, var(--surface));
     outline-offset: 3px
 }
 
@@ -379,19 +374,19 @@ input::placeholder {
     margin-top: 24px;
     border: 0;
     border-radius: 12px;
-    background: var(--green);
-    color: #fff;
+    background: var(--accent);
+    color: var(--on-accent);
     font-size: 14px;
     font-weight: 800;
     line-height: 20px;
     letter-spacing: .35px;
     text-transform: uppercase;
-    box-shadow: 0 10px 15px -3px #0000001a, 0 4px 6px -4px #0000001a;
+    box-shadow: 0 10px 15px -3px var(--shadow-soft), 0 4px 6px -4px var(--shadow-soft);
     transition: background .15s, transform .15s
 }
 
 .submit-button:hover {
-    background: #2e5440
+    background: var(--accent-hover)
 }
 
 /* Leve afundamento ao clicar */
@@ -407,25 +402,10 @@ input::placeholder {
     line-height: 16.5px
 }
 
-/* Link "Ver biblioteca de componentes" */
-.library-link {
-    align-self: flex-start;
-    margin-top: 12px;
-    padding: 0;
-    background: none;
-    border: 0;
-    color: #2e5440;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    font-size: 11px;
-    line-height: 16.5px;
-    font-weight: 600
-}
-
 /* Mensagem de erro do login (e-mail ou senha inválidos) */
 .form-message {
     margin: 12px 0 0;
-    color: #a32929;
+    color: var(--danger);
     font-size: 12px;
     line-height: 18px
 }
@@ -435,22 +415,23 @@ input::placeholder {
 }
 
 /* ==========================================================================
-   6. Diálogos ("Esqueceu a senha?" e biblioteca de componentes)
+   6. Diálogo "Esqueceu a senha?"
    ========================================================================== */
 
 /* Caixa do diálogo */
 dialog {
     width: min(460px, calc(100% - 32px));
     padding: 32px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 24px;
+    background: var(--surface); /* fundo do diálogo acompanha o tema */
     color: var(--ink);
-    box-shadow: 0 30px 70px -25px #0008
+    box-shadow: 0 30px 70px -25px var(--shadow)
 }
 
 /* Fundo escurecido e desfocado atrás do diálogo */
 dialog::backdrop {
-    background: rgba(10, 20, 15, .45);
+    background: var(--overlay);
     backdrop-filter: blur(4px)
 }
 
@@ -461,41 +442,6 @@ dialog h2 {
 
 dialog p {
     line-height: 1.6
-}
-
-/* Amostras de cores da biblioteca de componentes */
-.swatches {
-    display: flex;
-    gap: 12px;
-    margin: 24px 0
-}
-
-.swatches span {
-    flex: 1;
-    font-size: 11px
-}
-
-/* Retângulo colorido de cada amostra (cor vem de --swatch) */
-.swatches span::before {
-    content: '';
-    display: block;
-    height: 48px;
-    border-radius: 8px;
-    background: var(--swatch);
-    margin-bottom: 8px
-}
-
-/* Cor de cada amostra */
-.swatch-verde {
-    --swatch: #1b4332
-}
-
-.swatch-areia {
-    --swatch: #e7e2d6
-}
-
-.swatch-texto {
-    --swatch: #121212
 }
 
 /* ==========================================================================

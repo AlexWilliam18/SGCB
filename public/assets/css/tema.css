@@ -1,0 +1,352 @@
+/* =============================================================================
+   Tema (claro / escuro) e cor de destaque - carregado primeiro em todas as páginas.
+
+   Todas as cores do sistema vêm destas variáveis. Os outros CSS não devem usar
+   cor fixa (#hex): usam var(--...) daqui, e assim mudam sozinhos com o tema.
+
+   Quem escolhe: o menu do perfil (painel.js) grava a preferência no navegador
+   (localStorage) e o script no <head> (head.php) aplica antes da página aparecer:
+     <html data-theme="light|dark" data-accent="floresta|folha|musgo">
+   "Do sistema" segue o Windows/celular (prefers-color-scheme) e é resolvido pelo script.
+
+   Regra para usar a cor de destaque:
+     --accent       → FUNDOS e BORDAS (botão principal, menu lateral, item ativo)
+     --accent-ink   → TEXTO e ícones em verde sobre o fundo da página/cartões
+                      (no escuro fica mais claro para continuar legível)
+     --on-accent    → texto em cima de --accent (sempre claro)
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   1. Cor de destaque (três tons de verde). Floresta é o padrão da marca.
+   ----------------------------------------------------------------------------- */
+:root,
+:root[data-accent="floresta"] {
+  --accent: #1b4332;          /* verde floresta (padrão) */
+  --accent-hover: #2e5440;
+  --accent-ink-light: #1b4332;
+  --accent-ink-dark: #8fd1ad;
+}
+
+/* Verde folha: um pouco mais claro e vivo */
+:root[data-accent="folha"] {
+  --accent: #2d6a4f;
+  --accent-hover: #3a7d5e;
+  --accent-ink-light: #24583f;
+  --accent-ink-dark: #9ee0bb;
+}
+
+/* Verde musgo: um pouco mais escuro e fechado */
+:root[data-accent="musgo"] {
+  --accent: #133326;
+  --accent-hover: #1f4234;
+  --accent-ink-light: #133326;
+  --accent-ink-dark: #7cbf99;
+}
+
+/* -----------------------------------------------------------------------------
+   2. Tema claro (padrão)
+   ----------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  /* Fundos */
+  --bg: #f8f7f4;              /* fundo da página (areia clara) */
+  --surface: #ffffff;         /* cartões, tabelas, diálogos, campos */
+  --surface-2: #f6f7f5;       /* faixa sutil: cabeçalho de tabela, hover, campo travado */
+  --surface-3: #eeefec;       /* um degrau acima: chips, trilhos, barras */
+
+  /* Linhas */
+  --line: #e8e6e0;
+  --line-strong: #d8dad6;
+
+  /* Texto */
+  --ink: #121212;             /* texto principal */
+  --muted: #5d625e;           /* texto secundário */
+  --subtle: #8a8f8b;          /* placeholder, desativado, legendas fracas */
+
+  /* Destaque */
+  --accent-ink: var(--accent-ink-light);
+  --on-accent: #ffffff;
+  --accent-soft: color-mix(in srgb, var(--accent) 9%, var(--surface));   /* fundo verde bem leve */
+  --accent-soft-2: color-mix(in srgb, var(--accent) 18%, var(--surface)); /* fundo verde médio */
+  --accent-line: color-mix(in srgb, var(--accent) 35%, var(--surface));   /* borda verde */
+  --gold: #e8bd62;            /* marcador do item ativo, detalhes da marca */
+  --focus: #b58b36;           /* contorno de foco do teclado (dourado escuro) */
+
+  /* Situações (status, avisos) */
+  --success: #1f7a4d;
+  --success-soft: #e7f5ec;
+  --danger: #a7342c;
+  --danger-soft: #fdebea;
+  --danger-line: #e3b5b1;
+  --warning: #805b16;
+  --warning-soft: #fff5df;
+  --warning-line: #dfc69b;
+  --info: #34569a;
+  --info-soft: #e9efff;
+
+  /* Ícones dos cartões de indicadores (fundos translúcidos) */
+  --tint-blue: #044bff33;
+  --tint-red: #f3040733;
+  --tint-green: #00f27933;
+  --tint-yellow: #e5b7004d;
+
+  /* Sombras e véu dos diálogos */
+  --shadow: #14291e40;
+  --shadow-soft: #0000001a;
+  --overlay: #14291e80;
+
+  /* Menu lateral (sempre escuro, nos dois temas) */
+  --sidebar-bg: var(--accent);
+  --sidebar-ink: #ffffff;
+  --sidebar-muted: #ffffffcc;
+  --sidebar-line: #ffffff1a;
+  --sidebar-hover: #ffffff26;
+
+  /* Ícones de imagem (SVG/PNG pretos): no escuro são invertidos */
+  --icon-filter: none;
+
+  /* Nomes antigos, mantidos para não quebrar nada que ainda use */
+  --paper: var(--bg);
+  --forest: var(--accent);
+  --forest-light: var(--accent-hover);
+}
+
+/* -----------------------------------------------------------------------------
+   3. Tema escuro
+   ----------------------------------------------------------------------------- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #111412;
+  --surface: #1a1e1b;
+  --surface-2: #212622;
+  --surface-3: #2a302b;
+
+  --line: #2e3430;
+  --line-strong: #3d443f;
+
+  --ink: #e9ece9;
+  --muted: #a6aea8;
+  --subtle: #78807a;
+
+  --accent-ink: var(--accent-ink-dark);
+  --on-accent: #ffffff;
+  --accent-soft: color-mix(in srgb, var(--accent-ink-dark) 10%, var(--surface));
+  --accent-soft-2: color-mix(in srgb, var(--accent-ink-dark) 18%, var(--surface));
+  --accent-line: color-mix(in srgb, var(--accent-ink-dark) 35%, var(--surface));
+  --focus: #e8bd62;
+
+  --success: #74c69d;
+  --success-soft: #1d3a2b;
+  --danger: #f08b82;
+  --danger-soft: #3a1f1d;
+  --danger-line: #6b3430;
+  --warning: #e8bd62;
+  --warning-soft: #382d16;
+  --warning-line: #6b5528;
+  --info: #93b1f0;
+  --info-soft: #1d2740;
+
+  --tint-blue: #4d7dff40;
+  --tint-red: #ff5a5d40;
+  --tint-green: #3ddc8f40;
+  --tint-yellow: #e5b70040;
+
+  --shadow: #00000080;
+  --shadow-soft: #00000059;
+  --overlay: #000000a6;
+
+  /* No escuro o menu fica um pouco acima do fundo, com o verde só no item ativo */
+  --sidebar-bg: color-mix(in srgb, var(--accent) 55%, #0c0f0d);
+
+  --icon-filter: invert(1) hue-rotate(180deg) brightness(.92);
+}
+
+/* Ícones de imagem do conteúdo (pretos/cinza) ficam claros no tema escuro.
+   Fotos enviadas (produtos, clientes) não entram aqui. Ficam de fora os ícones que já são
+   claros: documento-mais (branco, no botão verde) e as setas da paginação (cinza claro). */
+img[src*="/img/icones/"]:not([src*="documento-mais"]):not([src*="anterior"]):not([src*="proximo"]),
+.stat-icon img,
+.metric-image img,
+.empty-icon img,
+img[src*="/img/login/eye.svg"],          /* olho de mostrar a senha (login) */
+img[src*="/img/login/instagram.svg"],    /* ícone do @casabarretto (login) */
+.photo-avatar > img:not(.photo-preview) {   /* avatar desenhado do cadastro de cliente (não a foto enviada) */
+  filter: var(--icon-filter);
+}
+
+/* Barra de rolagem acompanha o tema */
+:root[data-theme="dark"] body {
+  scrollbar-color: var(--line-strong) var(--bg);
+}
+
+/* =============================================================================
+   Menu do perfil (nav.php + painel.js): abre acima do usuário, no rodapé do menu lateral.
+   Usa as cores de superfície, então acompanha o tema claro/escuro.
+   ============================================================================= */
+.profile-menu {
+  position: fixed;              /* left/bottom calculados no painel.js */
+  z-index: 60;
+  width: 234px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 12px 32px var(--shadow);
+}
+
+.profile-menu[hidden] {
+  display: none;
+}
+
+/* Título de grupo ("Tema", "Cor de destaque"), com linha acima */
+.profile-menu-title {
+  margin: 6px -6px 0;
+  padding: 10px 16px 4px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Item: ícone + texto + visto (ok.svg) à direita quando escolhido */
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.profile-menu-item:hover,
+.profile-menu-item:focus-visible {
+  background: var(--surface-2);
+  outline: none;
+}
+
+/* Ícones de linha desenhados em SVG: herdam a cor do texto */
+.profile-menu-item svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Visto da opção escolhida: só aparece com aria-checked="true" */
+.profile-menu-check {
+  width: 16px;
+  height: 14px;
+  margin-left: auto;
+  visibility: hidden;
+}
+
+.profile-menu-item[aria-checked="true"] .profile-menu-check {
+  visibility: visible;
+}
+
+/* Bolinha com a cor de destaque de cada opção (cor fixa: é a amostra da própria opção) */
+.profile-menu-swatch {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin: 0 2px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px #ffffff40;
+}
+
+.profile-menu-swatch[data-swatch="floresta"] { background: #1b4332; }
+.profile-menu-swatch[data-swatch="folha"]    { background: #2d6a4f; }
+.profile-menu-swatch[data-swatch="musgo"]    { background: #133326; }
+
+/* "Sair" em vermelho, separado por linha */
+.profile-menu-item.danger {
+  margin-top: 6px;
+  position: relative;
+  color: var(--danger);
+}
+
+.profile-menu-item.danger::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  top: -6px;
+  border-top: 1px solid var(--line);
+}
+
+/* Seta dos selects desenhada como imagem de fundo (cadastro de contrato): versão clara no escuro */
+:root[data-theme="dark"] .contract-field select {
+  background-image: url("../img/icones/seta-baixo-clara.svg");
+}
+
+/* =============================================================================
+   Login: botão de tema no canto superior direito do card e o menu que ele abre
+   (mesmas opções do menu do perfil, includes/opcoes-tema.php + tema.js)
+   ============================================================================= */
+.account {
+  position: relative;
+}
+
+.theme-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.theme-button:hover,
+.theme-button[aria-expanded="true"] {
+  background: var(--surface-2);
+}
+
+.theme-button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.theme-button svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* No login o menu abre logo abaixo do botão (no admin ele é "fixed", ao lado do perfil) */
+.profile-menu.theme-menu {
+  position: absolute;
+  top: 68px;
+  right: 20px;
+}
+
+/* O primeiro título ("Tema") não precisa da linha acima */
+.theme-menu .profile-menu-title:first-child {
+  margin-top: 0;
+  border-top: 0;
+  padding-top: 6px;
+}

@@ -9,18 +9,18 @@
    ========================================================================== */
 
 /* Subtítulo do cabeçalho em Inter, cinza */
-.users-page .page-heading p{font-family:Inter,Arial,sans-serif;font-size:12px;line-height:15px;color:#6f746f}
+.users-page .page-heading p{font-family:Inter,Arial,sans-serif;font-size:12px;line-height:15px;color:var(--muted)}
 
 /* Espaçamento interno do conteúdo; sem contorno ao receber foco pelo "pular para" */
 .users-main{padding:32px;outline:none}
 
 /* Título "Usuários" e botão "Novo Usuário" lado a lado */
 .users-intro{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;height:68px}
-.users-intro h2{font:700 28px/41px Inter,Arial,sans-serif;color:#171917}
+.users-intro h2{font:700 28px/41px Inter,Arial,sans-serif;color:var(--ink)}
 
 /* Botão verde "Novo Usuário" */
-.new-user{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:149.477px;height:40px;margin-right:21px;flex-shrink:0;padding:0 16px;border:0;border-radius:12px;background:#264636;color:#fff;font:700 14px/20px Figtree,Arial,sans-serif;box-shadow:0 8px 18px #14291e99;white-space:nowrap;text-decoration:none}
-.new-user:hover{background:var(--forest-light)}
+.new-user{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:149.477px;height:40px;margin-right:21px;flex-shrink:0;padding:0 16px;border:0;border-radius:12px;background:var(--accent);color:var(--on-accent);font:700 14px/20px Figtree,Arial,sans-serif;box-shadow:0 8px 18px var(--shadow);white-space:nowrap;text-decoration:none}
+.new-user:hover{background:var(--accent-hover)}
 
 /* ==========================================================================
    2. Indicadores (total, ativos e inativos)
@@ -33,9 +33,9 @@
 
 /* Quadrado do ícone, com fundo na cor do indicador (azul, verde, vermelho) */
 .users-stat .stat-icon{width:40px;height:40px;border-radius:12px}
-.users-stat .stat-icon.total{background:#044bff33}
-.users-stat .stat-icon.active{background:#00f27933}
-.users-stat .stat-icon.inactive{background:#f3040733}
+.users-stat .stat-icon.total{background:var(--tint-blue)}
+.users-stat .stat-icon.active{background:var(--tint-green)}
+.users-stat .stat-icon.inactive{background:var(--tint-red)}
 .users-stat img{display:block}
 
 /* ==========================================================================
@@ -64,7 +64,7 @@
    5. Tabela de usuários
    ========================================================================== */
 
-.users-card{margin-top:42px;overflow:hidden;box-shadow:0 6px 24px -16px #14291e40}
+.users-card{margin-top:42px;overflow:hidden;box-shadow:0 6px 24px -16px var(--shadow)}
 
 /* Largura mínima: no celular a tabela rola na horizontal */
 .users-table{min-width:1050px;table-layout:fixed}
@@ -77,14 +77,14 @@
 .users-table .clients-empty>div{min-height:176px}
 
 /* Etiqueta de status: verde (ativo) ou vermelha (inativo) */
-.users-status{display:inline-block;padding:3px 8px;background:#e7f5ec;color:#235338;border-radius:6px;font-size:11px;font-weight:600;line-height:16px}
-.users-status.inactive{background:#f7e9e9;color:#99423c}
+.users-status{display:inline-block;padding:3px 8px;background:var(--success-soft);color:var(--success);border-radius:6px;font-size:11px;font-weight:600;line-height:16px}
+.users-status.inactive{background:var(--danger-soft);color:var(--danger)}
 
 /* Nome do perfil (cargo) em verde */
-.user-profile-badge{color:#315841;font-size:12px;font-weight:600}
+.user-profile-badge{color:var(--accent-ink);font-size:12px;font-weight:600}
 
 /* Contorno ao focar a tabela pelo teclado */
-.users-page .table-scroll:focus-visible{outline:2px solid #b58b36;outline-offset:-2px}
+.users-page .table-scroll:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .users-page .logout{background:none}
 
 /* ==========================================================================
@@ -133,4 +133,4 @@
 }
 
 /* Aviso no diálogo "Dados do usuário": administrador não pode ser inativado (sem o botão Inativar) */
-.user-admin-note{margin-top:14px;font-size:12px;line-height:18px;color:#6f746f}
+.user-admin-note{margin-top:14px;font-size:12px;line-height:18px;color:var(--muted)}

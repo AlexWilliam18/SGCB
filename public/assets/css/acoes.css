@@ -1,7 +1,7 @@
 /* ==========================================================================
    Ações dos diálogos de detalhes (acoes.js): barra de botões, mensagens e formulários curtos.
    Usado nas listagens de Clientes, Produtos, Manutenções e Financeiro.
-   Cores: as variáveis do dashboard.css (--forest, --line, --paper, --muted).
+   Cores: as variáveis do tema.css (claro/escuro e cor de destaque).
    ========================================================================== */
 
 /* Barra de botões no rodapé do diálogo */
@@ -21,18 +21,18 @@
   align-items: center;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: white;
+  background: var(--surface);
   padding: 8px 14px;
   font: inherit;
   font-size: 12px;
   font-weight: 700;
-  color: var(--forest-light);
+  color: var(--accent-ink);
   text-decoration: none;
   cursor: pointer;
 }
 
 .detail-action:hover {
-  background: var(--paper);
+  background: var(--surface-2);
 }
 
 .detail-action:disabled {
@@ -42,23 +42,23 @@
 
 /* Ação principal (Editar, Concluir, Registrar) em verde */
 .detail-action.primaria {
-  border-color: var(--forest);
-  background: var(--forest);
-  color: white;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 .detail-action.primaria:hover {
-  background: var(--forest-light);
+  background: var(--accent-hover);
 }
 
 /* Ação destrutiva (Inativar, Cancelar, Estornar) em vermelho */
 .detail-action.perigo {
-  border-color: #e6c3c3;
-  color: #9b2c2c;
+  border-color: var(--danger-line);
+  color: var(--danger);
 }
 
 .detail-action.perigo:hover {
-  background: #fdf3f3;
+  background: var(--danger-soft);
 }
 
 /* Botão pequeno dentro do histórico (ex.: Estornar um pagamento) */
@@ -72,8 +72,8 @@
   margin: 10px 0 0;
   padding: 9px 12px;
   border-radius: 8px;
-  background: #fdf3f3;
-  color: #9b2c2c;
+  background: var(--danger-soft);
+  color: var(--danger);
   font-size: 12px;
   text-align: right;
 }
@@ -84,7 +84,7 @@
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--paper);
+  background: var(--surface-2);
 }
 
 .detail-form h3 {
@@ -113,7 +113,7 @@
   min-height: 34px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: white;
+  background: var(--surface);
   padding: 6px 9px;
   font: inherit;
   font-size: 13px;
@@ -128,9 +128,9 @@
 .action-success {
   margin: 0 0 14px;
   padding: 10px 14px;
-  border: 1px solid #b7d7c2;
+  border: 1px solid var(--accent-line);
   border-radius: 10px;
-  background: #eef7f1;
-  color: var(--forest);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
   font-size: 13px;
 }

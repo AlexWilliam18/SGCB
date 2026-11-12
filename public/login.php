@@ -74,6 +74,12 @@ require __DIR__ . '/../includes/head.php';
     </section>
     <!-- Painel da conta: formulário de login -->
     <section class="account" aria-labelledby="login-title">
+      <!-- Tema e cor de destaque também no login (tema.js); a escolha vale para as outras telas -->
+      <button class="theme-button" type="button" aria-label="Tema e cor de destaque" aria-haspopup="menu"
+        aria-expanded="false" aria-controls="theme-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+      <div class="profile-menu theme-menu" id="theme-menu" role="menu" aria-label="Tema e cor de destaque" hidden>
+<?php require __DIR__ . '/../includes/opcoes-tema.php'; ?>
+      </div>
       <p class="eyebrow">Área administrativa</p>
       <h1 id="login-title">Entrar na conta</h1>
       <p class="subtitle">Informe seus dados para continuar.</p>
@@ -97,7 +103,6 @@ require __DIR__ . '/../includes/head.php';
         <p id="form-message" class="form-message" role="alert"<?= $erro === null ? ' hidden' : '' ?>><?= htmlspecialchars((string) $erro) ?></p>
         <button class="submit-button" type="submit">Entrar</button>
       </form>
-      <button class="library-link" id="open-library" type="button">Ver biblioteca de componentes</button>
     </section>
   </main>
 
@@ -108,14 +113,4 @@ require __DIR__ . '/../includes/head.php';
     <form method="dialog"><button class="submit-button">Entendi</button></form>
   </dialog>
 
-  <!-- Diálogo "Biblioteca de componentes" (aberto pelo login.js); cores das amostras no login.css -->
-  <dialog id="library-dialog" aria-labelledby="library-title">
-    <h2 id="library-title">Biblioteca de componentes</h2>
-    <p class="library-description">Elementos da interface Casa Barretto</p>
-    <div class="swatches"><span class="swatch-verde">Verde principal</span><span
-        class="swatch-areia">Areia</span><span class="swatch-texto">Texto</span></div>
-    <label class="field-label" for="sample-input">Campo de texto</label>
-    <input id="sample-input" placeholder="Digite um texto">
-    <form method="dialog"><button class="submit-button">Fechar biblioteca</button></form>
-  </dialog>
 <?php require __DIR__ . '/../includes/footer.php'; ?>

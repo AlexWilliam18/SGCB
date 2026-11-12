@@ -17,7 +17,8 @@ $js = $js ?? [];
 <?php
 
 // "defer" roda o script depois que o HTML é lido; "?v=" (data de modificação) evita JS antigo em cache.
-foreach ($js as $arquivoJs):
+// tema.js (opções de tema e cor de destaque) vem em todas as páginas, antes dos scripts da página.
+foreach (array_merge(['tema.js'], $js) as $arquivoJs):
   $versaoJs = @filemtime(__DIR__ . '/../public/assets/js/' . $arquivoJs) ?: 0; ?>
   <script src="<?= htmlspecialchars(BASE_URL . 'assets/js/' . $arquivoJs . '?v=' . $versaoJs) ?>" defer></script>
 <?php endforeach; ?>
