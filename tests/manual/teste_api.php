@@ -94,7 +94,7 @@ confere($s === 302, "login do admin (redireciona para o dashboard: $s)");
 // 3. Leituras: formato que cada tela espera
 echo PHP_EOL . '== Leituras' . PHP_EOL;
 [$s, $r] = api('GET', 'dashboard');
-confere($s === 200 && temChaves($r, ['metrics', 'monthly_revenue', 'rental_counts', 'top_products', 'top_clients', 'recent_contracts']), 'dashboard');
+confere($s === 200 && temChaves($r, ['metrics', 'rental_counts', 'top_products', 'top_clients', 'recent_contracts']), 'dashboard');
 
 $listagens = [
     'clientes'    => ['items', 'cities', 'total', 'page', 'pages'],

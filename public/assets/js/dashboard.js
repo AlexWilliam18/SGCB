@@ -13,25 +13,21 @@
   });
   const numbers = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
   const rentalLabel = value => numbers.format(value) + (value === 1 ? ' locação' : ' locações');
-  function renderChart(id, rows, currency) {
+  // Gráfico de barras dos últimos 12 meses (hoje só o de quantidade de locações).
+  function renderChart(id, rows) {
     const chart = $(id),
       axis = chart.querySelector('.chart-axis'),
       grid = chart.querySelector('.gridlines'),
       bars = chart.querySelector('.chart-bars');
     const max = Math.max(0, ...rows.map(row => Number(row.value) || 0));
-    const steps = !currency && max <= 1 ? 1 : 5;
-    const magnitude = max ? 10 ** Math.floor(Math.log10(max)) : 1;
-    const ceiling = max ? (currency ? Math.ceil(max / magnitude) * magnitude : Math.ceil(max / steps) * steps) : 1;
+    const steps = max <= 1 ? 1 : 5;
+    const ceiling = max ? Math.ceil(max / steps) * steps : 1;
     axis.replaceChildren();
     grid.replaceChildren();
     bars.replaceChildren();
     for (let tick = steps; tick >= 0; tick--) {
       const span = document.createElement('span');
-      span.textContent = max
-        ? numbers.format((ceiling * tick) / steps)
-        : currency && tick
-          ? (tick / steps).toFixed(1).replace('.', ',')
-          : String(tick / steps);
+      span.textContent = max ? numbers.format((ceiling * tick) / steps) : String(tick / steps);
       axis.append(span);
       grid.append(document.createElement('i'));
     }
@@ -47,7 +43,7 @@
         button.type = 'button';
         button.className = 'chart-bar';
         button.style.setProperty('--bar-height', (value / ceiling) * 100 + '%');
-        const label = fullMonth + ': ' + (currency ? money.format(value) : rentalLabel(value));
+        const label = fullMonth + ': ' + rentalLabel(value);
         button.setAttribute('aria-label', label);
         if (!value) button.tabIndex = -1;
         const tooltip = document.createElement('span');
@@ -63,7 +59,7 @@
         bars.append(slot);
       });
     chart.querySelector('.chart-description').textContent = max
-      ? rows.map(row => row.month + ': ' + (currency ? money.format(row.value) : rentalLabel(row.value))).join('; ')
+      ? rows.map(row => row.month + ': ' + rentalLabel(row.value)).join('; ')
       : 'Sem movimento nos últimos 12 meses.';
   }
   function renderRanking(id, rows) {
@@ -180,27 +176,27 @@
       });
       if (!response.ok) throw new Error('dashboard-unavailable');
       const data = await response.json(),
-        fields = ['revenue_total', 'active_contracts', 'available_units', 'rented_units'];
+        fields = ['maintenance_units', 'active_contracts', 'available_units', 'rented_units'];
       if (
         !data.metrics ||
         fields.some(key => !Number.isFinite(data.metrics[key])) ||
-        ['monthly_revenue', 'rental_counts', 'top_products', 'top_clients', 'recent_contracts'].some(
+        ['rental_counts', 'top_products', 'top_clients', 'recent_contracts'].some(
           key => !Array.isArray(data[key])
         )
       )
         throw new Error('invalid-dashboard');
-      $('revenue-total').textContent = money.format(data.metrics.revenue_total);
+      // Card "Em manutenção": quantidade de contêineres, não valor em reais.
+      $('maintenance-units').textContent = numbers.format(data.metrics.maintenance_units);
       $('active-contracts').textContent = numbers.format(data.metrics.active_contracts);
       $('available-units').textContent = numbers.format(data.metrics.available_units);
       $('rented-units').textContent = numbers.format(data.metrics.rented_units);
-      renderChart('revenue-chart', data.monthly_revenue, true);
-      renderChart('rentals-chart', data.rental_counts, false);
+      renderChart('rentals-chart', data.rental_counts);
       renderRanking('top-products', data.top_products);
       renderRanking('top-clients', data.top_clients);
       renderContracts(data.recent_contracts);
       $('data-notice').hidden = true;
     } catch (_) {
-      ['revenue-total', 'active-contracts', 'available-units', 'rented-units'].forEach(id => {
+      ['maintenance-units', 'active-contracts', 'available-units', 'rented-units'].forEach(id => {
         $(id).textContent = '—';
       });
       $('notice-message').textContent =
@@ -213,10 +209,8 @@
         p.textContent = 'Dados indisponíveis.';
         $(id).append(p);
       });
-      ['revenue-chart', 'rentals-chart'].forEach(id => {
-        $(id).querySelector('.chart-bars').replaceChildren();
-        $(id).querySelector('.chart-description').textContent = 'Dados indisponíveis.';
-      });
+      $('rentals-chart').querySelector('.chart-bars').replaceChildren();
+      $('rentals-chart').querySelector('.chart-description').textContent = 'Dados indisponíveis.';
       emptyTable('Não foi possível carregar as locações.');
     } finally {
       clearTimeout(timeout);

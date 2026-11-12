@@ -474,6 +474,11 @@ h2 {
   gap: 16px;
 }
 
+/* Só sobrou o gráfico de locações: ocupa a largura toda */
+.charts-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 /* Cartão branco genérico */
 .card {
   min-width: 0;

@@ -12,14 +12,15 @@ final class Dashboard extends Modelo
     /**
      * Tudo o que o dashboard.js espera de /api/dashboard.
      *
-     * @return array{metrics: array, monthly_revenue: array, rental_counts: array,
+     * Sem valores financeiros: faturamento fica só na API do financeiro (restrita ao administrador).
+     *
+     * @return array{metrics: array, rental_counts: array,
      *               top_products: array, top_clients: array, recent_contracts: array}
      */
     public static function resumo(): array
     {
         return [
             'metrics'          => self::indicadores(),
-            'monthly_revenue'  => self::faturamentoMensal(),
             'rental_counts'    => self::locacoesPorMes(),
             'top_products'     => self::produtosMaisLocados(),
             'top_clients'      => self::clientesQueMaisLocam(),
@@ -27,38 +28,30 @@ final class Dashboard extends Modelo
         ];
     }
 
-    /** Cards: faturamento total (pagamentos não estornados), contratos ativos e contêineres disponíveis/locados. */
+    /**
+     * Cards: contêineres em manutenção, contratos ativos e contêineres disponíveis/locados.
+     * "Em manutenção" usa o estado atual da unidade (MANUTENCAO), que o Manutencao::iniciar()
+     * liga e o encerramento desliga; também cobre unidades cadastradas já em manutenção.
+     */
     public static function indicadores(): array
     {
         $pdo = self::pdo();
 
-        $faturamento = (float) $pdo->query('SELECT COALESCE(SUM(valor), 0) FROM pagamentos WHERE estornado_em IS NULL')->fetchColumn();
-        $contratos   = (int) $pdo->query("SELECT COUNT(*) FROM contratos WHERE status = 'ATIVO'")->fetchColumn();
-        $unidades    = $pdo->query(
-            "SELECT COALESCE(SUM(estado_operacional = 'DISPONIVEL'), 0) AS disponiveis,
+        $contratos = (int) $pdo->query("SELECT COUNT(*) FROM contratos WHERE status = 'ATIVO'")->fetchColumn();
+        // Uma única leitura de unidades_fisicas conta os três estados exibidos nos cards.
+        $unidades  = $pdo->query(
+            "SELECT COALESCE(SUM(estado_operacional = 'MANUTENCAO'), 0) AS manutencao,
+                    COALESCE(SUM(estado_operacional = 'DISPONIVEL'), 0) AS disponiveis,
                     COALESCE(SUM(estado_operacional = 'LOCADA'), 0) AS locadas
                FROM unidades_fisicas"
         )->fetch();
 
         return [
-            'revenue_total'    => $faturamento,
-            'active_contracts' => $contratos,
-            'available_units'  => (int) $unidades['disponiveis'],
-            'rented_units'     => (int) $unidades['locadas'],
+            'maintenance_units' => (int) $unidades['manutencao'],
+            'active_contracts'  => $contratos,
+            'available_units'   => (int) $unidades['disponiveis'],
+            'rented_units'      => (int) $unidades['locadas'],
         ];
-    }
-
-    /** Faturamento por mês: [{ month: 'AAAA-MM', value }], meses sem pagamento com 0. */
-    public static function faturamentoMensal(): array
-    {
-        $consulta = self::pdo()->prepare(
-            "SELECT DATE_FORMAT(pago_em, '%Y-%m') AS mes, SUM(valor) AS total
-               FROM pagamentos WHERE estornado_em IS NULL AND pago_em >= :inicio
-              GROUP BY mes"
-        );
-        $consulta->execute(['inicio' => self::inicioPeriodo()]);
-
-        return self::preencherMeses($consulta->fetchAll(PDO::FETCH_KEY_PAIR), static fn ($v): float => (float) $v);
     }
 
     /** Contratos emitidos por mês: [{ month: 'AAAA-MM', value }]. */

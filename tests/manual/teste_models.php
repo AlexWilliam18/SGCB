@@ -216,6 +216,10 @@ try {
     Manutencao::iniciarManutencao($manutencao, $admin);
     confere(Manutencao::buscarManutencao($manutencao)['status'] === 'EM_MANUTENCAO', 'iniciada (status da tela EM_MANUTENCAO)');
     confere(UnidadeFisica::buscar($livre)['estado_operacional'] === 'MANUTENCAO', 'contêiner em MANUTENCAO');
+    // Contêiner já em manutenção some do select e não aceita outra manutenção.
+    confere(!in_array($livre, array_column(Manutencao::opcoes()['unidades'], 'id'), true), 'contêiner em manutenção fora das opções');
+    esperaErro(fn () => Manutencao::cadastrarManutencao(['unidade_id' => $livre, 'tipo' => 'Corretiva', 'prioridade' => 'BAIXA',
+        'data_prevista' => $hoje, 'responsavel_usuario_id' => $admin], $admin), 422, 'manutenção em contêiner não disponível');
     $indicadores = Manutencao::listarManutencoes(['prioridade' => 'URGENTE'])['metrics'];
     confere($indicadores['em_manutencao'] >= 1 && $indicadores['urgentes'] >= 1, 'indicadores da manutenção');
 
@@ -233,7 +237,8 @@ try {
     // ------------------------------------------------------------------
     secao('Dashboard');
     $painel = Dashboard::resumo();
-    confere(count($painel['monthly_revenue']) === 12 && $painel['monthly_revenue'][11]['month'] === date('Y-m'), '12 meses no gráfico, terminando no mês atual');
+    confere(count($painel['rental_counts']) === 12 && $painel['rental_counts'][11]['month'] === date('Y-m'), '12 meses no gráfico, terminando no mês atual');
+    confere(!isset($painel['monthly_revenue']) && !isset($painel['metrics']['revenue_total']), 'dashboard não expõe faturamento');
     confere($painel['metrics']['active_contracts'] >= 1 && $painel['metrics']['rented_units'] >= 2, 'indicadores do dashboard');
     // Procura o contrato do teste pelo número (o banco pode ter outros contratos, ex.: dados de exemplo).
     $doTeste = array_values(array_filter($painel['recent_contracts'], fn ($c) => $c['number'] === $gerado['numero_contrato']));
