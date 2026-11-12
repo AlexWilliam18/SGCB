@@ -211,13 +211,10 @@
    8. Ícones sem SVG oficial desta tela (base .icon no contratos.css)
    ========================================================================== */
 
-/* Visto (✓) pequeno de "Usar endereço do cliente" */
-.icon-check { width: 12px; height: 12px; color: var(--forest); }
-.icon-check::before { left: 3px; top: 0; width: 5px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); }
-
-/* Visto grande do diálogo de sucesso */
-.icon-success { display: block; width: 28px; height: 28px; margin: 16px 0 4px; color: var(--forest); }
-.icon-success::before { left: 8px; top: 0; width: 11px; height: 21px; border-right: 4px solid currentColor; border-bottom: 4px solid currentColor; transform: rotate(45deg); }
+/* Visto (ok.svg) do diálogo de sucesso e do quadro "Dados obrigatórios completos" */
+.success-icon { display: block; margin: 16px 0 4px; }
+.completeness-ok { width: 16px; height: 14px; margin: -2px 6px 0 0; }
+.completeness.is-pending .completeness-ok { display: none; }   /* com pendências, sem visto */
 
 /* "×" de "Remover item" (sem SVG oficial; o "+" de "Adicionar item" já usa o SVG oficial inline) */
 .icon-close-small { width: 10px; height: 10px; }
