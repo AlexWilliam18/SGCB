@@ -156,6 +156,9 @@ final class Manutencao extends Modelo
         $unidade = $unidadeId !== null ? UnidadeFisica::buscar($unidadeId) : null;
         if ($unidadeId !== null && $unidade === null) {
             $erros['unidade_id'] = 'Selecione um contêiner válido.';
+        } elseif ($unidade !== null && $unidade['estado_operacional'] !== 'DISPONIVEL') {
+            // Mesma regra do select (UnidadeFisica::listarParaManutencao): só contêiner disponível.
+            $erros['unidade_id'] = 'Selecione um contêiner disponível.';
         }
         if ($responsavelId !== null) {
             $responsavel = Usuario::buscarPorId($responsavelId);

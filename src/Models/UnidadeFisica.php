@@ -80,15 +80,16 @@ final class UnidadeFisica extends Modelo
     }
 
     /**
-     * Unidades que podem receber manutenção (todas, menos as locadas agora), para o
-     * cadastro de manutenção: { id, codigo, produto, estado_operacional }.
+     * Unidades que podem receber manutenção, para o cadastro de manutenção: { id, codigo, produto }.
+     * Só as DISPONIVEL: locada, já em manutenção ou inativa não aparece no select
+     * (o Manutencao::cadastrarManutencao() repete essa regra no salvamento).
      */
     public static function listarParaManutencao(): array
     {
         $linhas = self::pdo()->query(
-            "SELECT u.id, u.codigo, p.nome AS produto, u.estado_operacional
+            "SELECT u.id, u.codigo, p.nome AS produto
                FROM unidades_fisicas u JOIN produtos p ON p.id = u.produto_id
-              WHERE u.estado_operacional <> 'LOCADA'
+              WHERE u.estado_operacional = 'DISPONIVEL'
               ORDER BY u.codigo"
         )->fetchAll();
 

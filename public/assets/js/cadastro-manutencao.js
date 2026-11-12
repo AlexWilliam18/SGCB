@@ -10,7 +10,6 @@
   const $ = id => document.getElementById(id),
     form = $('maintenance-form');
   const fieldNames = ['unidade_id', 'tipo', 'prioridade', 'data_prevista', 'responsavel_usuario_id', 'descricao'];
-  const unitStates = { DISPONIVEL: 'Disponível', MANUTENCAO: 'Em manutenção', INATIVA: 'Inativa' };
   let ready = false, // opções carregadas e usuário responsável configurado
     busy = false, // salvamento em andamento
     dirty = false, // há dados digitados ainda não salvos
@@ -94,13 +93,8 @@
       if (!['unidades', 'responsaveis', 'tipos', 'prioridades'].every(key => Array.isArray(data[key])) || !data.csrf_token)
         throw Error();
       if (current !== optionsRequest) return;
-      // Contêiner: "CM-001 — Contêiner Escritório 20 pés (Disponível)".
-      fillSelect(
-        'unidade_id',
-        data.unidades,
-        'Selecione o Contêiner',
-        item => `${item.codigo} — ${item.produto} (${unitStates[item.estado_operacional] || item.estado_operacional})`
-      );
+      // Contêiner: "CM-001 — Contêiner Escritório 20 pés". A API só manda os disponíveis, então não mostra o estado.
+      fillSelect('unidade_id', data.unidades, 'Selecione o Contêiner', item => `${item.codigo} — ${item.produto}`);
       fillSelect('responsavel_usuario_id', data.responsaveis, 'Selecione o responsável', item => item.nome);
       fillSelect('tipo', data.tipos, 'Selecione o Tipo', item => item.nome, 'valor');
       fillSelect('prioridade', data.prioridades, 'Selecione', item => item.nome, 'valor');
@@ -109,7 +103,7 @@
       if (!data.responsavel_configurado)
         notice('Solicite ao administrador a configuração de um usuário responsável para habilitar o salvamento.', true);
       else if (!data.unidades.length)
-        notice('Cadastre um produto ativo com unidades físicas para registrar uma manutenção.', true);
+        notice('Nenhum contêiner disponível no momento para registrar uma manutenção.', true);
       else notice('');
     } catch (error) {
       if (current === optionsRequest)
