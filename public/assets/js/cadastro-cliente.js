@@ -1,22 +1,16 @@
 'use strict';
 /*
- * Cadastro de cliente: máscaras, validação, endereços, foto, anexos e aviso de alterações não salvas.
+ * Cadastro de cliente: máscaras, validação, endereço (um por cliente), foto, anexos e aviso de alterações não salvas.
  * As opções e o salvamento usam /api/cadastros/opcoes e /api/clientes (atendidos por public/api/index.php → src/Controllers).
  */
 (() => {
   // URL da listagem de clientes, vinda do data-lista-url do <main>.
   const listaUrl = document.getElementById('cadastro-main').dataset.listaUrl;
   const $ = id => document.getElementById(id),
-    form = $('cadastro-form'),
-    nodes = () => [...$('addresses').querySelectorAll('.address-block')];
+    form = $('cadastro-form');
   const ufs = 'AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ');
-  const labels = {
-    RESIDENCIAL: 'residencial',
-    COMERCIAL: 'comercial',
-    ENTREGA: 'de entrega',
-    COBRANCA: 'de cobrança',
-    OUTRO: 'adicional',
-  };
+  // Campos do endereço cadastral: na tela o id é "endereco_<campo>"; na API, endereco.<campo>.
+  const ADDRESS_FIELDS = ['cep', 'rua', 'numero', 'bairro', 'cidade', 'uf', 'complemento'];
   // Edição: cadastro.php?id=5 abre o cliente 5 preenchido e salva em POST /api/clientes/5.
   const editId = /^\d+$/.test(new URLSearchParams(location.search).get('id') || '')
       ? new URLSearchParams(location.search).get('id')
@@ -30,8 +24,7 @@
     csrf = '',
     photo = null,
     photoURL = null,
-    attachments = [],
-    sequence = 0;
+    attachments = [];
   $('data_nascimento').max = new Intl.DateTimeFormat('en-CA', {
     year: 'numeric',
     month: '2-digit',
@@ -54,19 +47,14 @@
     clearErrors();
     let first;
     Object.entries(errors).forEach(([key, message]) => {
-      const m = /^enderecos\.(\d+)\.(.+)$/.exec(key),
-        input = m ? nodes()[Number(m[1])]?.querySelector('[data-field="' + m[2] + '"]') : $(key),
-        id = input?.id || key,
+      // A API devolve "endereco.cep"; o campo na tela é "endereco_cep".
+      const id = key.replace('.', '_'),
+        input = $(id),
         error = $('error-' + id);
       if (error) error.textContent = message;
       if (input) {
         input.setAttribute('aria-invalid', 'true');
         if (error) input.setAttribute('aria-describedby', error.id);
-        const block = input.closest('.address-block');
-        if (block) {
-          block.querySelector('.address-body').hidden = false;
-          block.querySelector('.collapse-address').setAttribute('aria-expanded', 'true');
-        }
         first ||= input;
       }
     });
@@ -106,86 +94,16 @@
     }
     return base === d;
   }
-  function refresh() {
-    nodes().forEach((node, i) => {
-      const principal = node.querySelector('.principal-input').checked,
-        kind = node.querySelector('[data-field=tipo]').value;
-      node.classList.toggle('primary', principal);
-      node.querySelector('.address-title').textContent = principal ? 'Endereço principal' : 'Endereço ' + labels[kind];
-      node
-        .querySelector('.principal-input')
-        .setAttribute('aria-label', 'Definir endereço ' + (i + 1) + ' como principal');
-      node.querySelector('.remove-address').setAttribute('aria-label', 'Remover endereço ' + (i + 1));
-      node.classList.toggle(
-        'has-data',
-        [...node.querySelectorAll('.address-body input,.address-body select')].some(el => el.value.trim())
-      );
-      node.querySelector('[data-field=cep]').placeholder = principal ? '00000-000' : '';
-    });
-    $('add-address').disabled = nodes().length >= 20;
-  }
-  function addAddress(kind = 'ENTREGA', principal = false, focus = false) {
-    if (nodes().length >= 20) return;
-    const fragment = $('address-template').content.cloneNode(true),
-      node = fragment.querySelector('.address-block'),
-      seq = ++sequence;
-    node.querySelector('[data-field=tipo]').value = kind;
-    node.querySelector('.principal-input').checked = principal;
-    node.querySelectorAll('[data-field]').forEach(input => {
-      input.id = 'address-' + seq + '-' + input.dataset.field;
-      const field = input.closest('.form-field');
-      if (field) {
-        field.querySelector('label').htmlFor = input.id;
-        field.querySelector('.field-error').id = 'error-' + input.id;
-      }
-      if (input.dataset.field === 'uf') ufs.forEach(uf => input.append(new Option(uf, uf)));
-    });
-    const body = node.querySelector('.address-body'),
-      collapse = node.querySelector('.collapse-address');
-    body.id = 'address-body-' + seq;
-    collapse.setAttribute('aria-controls', body.id);
-    collapse.addEventListener('click', () => {
-      body.hidden = !body.hidden;
-      collapse.setAttribute('aria-expanded', String(!body.hidden));
-      // A seta gira pelo CSS conforme o aria-expanded; aqui só o texto para leitores de tela.
-      collapse.setAttribute('aria-label', body.hidden ? 'Expandir endereço' : 'Recolher endereço');
-    });
-    node.querySelector('.make-primary').addEventListener('click', () => {
-      node.querySelector('.principal-input').checked = true;
-      dirty = true;
-      refresh();
-    });
-    node.querySelector('.remove-address').addEventListener('click', () => {
-      if (nodes().length <= 1) return;
-      const was = node.querySelector('.principal-input').checked;
-      node.remove();
-      if (was) nodes()[0].querySelector('.principal-input').checked = true;
-      dirty = true;
-      refresh();
-    });
-    node.querySelector('[data-field=cep]').addEventListener(
-      'input',
-      e =>
-        (e.target.value = e.target.value
-          .replace(/\D/g, '')
-          .slice(0, 8)
-          .replace(/(\d{5})(\d)/, '$1-$2'))
-    );
-    node.addEventListener('input', refresh);
-    node.querySelector('[data-field=tipo]').addEventListener('change', refresh);
-    $('addresses').append(fragment);
-    refresh();
-    if (focus) {
-      dirty = true;
-      node.scrollIntoView({
-        behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth',
-        block: 'center',
-      });
-      node.querySelector('[data-field=cep]').focus({ preventScroll: true });
-    }
-  }
-  addAddress('RESIDENCIAL', true);
-  addAddress('ENTREGA');
+  // Estados do select e máscara do CEP (00000-000) do endereço cadastral.
+  ufs.forEach(uf => $('endereco_uf').append(new Option(uf, uf)));
+  $('endereco_cep').addEventListener(
+    'input',
+    e =>
+      (e.target.value = e.target.value
+        .replace(/\D/g, '')
+        .slice(0, 8)
+        .replace(/(\d{5})(\d)/, '$1-$2'))
+  );
   // Textos da tela no modo edição.
   if (editId) {
     document.querySelector('.form-intro h2').textContent = 'Editar cliente';
@@ -194,7 +112,6 @@
     $('save-client').textContent = saveLabel;
     document.title = document.title.replace('Novo cliente', 'Editar cliente');
   }
-  $('add-address').addEventListener('click', () => addAddress('ENTREGA', false, true));
   form.addEventListener('input', e => {
     dirty = true;
     const error = $('error-' + e.target.id);
@@ -356,18 +273,10 @@
     );
     $('permite_ultrapassar_limite').checked = Boolean(client.permite_ultrapassar_limite);
 
-    // Endereços: um bloco por endereço ativo (o tipo "Outro" volta pela descrição).
-    $('addresses').replaceChildren();
-    const addresses = client.enderecos?.length ? client.enderecos : [{ principal: true, tipo: 'RESIDENCIAL' }];
-    addresses.forEach(address => {
-      addAddress(address.tipo || (address.descricao === 'Outro' ? 'OUTRO' : 'COMERCIAL'), Boolean(address.principal));
-      const node = nodes()[nodes().length - 1];
-      ['rua', 'numero', 'bairro', 'cidade', 'uf', 'complemento'].forEach(
-        field => (node.querySelector('[data-field="' + field + '"]').value = address[field] || '')
-      );
-      node.querySelector('[data-field=cep]').value = (address.cep || '').replace(/(\d{5})(\d)/, '$1-$2');
-    });
-    refresh();
+    // Endereço cadastral (um só por cliente).
+    const address = client.endereco || {};
+    ADDRESS_FIELDS.forEach(field => ($('endereco_' + field).value = address[field] || ''));
+    $('endereco_cep').value = (address.cep || '').replace(/(\d{5})(\d)/, '$1-$2');
 
     // Foto atual (só exibição; uma foto nova escolhida substitui esta ao salvar).
     if (client.foto) {
@@ -438,11 +347,7 @@
     data.condicao_pagamento_id = $('condicao_pagamento_id').value;
     data.limite_credito = credit();
     data.permite_ultrapassar_limite = $('permite_ultrapassar_limite').checked;
-    data.enderecos = nodes().map(node => {
-      const a = { principal: node.querySelector('.principal-input').checked };
-      node.querySelectorAll('[data-field]').forEach(input => (a[input.dataset.field] = input.value.trim()));
-      return a;
-    });
+    data.endereco = Object.fromEntries(ADDRESS_FIELDS.map(field => [field, $('endereco_' + field).value.trim()]));
     return data;
   }
   function validate(data) {
@@ -460,20 +365,11 @@
       errors.limite_credito = 'Informe um limite válido e não negativo.';
     if ($('nacionalidade').value === 'Outra' && !data.nacionalidade)
       errors.nacionalidade_outra = 'Informe a nacionalidade.';
-    let count = 0,
-      principals = 0;
-    data.enderecos.forEach((a, i) => {
-      if (!['cep', 'rua', 'numero', 'bairro', 'cidade', 'uf', 'complemento'].some(k => a[k])) return;
-      count++;
-      if (a.principal) principals++;
-      ['rua', 'numero', 'bairro', 'cidade', 'uf'].forEach(k => {
-        if (!a[k]) errors['enderecos.' + i + '.' + k] = 'Preencha este campo.';
-      });
-      if (!/^\d{8}$/.test(a.cep.replace(/\D/g, '')))
-        errors['enderecos.' + i + '.cep'] = 'Informe um CEP com 8 dígitos.';
+    // Endereço: obrigatório, menos o complemento (mesma regra do Cliente::validarEndereco no PHP).
+    ['rua', 'numero', 'bairro', 'cidade', 'uf'].forEach(k => {
+      if (!data.endereco[k]) errors['endereco.' + k] = 'Preencha este campo.';
     });
-    if (!count) errors.enderecos = 'Preencha ao menos um endereço completo.';
-    else if (principals !== 1) errors.enderecos = 'Defina exatamente um endereço principal.';
+    if (!/^\d{8}$/.test(data.endereco.cep.replace(/\D/g, ''))) errors['endereco.cep'] = 'Informe um CEP com 8 dígitos.';
     return errors;
   }
   // Salvar: valida no navegador e envia dados, foto e anexos em um único POST para /api/clientes.

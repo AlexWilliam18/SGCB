@@ -22,7 +22,7 @@
   // Dados vindos da API e estado da tela.
   let options = { clientes: [], produtos: [], condicoes_pagamento: [] };
   let csrf = window.SGCB_CSRF || '';
-  let customer = null;          // cliente completo (com endereços)
+  let customer = null;          // cliente completo (com o endereço cadastral)
   let calc = null;              // último cálculo do servidor (null = ainda sem dados suficientes)
   let calcMessage = '';         // motivo de não haver cálculo (ex.: produto sem preço)
   let firstDueEdited = false;   // o usuário mudou o 1º vencimento à mão: não recalcular sozinho
@@ -124,14 +124,28 @@
 
   const DELIVERY = { cep: 'deliveryPostalCode', rua: 'deliveryStreet', numero: 'deliveryNumber', bairro: 'deliveryDistrict', cidade: 'deliveryCity', uf: 'deliveryState', complemento: 'deliveryComplement', referencia: 'deliveryReference' };
 
-  // Copia um endereço do cliente para os campos de entrega.
+  // Campos que vêm do endereço do cliente (a referência é sempre livre).
+  const ADDRESS_KEYS = ['cep', 'rua', 'numero', 'bairro', 'cidade', 'uf', 'complemento'];
+
+  // Copia um endereço para os campos de entrega (sem mexer na referência).
   function fillDelivery(address) {
-    for (const [key, name] of Object.entries(DELIVERY)) field(name).value = key === 'cep' ? cepLabel(address?.cep) : address?.[key] || '';
+    for (const key of ADDRESS_KEYS) field(DELIVERY[key]).value = key === 'cep' ? cepLabel(address?.cep) : address?.[key] || '';
   }
   // Endereço de entrega como a API espera.
   const deliveryData = () => Object.fromEntries(Object.entries(DELIVERY).map(([key, name]) => [key, field(name).value.trim()]));
-  // Id do endereço do cliente marcado (vazio quando o endereço foi ajustado à mão).
-  const selectedAddressId = () => form.querySelector('[name=deliverySource]:checked')?.value || '';
+  // Origem do local de entrega: CLIENTE (cópia do endereço cadastral) ou OUTRO (digitado aqui).
+  const deliverySource = () => form.querySelector('[name=deliverySource]:checked')?.value || 'CLIENTE';
+
+  // Aplica a origem escolhida: CLIENTE preenche e trava os campos; OUTRO limpa e libera para digitar.
+  function applyDeliverySource(focus = false) {
+    const fromClient = deliverySource() === 'CLIENTE';
+    if (fromClient) fillDelivery(customer?.endereco);
+    else if (ADDRESS_KEYS.some(key => field(DELIVERY[key]).disabled)) fillDelivery(null); // vinha do cliente: começa vazio
+    // Campos desativados não entram na conferência da tela (getIssues); o servidor copia o endereço do cliente.
+    for (const key of ADDRESS_KEYS) field(DELIVERY[key]).disabled = fromClient;
+    if (!fromClient && focus) field(DELIVERY.cep).focus();
+    update();
+  }
 
   let customerRequest = 0;
   async function selectCustomer() {
@@ -142,10 +156,9 @@
     $('#client-empty').hidden = false;
     $('#client-empty').textContent = id ? 'Carregando dados do cliente…' : 'Selecione um cliente para conferir seus dados.';
     $('#signatory-fields').hidden = true;
-    $('#address-options').replaceChildren();
-    $('#use-client-address').hidden = true;
-    fillDelivery(null);
-    update();
+    $('#client-address-line').textContent = id ? 'Carregando…' : 'Selecione um cliente.';
+    form.querySelector('[name=deliverySource][value=CLIENTE]').disabled = false;
+    applyDeliverySource();
     if (!id) return;
     try {
       const data = await api('clientes/' + encodeURIComponent(id));
@@ -158,19 +171,19 @@
 
     // Cartão com os dados cadastrais.
     const pj = customer.tipo_pessoa === 'JURIDICA' || digits(customer.cpf_cnpj).length === 14;
-    const principal = customer.enderecos.find(e => e.principal) || customer.enderecos[0];
+    const address = customer.endereco; // endereço cadastral (um por cliente) ou null
     for (const [selector, value] of Object.entries({
       '#client-name': customer.nome,
       '#client-type': pj ? 'Pessoa jurídica' : 'Pessoa física',
       '#client-trade': customer.nome_fantasia || 'Não se aplica',
       '#client-document-label': pj ? 'CNPJ' : 'CPF',
       '#client-document': documentLabel(customer.cpf_cnpj),
-      '#client-city': principal ? `${principal.cidade} / ${principal.uf}` : 'Não informado',
+      '#client-city': address ? `${address.cidade} / ${address.uf}` : 'Não informado',
       '#client-phone': phoneLabel(customer.telefone),
       '#client-email': customer.email || 'Não informado',
       '#client-nationality': customer.nacionalidade || 'Não se aplica',
       '#client-profession': customer.profissao || 'Não se aplica',
-      '#registered-address': addressLabel(principal),
+      '#registered-address': addressLabel(address),
     })) $(selector).textContent = value;
     $('#client-data').hidden = false;
     $('#client-empty').hidden = true;
@@ -186,35 +199,14 @@
       applyCondition();
     }
 
-    // Um cartão por endereço (o principal vem marcado).
-    customer.enderecos.forEach((address, index) => {
-      const label = document.createElement('label'),
-        heading = document.createElement('span'),
-        input = document.createElement('input'),
-        title = document.createElement('span'),
-        line = document.createElement('small'),
-        city = document.createElement('small');
-      label.className = 'address-option';
-      heading.className = 'address-option-title';
-      input.type = 'radio';
-      input.name = 'deliverySource';
-      input.value = String(address.id);
-      input.checked = index === 0;
-      title.textContent = address.descricao || (address.principal ? 'Endereço principal' : 'Endereço de entrega');
-      line.textContent = `${address.rua}, ${address.numero || 'S/N'} • ${address.bairro}`;
-      city.textContent = `${address.cidade} - ${address.uf} • ${cepLabel(address.cep)}`;
-      heading.append(input, title);
-      label.append(heading, line, city);
-      $('#address-options').append(label);
-      input.addEventListener('change', () => {
-        fillDelivery(address);
-        $('#use-client-address').hidden = false;
-        update();
-      });
-    });
-    fillDelivery(customer.enderecos[0]);
-    $('#use-client-address').hidden = !customer.enderecos.length;
-    update();
+    // Opção "Endereço do cliente": mostra o endereço; sem endereço cadastrado, só resta "Outro endereço".
+    const clientOption = form.querySelector('[name=deliverySource][value=CLIENTE]');
+    $('#client-address-line').textContent = address
+      ? `${address.rua}, ${address.numero || 'S/N'} • ${address.bairro} • ${address.cidade} - ${address.uf} • ${cepLabel(address.cep)}`
+      : 'Cliente sem endereço cadastrado.';
+    clientOption.disabled = !address;
+    form.querySelector(`[name=deliverySource][value=${address ? 'CLIENTE' : 'OUTRO'}]`).checked = true;
+    applyDeliverySource();
   }
 
   // ---------------------------------------------------------------------------
@@ -336,7 +328,7 @@
     const pj = !$('#signatory-fields').hidden;
     return {
       cliente_id: field('client').value,
-      endereco_entrega_id: selectedAddressId(),
+      entrega_origem: deliverySource(),
       entrega: deliveryData(),
       responsavel: pj ? { nome: field('signerName').value.trim(), cpf: digits(field('signerDocument').value) } : null,
       condicao_pagamento_id: field('paymentCondition').value,
@@ -607,7 +599,7 @@
 
   // Campo da tela correspondente a cada chave de erro do servidor.
   const SERVER_FIELDS = {
-    cliente_id: 'client', endereco_entrega_id: 'client', condicao_pagamento_id: 'paymentCondition', data_inicio: 'start', data_fim: 'end',
+    cliente_id: 'client', entrega_origem: 'client', condicao_pagamento_id: 'paymentCondition', data_inicio: 'start', data_fim: 'end',
     periodicidade: 'billing', primeiro_vencimento: 'firstDue', numero_parcelas: 'installments', dia_vencimento: 'dueDay',
     frete_deslocamento: 'freight', outros_valores: 'other', caucao: 'deposit', observacoes: 'notes',
     'entrega.cep': 'deliveryPostalCode', 'entrega.rua': 'deliveryStreet', 'entrega.numero': 'deliveryNumber', 'entrega.bairro': 'deliveryDistrict',
@@ -720,11 +712,8 @@
   });
   // Periodicidade troca o preço sugerido de cada item.
   field('billing').addEventListener('change', () => { items.forEach(applyPrice); update(); });
-  // Ajustar o endereço à mão desmarca o cartão (vira um endereço só deste contrato).
-  Object.values(DELIVERY).forEach(name => field(name).addEventListener('input', () => {
-    form.querySelectorAll('[name=deliverySource]').forEach(radio => { radio.checked = false; });
-    $('#use-client-address').hidden = true;
-  }));
+  // Trocar entre "Endereço do cliente" e "Outro endereço".
+  form.querySelectorAll('[name=deliverySource]').forEach(radio => radio.addEventListener('change', () => applyDeliverySource(true)));
   $('#add-item').addEventListener('click', () => itemField(addItem(), 'product').focus());
   $('#retry-options').addEventListener('click', loadOptions);
 
@@ -759,5 +748,7 @@
   field('start').value = today;
   field('end').value = addDays(today, 30);
   field('firstDue').value = today;
+  // Começa em "Endereço do cliente": campos travados até escolher o cliente ou "Outro endereço".
+  for (const key of ADDRESS_KEYS) field(DELIVERY[key]).disabled = true;
   loadOptions();
 })();

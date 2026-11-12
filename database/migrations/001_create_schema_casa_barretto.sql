@@ -1,5 +1,5 @@
 -- =============================================================================
--- SGCB - Migração 001: criação do banco e das 27 tabelas do DER "Casa_Barretto_DER" (Wiki).
+-- SGCB - Migração 001: criação do banco e das 28 tabelas do DER "Casa_Barretto_DER" (Wiki).
 --
 -- Os tipos de dados seguem a documentação do DER (BIGINT UNSIGNED, VARCHAR, DECIMAL, DATETIME, ENUM...).
 --
@@ -185,25 +185,19 @@ CREATE TABLE pessoa_anexos (
   FOREIGN KEY (arquivo_id) REFERENCES arquivos(id)
 );
 
--- Endereços de uma pessoa (1:N: uma pessoa pode ter vários endereços).
--- principal_pessoa_id garante só UM endereço principal por pessoa:
--- o sistema grava nele o id da pessoa quando o endereço é o principal e deixa
--- vazio (NULL) nos demais. Como o campo é UNIQUE, não aceita dois principais.
+-- Endereço cadastral de uma pessoa (1:1): onde o cliente reside ou onde a empresa fica.
+-- pessoa_id é UNIQUE, então cada pessoa tem um único endereço.
+-- O local de entrega dos contêineres não fica aqui: é do contrato (contrato_enderecos_entrega).
 CREATE TABLE enderecos_pessoa (
-  id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  pessoa_id            BIGINT UNSIGNED,
-  tipo                 ENUM('RESIDENCIAL','COMERCIAL','ENTREGA','COBRANCA'),   -- ENUM proposto
-  descricao            VARCHAR(100),
-  principal            BOOLEAN,
-  cep                  VARCHAR(8),
-  rua                  VARCHAR(200),
-  numero               VARCHAR(20),
-  bairro               VARCHAR(100),
-  cidade               VARCHAR(100),
-  uf                   CHAR(2),
-  complemento          VARCHAR(150),
-  ativo                BOOLEAN,
-  principal_pessoa_id  BIGINT UNSIGNED UNIQUE,
+  id           BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  pessoa_id    BIGINT UNSIGNED NOT NULL UNIQUE,
+  cep          VARCHAR(8),
+  rua          VARCHAR(200),
+  numero       VARCHAR(20),
+  bairro       VARCHAR(100),
+  cidade       VARCHAR(100),
+  uf           CHAR(2),
+  complemento  VARCHAR(150),
   FOREIGN KEY (pessoa_id) REFERENCES pessoas(id)
 );
 
@@ -338,7 +332,7 @@ CREATE TABLE manutencoes (
 
 
 -- =============================================================================
--- 4. LOCAÇÃO: contratos, itens, agenda dos containers e documentos
+-- 4. LOCAÇÃO: contratos, local de entrega, itens, agenda dos containers e documentos
 -- =============================================================================
 
 -- Contrato de locação.
@@ -348,7 +342,6 @@ CREATE TABLE contratos (
   id                         BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   empresa_id                 BIGINT UNSIGNED,
   cliente_id                 BIGINT UNSIGNED,     -- pessoa que aluga
-  endereco_entrega_id        BIGINT UNSIGNED,
   condicao_pagamento_id      BIGINT UNSIGNED,
   criado_por                 BIGINT UNSIGNED,
   numero_locacao             VARCHAR(50) UNIQUE,
@@ -369,7 +362,6 @@ CREATE TABLE contratos (
   condicoes_gerais_snapshot  TEXT,
   dados_cliente_snapshot     JSON,
   dados_empresa_snapshot     JSON,
-  dados_entrega_snapshot     JSON,
   criado_em                  DATETIME,
   finalizado_em              DATETIME,
   cancelado_em               DATETIME,
@@ -380,9 +372,27 @@ CREATE TABLE contratos (
   CHECK (numero_parcelas >= 1),
   FOREIGN KEY (empresa_id) REFERENCES empresas(id),
   FOREIGN KEY (cliente_id) REFERENCES pessoas(id),
-  FOREIGN KEY (endereco_entrega_id) REFERENCES enderecos_pessoa(id),
   FOREIGN KEY (condicao_pagamento_id) REFERENCES condicoes_pagamento(id),
   FOREIGN KEY (criado_por) REFERENCES usuarios(id)
+);
+
+-- Local de entrega / instalação dos contêineres de um contrato (1:1 com contratos).
+-- O endereço pertence ao contrato: mudar o cadastro do cliente depois não altera a entrega.
+-- endereco_do_cliente = TRUE quando é uma cópia do endereço cadastral do cliente
+-- (a cópia é atualizada ao gerar o contrato); FALSE quando foi digitado no contrato.
+CREATE TABLE contrato_enderecos_entrega (
+  id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  contrato_id          BIGINT UNSIGNED NOT NULL UNIQUE,
+  endereco_do_cliente  BOOLEAN,
+  cep                  VARCHAR(8),
+  rua                  VARCHAR(200),
+  numero               VARCHAR(20),
+  bairro               VARCHAR(100),
+  cidade               VARCHAR(100),
+  uf                   CHAR(2),
+  complemento          VARCHAR(150),
+  referencia           VARCHAR(150),   -- ponto de referência para a equipe de entrega
+  FOREIGN KEY (contrato_id) REFERENCES contratos(id)
 );
 
 -- Itens do contrato: quais produtos foram alugados, quantidade e valores.

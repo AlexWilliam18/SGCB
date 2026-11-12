@@ -109,7 +109,7 @@ SET @rafael = LAST_INSERT_ID();
 
 
 -- =============================================================================
--- 4. FORNECEDORES E CLIENTES (CPF/CNPJ válidos, só números) + endereço principal
+-- 4. FORNECEDORES E CLIENTES (CPF/CNPJ válidos, só números) + endereço cadastral (um por pessoa)
 -- =============================================================================
 
 -- Fornecedor exclusivo (não aparece na listagem de clientes).
@@ -118,8 +118,8 @@ INSERT INTO pessoas (condicao_pagamento_id, criado_por, tipo_cadastro, tipo_pess
 VALUES (@d30, @admin, 'FORNECEDOR', 'JURIDICA', 'Metalúrgica Contêiner Brasil LTDA', 'MCB Contêineres', '11222333000181',
         'vendas@mcb.exemplo.com.br', '1133334444', 'Brasileira', 0, FALSE, TRUE, @hoje - INTERVAL 300 DAY, @hoje - INTERVAL 300 DAY);
 SET @forn_mcb = LAST_INSERT_ID();
-INSERT INTO enderecos_pessoa (pessoa_id, tipo, descricao, principal, cep, rua, numero, bairro, cidade, uf, ativo, principal_pessoa_id)
-VALUES (@forn_mcb, 'COMERCIAL', 'Comercial', TRUE, '07034000', 'Av. das Indústrias', '1500', 'Distrito Industrial', 'Guarulhos', 'SP', TRUE, @forn_mcb);
+INSERT INTO enderecos_pessoa (pessoa_id, cep, rua, numero, bairro, cidade, uf)
+VALUES (@forn_mcb, '07034000', 'Av. das Indústrias', '1500', 'Distrito Industrial', 'Guarulhos', 'SP');
 
 -- Fornecedor que também é cliente (AMBOS).
 INSERT INTO pessoas (condicao_pagamento_id, criado_por, tipo_cadastro, tipo_pessoa, nome_razao_social, nome_fantasia, cpf_cnpj,
@@ -127,8 +127,8 @@ INSERT INTO pessoas (condicao_pagamento_id, criado_por, tipo_cadastro, tipo_pess
 VALUES (@d30, @admin, 'AMBOS', 'JURIDICA', 'Frio Vale Equipamentos LTDA', 'Frio Vale', '22333444000181',
         'comercial@friovale.exemplo.com.br', '1233221100', 'Brasileira', 0, FALSE, TRUE, @hoje - INTERVAL 290 DAY, @hoje - INTERVAL 290 DAY);
 SET @forn_frio = LAST_INSERT_ID();
-INSERT INTO enderecos_pessoa (pessoa_id, tipo, descricao, principal, cep, rua, numero, bairro, cidade, uf, ativo, principal_pessoa_id)
-VALUES (@forn_frio, 'COMERCIAL', 'Comercial', TRUE, '12020000', 'Rua do Comércio', '320', 'Centro', 'Taubaté', 'SP', TRUE, @forn_frio);
+INSERT INTO enderecos_pessoa (pessoa_id, cep, rua, numero, bairro, cidade, uf)
+VALUES (@forn_frio, '12020000', 'Rua do Comércio', '320', 'Centro', 'Taubaté', 'SP');
 
 -- Clientes pessoa jurídica
 INSERT INTO pessoas (condicao_pagamento_id, criado_por, tipo_cadastro, tipo_pessoa, nome_razao_social, nome_fantasia, cpf_cnpj,
@@ -137,36 +137,33 @@ VALUES (@x3, @admin, 'CLIENTE', 'JURIDICA', 'Construtora Vale do Paraíba LTDA',
         'contato@construtoravale.exemplo.com.br', '1239001122', 'Brasileira', 'Marcos Antunes', 80000, FALSE, TRUE,
         @hoje - INTERVAL 280 DAY, @hoje - INTERVAL 280 DAY);
 SET @cli_vale = LAST_INSERT_ID();
-INSERT INTO enderecos_pessoa (pessoa_id, tipo, descricao, principal, cep, rua, numero, bairro, cidade, uf, ativo, principal_pessoa_id)
-VALUES (@cli_vale, 'COMERCIAL', 'Comercial', TRUE, '12243000', 'Av. Nove de Julho', '850', 'Jardim Apolo', 'São José dos Campos', 'SP', TRUE, @cli_vale);
--- Segundo endereço (entrega na obra), usado no contrato em andamento.
-INSERT INTO enderecos_pessoa (pessoa_id, tipo, descricao, principal, cep, rua, numero, bairro, cidade, uf, ativo, principal_pessoa_id)
-VALUES (@cli_vale, 'ENTREGA', 'Entrega', FALSE, '12245100', 'Rua Obra Residencial Aquarius', 'S/N', 'Jardim Aquarius', 'São José dos Campos', 'SP', TRUE, NULL);
-SET @end_obra_vale = LAST_INSERT_ID();
+INSERT INTO enderecos_pessoa (pessoa_id, cep, rua, numero, bairro, cidade, uf)
+VALUES (@cli_vale, '12243000', 'Av. Nove de Julho', '850', 'Jardim Apolo', 'São José dos Campos', 'SP');
+-- A entrega na obra (Residencial Aquarius) fica no próprio contrato 6 (contrato_enderecos_entrega).
 
 INSERT INTO pessoas (condicao_pagamento_id, criado_por, tipo_cadastro, tipo_pessoa, nome_razao_social, nome_fantasia, cpf_cnpj,
                      email, telefone, nacionalidade, limite_credito, permite_ultrapassar_limite, ativo, criado_em, atualizado_em)
 VALUES (@vista, @admin, 'CLIENTE', 'JURIDICA', 'Litoral Eventos e Feiras LTDA', 'Litoral Eventos', '44555666000181',
         'eventos@litoraleventos.exemplo.com.br', '1238887766', 'Brasileira', 0, FALSE, TRUE, @hoje - INTERVAL 260 DAY, @hoje - INTERVAL 260 DAY);
 SET @cli_eventos = LAST_INSERT_ID();
-INSERT INTO enderecos_pessoa (pessoa_id, tipo, descricao, principal, cep, rua, numero, bairro, cidade, uf, ativo, principal_pessoa_id)
-VALUES (@cli_eventos, 'COMERCIAL', 'Comercial', TRUE, '11660000', 'Av. da Praia', '1200', 'Centro', 'Caraguatatuba', 'SP', TRUE, @cli_eventos);
+INSERT INTO enderecos_pessoa (pessoa_id, cep, rua, numero, bairro, cidade, uf)
+VALUES (@cli_eventos, '11660000', 'Av. da Praia', '1200', 'Centro', 'Caraguatatuba', 'SP');
 
 INSERT INTO pessoas (condicao_pagamento_id, criado_por, tipo_cadastro, tipo_pessoa, nome_razao_social, nome_fantasia, cpf_cnpj,
                      email, telefone, nacionalidade, limite_credito, permite_ultrapassar_limite, ativo, criado_em, atualizado_em)
 VALUES (@x2, @admin, 'CLIENTE', 'JURIDICA', 'Mineração Serra Azul S.A.', 'Serra Azul', '55666777000181',
         'suprimentos@serraazul.exemplo.com.br', '1236541200', 'Brasileira', 0, FALSE, TRUE, @hoje - INTERVAL 250 DAY, @hoje - INTERVAL 250 DAY);
 SET @cli_mineracao = LAST_INSERT_ID();
-INSERT INTO enderecos_pessoa (pessoa_id, tipo, descricao, principal, cep, rua, numero, bairro, cidade, uf, ativo, principal_pessoa_id)
-VALUES (@cli_mineracao, 'COMERCIAL', 'Comercial', TRUE, '12300500', 'Estrada da Pedreira', '5000', 'Zona Rural', 'Jacareí', 'SP', TRUE, @cli_mineracao);
+INSERT INTO enderecos_pessoa (pessoa_id, cep, rua, numero, bairro, cidade, uf)
+VALUES (@cli_mineracao, '12300500', 'Estrada da Pedreira', '5000', 'Zona Rural', 'Jacareí', 'SP');
 
 INSERT INTO pessoas (condicao_pagamento_id, criado_por, tipo_cadastro, tipo_pessoa, nome_razao_social, cpf_cnpj,
                      email, telefone, nacionalidade, limite_credito, permite_ultrapassar_limite, ativo, criado_em, atualizado_em)
 VALUES (@d30, @admin, 'CLIENTE', 'JURIDICA', 'Agropecuária Bom Retiro LTDA', '66777888000181',
         'financeiro@bomretiro.exemplo.com.br', '1236320011', 'Brasileira', 0, FALSE, TRUE, @hoje - INTERVAL 120 DAY, @hoje - INTERVAL 120 DAY);
 SET @cli_agro = LAST_INSERT_ID();
-INSERT INTO enderecos_pessoa (pessoa_id, tipo, descricao, principal, cep, rua, numero, bairro, cidade, uf, ativo, principal_pessoa_id)
-VALUES (@cli_agro, 'COMERCIAL', 'Comercial', TRUE, '12280000', 'Rodovia SP-66', 'km 12', 'Bom Retiro', 'Caçapava', 'SP', TRUE, @cli_agro);
+INSERT INTO enderecos_pessoa (pessoa_id, cep, rua, numero, bairro, cidade, uf)
+VALUES (@cli_agro, '12280000', 'Rodovia SP-66', 'km 12', 'Bom Retiro', 'Caçapava', 'SP');
 
 -- Cliente inativo (para testar o filtro "Inativos").
 INSERT INTO pessoas (condicao_pagamento_id, criado_por, tipo_cadastro, tipo_pessoa, nome_razao_social, cpf_cnpj,
@@ -174,8 +171,8 @@ INSERT INTO pessoas (condicao_pagamento_id, criado_por, tipo_cadastro, tipo_pess
 VALUES (@d30, @admin, 'CLIENTE', 'JURIDICA', 'Comércio Antigo ME', '77888999000181',
         'contato@comercioantigo.exemplo.com.br', '1232105544', 'Brasileira', 0, FALSE, FALSE, @hoje - INTERVAL 400 DAY, @hoje - INTERVAL 30 DAY);
 SET @cli_inativo = LAST_INSERT_ID();
-INSERT INTO enderecos_pessoa (pessoa_id, tipo, descricao, principal, cep, rua, numero, bairro, cidade, uf, ativo, principal_pessoa_id)
-VALUES (@cli_inativo, 'COMERCIAL', 'Comercial', TRUE, '12400000', 'Rua Velha', '10', 'Centro', 'Pindamonhangaba', 'SP', TRUE, @cli_inativo);
+INSERT INTO enderecos_pessoa (pessoa_id, cep, rua, numero, bairro, cidade, uf)
+VALUES (@cli_inativo, '12400000', 'Rua Velha', '10', 'Centro', 'Pindamonhangaba', 'SP');
 
 -- Clientes pessoa física
 INSERT INTO pessoas (condicao_pagamento_id, criado_por, tipo_cadastro, tipo_pessoa, nome_razao_social, cpf_cnpj, email, telefone,
@@ -183,24 +180,24 @@ INSERT INTO pessoas (condicao_pagamento_id, criado_por, tipo_cadastro, tipo_pess
 VALUES (@d30, @admin, 'CLIENTE', 'FISICA', 'João Pedro Almeida', '12345678062', 'joao.almeida@exemplo.com.br', '12991234567',
         '1985-04-12', 'Brasileira', 'Engenheiro civil', 0, FALSE, TRUE, @hoje - INTERVAL 60 DAY, @hoje - INTERVAL 60 DAY);
 SET @cli_joao = LAST_INSERT_ID();
-INSERT INTO enderecos_pessoa (pessoa_id, tipo, descricao, principal, cep, rua, numero, bairro, cidade, uf, ativo, principal_pessoa_id)
-VALUES (@cli_joao, 'RESIDENCIAL', 'Residencial', TRUE, '12243100', 'Rua das Acácias', '45', 'Vila Ema', 'São José dos Campos', 'SP', TRUE, @cli_joao);
+INSERT INTO enderecos_pessoa (pessoa_id, cep, rua, numero, bairro, cidade, uf)
+VALUES (@cli_joao, '12243100', 'Rua das Acácias', '45', 'Vila Ema', 'São José dos Campos', 'SP');
 
 INSERT INTO pessoas (condicao_pagamento_id, criado_por, tipo_cadastro, tipo_pessoa, nome_razao_social, cpf_cnpj, email, telefone,
                      data_nascimento, nacionalidade, profissao, limite_credito, permite_ultrapassar_limite, ativo, criado_em, atualizado_em)
 VALUES (@x2, @admin, 'CLIENTE', 'FISICA', 'Mariana Costa Ribeiro', '23456789173', 'mariana.ribeiro@exemplo.com.br', '12997654321',
         '1990-09-30', 'Brasileira', 'Arquiteta', 0, FALSE, TRUE, @hoje - INTERVAL 10 DAY, @hoje - INTERVAL 10 DAY);
 SET @cli_mariana = LAST_INSERT_ID();
-INSERT INTO enderecos_pessoa (pessoa_id, tipo, descricao, principal, cep, rua, numero, bairro, cidade, uf, ativo, principal_pessoa_id)
-VALUES (@cli_mariana, 'RESIDENCIAL', 'Residencial', TRUE, '12020010', 'Rua Sete de Setembro', '210', 'Centro', 'Taubaté', 'SP', TRUE, @cli_mariana);
+INSERT INTO enderecos_pessoa (pessoa_id, cep, rua, numero, bairro, cidade, uf)
+VALUES (@cli_mariana, '12020010', 'Rua Sete de Setembro', '210', 'Centro', 'Taubaté', 'SP');
 
 INSERT INTO pessoas (condicao_pagamento_id, criado_por, tipo_cadastro, tipo_pessoa, nome_razao_social, cpf_cnpj, email, telefone,
                      nacionalidade, profissao, limite_credito, permite_ultrapassar_limite, ativo, criado_em, atualizado_em)
 VALUES (@d30, @admin, 'CLIENTE', 'FISICA', 'Carlos Eduardo Lima', '34567891228', 'carlos.lima@exemplo.com.br', '12996543210',
         'Brasileira', 'Mestre de obras', 0, FALSE, TRUE, @hoje - INTERVAL 220 DAY, @hoje - INTERVAL 220 DAY);
 SET @cli_carlos = LAST_INSERT_ID();
-INSERT INTO enderecos_pessoa (pessoa_id, tipo, descricao, principal, cep, rua, numero, bairro, cidade, uf, ativo, principal_pessoa_id)
-VALUES (@cli_carlos, 'RESIDENCIAL', 'Residencial', TRUE, '12327000', 'Av. Brasil', '1800', 'Jardim Paraíba', 'Jacareí', 'SP', TRUE, @cli_carlos);
+INSERT INTO enderecos_pessoa (pessoa_id, cep, rua, numero, bairro, cidade, uf)
+VALUES (@cli_carlos, '12327000', 'Av. Brasil', '1800', 'Jardim Paraíba', 'Jacareí', 'SP');
 
 
 -- =============================================================================
@@ -391,16 +388,18 @@ VALUES (LAST_INSERT_ID(), @admin, 3900, TIMESTAMP(@hoje - INTERVAL 46 DAY, '10:3
 -- + 1 sanitário por 3 meses + frete. (2.400 × 2 + 1.900) × 3 = 20.100,00 + 350,00 = 20.450,00 em 3x:
 -- 1ª paga (transferência), 2ª vence hoje, 3ª em 30 dias.
 -- ---------------------------------------------------------------------------
-INSERT INTO contratos (empresa_id, cliente_id, endereco_entrega_id, condicao_pagamento_id, criado_por, numero_locacao, numero_contrato,
+INSERT INTO contratos (empresa_id, cliente_id, condicao_pagamento_id, criado_por, numero_locacao, numero_contrato,
                        data_emissao, prazo, data_inicio, data_fim, periodicidade, status, numero_parcelas, frete_deslocamento, outros_valores,
-                       caucao, observacoes, dados_cliente_snapshot, dados_empresa_snapshot, dados_entrega_snapshot, criado_em)
-VALUES (@emp, @cli_vale, @end_obra_vale, @x3, @admin, 'LOC-000006', 'CT-000006', @hoje - INTERVAL 60 DAY, 'DETERMINADO',
+                       caucao, observacoes, dados_cliente_snapshot, dados_empresa_snapshot, criado_em)
+VALUES (@emp, @cli_vale, @x3, @admin, 'LOC-000006', 'CT-000006', @hoje - INTERVAL 60 DAY, 'DETERMINADO',
         @hoje - INTERVAL 60 DAY, @hoje + INTERVAL 30 DAY, 'MENSAL', 'ATIVO', 3, 350, 0, 0, 'Entrega na obra do Residencial Aquarius.',
         (SELECT JSON_OBJECT('id', id, 'nome', nome_razao_social, 'cpf_cnpj', cpf_cnpj, 'email', email) FROM pessoas WHERE id = @cli_vale),
         @snap_empresa,
-        (SELECT JSON_OBJECT('id', id, 'rua', rua, 'numero', numero, 'bairro', bairro, 'cidade', cidade, 'uf', uf, 'cep', cep) FROM enderecos_pessoa WHERE id = @end_obra_vale),
         TIMESTAMP(@hoje - INTERVAL 60 DAY, '09:00:00'));
 SET @c = LAST_INSERT_ID();
+-- Local de entrega digitado no contrato (a obra), diferente do endereço cadastral do cliente.
+INSERT INTO contrato_enderecos_entrega (contrato_id, endereco_do_cliente, cep, rua, numero, bairro, cidade, uf, referencia)
+VALUES (@c, FALSE, '12245100', 'Rua Obra Residencial Aquarius', 'S/N', 'Jardim Aquarius', 'São José dos Campos', 'SP', 'Portão da obra');
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
 VALUES (@c, @esc20, 'C20-ESC - Contêiner Escritório 20 pés', 38000, 2, 'MENSAL', 3, 2400, 0, 0, 14400);
 SET @i = LAST_INSERT_ID();
@@ -543,6 +542,14 @@ VALUES (@emp, @cli_agro, @d30, @admin, @hoje, 'DETERMINADO', @hoje + INTERVAL 20
         'MENSAL', 'RASCUNHO', 1, 0, 0, 0, NOW());
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
 VALUES (LAST_INSERT_ID(), @esc20, 'C20-ESC - Contêiner Escritório 20 pés', 38000, 1, 'MENSAL', 1, 2400, 0, 0, 2400);
+
+-- Local de entrega dos demais contratos: cópia do endereço cadastral do cliente
+-- (só o contrato 6 tem entrega em outro endereço, gravada acima).
+INSERT INTO contrato_enderecos_entrega (contrato_id, endereco_do_cliente, cep, rua, numero, bairro, cidade, uf, complemento)
+SELECT c.id, TRUE, e.cep, e.rua, e.numero, e.bairro, e.cidade, e.uf, e.complemento
+  FROM contratos c
+  JOIN enderecos_pessoa e ON e.pessoa_id = c.cliente_id
+ WHERE NOT EXISTS (SELECT 1 FROM contrato_enderecos_entrega x WHERE x.contrato_id = c.id);
 
 -- A numeração automática continua depois dos 11 contratos gerados (próximo: CT-000012).
 UPDATE preferencias_contrato

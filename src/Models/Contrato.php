@@ -1,6 +1,6 @@
 <?php
 /**
- * Contratos de locação (tabelas contratos, contrato_itens e agenda_unidades).
+ * Contratos de locação (tabelas contratos, contrato_enderecos_entrega, contrato_itens e agenda_unidades).
  *
  * Ciclo:
  *   criarContrato()     → RASCUNHO com os itens e valores calculados (ainda não reserva nada);
@@ -47,7 +47,8 @@ final class Contrato extends Modelo
     /**
      * Grava o contrato como RASCUNHO.
      *
-     * Campos: cliente_id, endereco_entrega_id, condicao_pagamento_id, data_emissao, prazo (DETERMINADO|INDETERMINADO),
+     * Campos: cliente_id, entrega_origem (CLIENTE|OUTRO), entrega { cep, rua, numero, bairro, cidade, uf,
+     * complemento, referencia }, condicao_pagamento_id, data_emissao, prazo (DETERMINADO|INDETERMINADO),
      * data_inicio, data_fim, periodicidade, dia_vencimento, primeiro_vencimento, numero_parcelas,
      * frete_deslocamento, outros_valores, caucao, observacoes, numero_contrato/numero_locacao (só sem numeração automática)
      * e itens[]: { produto_id, quantidade, periodicidade (opcional), desconto, outros }.
@@ -66,6 +67,7 @@ final class Contrato extends Modelo
             $id = (int) $pdo->lastInsertId();
 
             self::gravarItens($id, $calculo['itens']);
+            self::gravarEntrega($id, $calculo['entrega']);
             self::auditar($usuarioId, 'contratos', $id, 'CRIAR', ['valor_total' => self::reais($calculo['total_c'])]);
 
             return $id;
@@ -175,21 +177,22 @@ final class Contrato extends Modelo
                 throw new ErroValidacao('Informe o número do contrato (a numeração automática está desligada).', ['numero_contrato' => 'Preencha este campo.']);
             }
 
-            // 6. Snapshots: o contrato guarda os dados do dia, mesmo que os cadastros mudem depois.
-            // Entrega: o endereço digitado na tela (gravado no rascunho) tem prioridade sobre o cadastro.
-            $entrega = $contrato['dados_entrega_snapshot'] !== null ? json_decode($contrato['dados_entrega_snapshot'], true) : null;
-            if ($entrega === null) {
-                foreach ($cliente['enderecos'] as $endereco) {
-                    if ($endereco['id'] === (int) $contrato['endereco_entrega_id']) {
-                        $entrega = $endereco;
-                    }
-                }
+            // 6. Local de entrega: quando é o endereço do cliente, a cópia do contrato é atualizada
+            // com o cadastro de hoje (o rascunho pode ter sido feito antes de o cliente mudar o endereço).
+            if ($cliente['endereco'] !== null) {
+                $pdo->prepare(
+                    'UPDATE contrato_enderecos_entrega
+                        SET cep = :cep, rua = :rua, numero = :numero, bairro = :bairro, cidade = :cidade, uf = :uf, complemento = :complemento
+                      WHERE contrato_id = :id AND endereco_do_cliente = 1'
+                )->execute($cliente['endereco'] + ['id' => $id]);
             }
+
+            // Snapshots: o contrato guarda os dados do dia, mesmo que os cadastros mudem depois.
             $dadosCliente = array_intersect_key($cliente, array_flip([
                 'id', 'tipo_pessoa', 'nome', 'nome_fantasia', 'cpf_cnpj', 'email', 'telefone', 'nacionalidade',
                 'profissao', 'rg', 'inscricao_estadual', 'representante_legal', 'cpf_representante',
             ]));
-            $dadosCliente['endereco'] = $cliente['enderecos'][0] ?? null; // principal vem primeiro
+            $dadosCliente['endereco'] = $cliente['endereco'];
             // Responsável pela assinatura informado na tela substitui o do cadastro.
             if ($contrato['dados_cliente_snapshot'] !== null) {
                 $dadosCliente = array_merge($dadosCliente, (array) json_decode($contrato['dados_cliente_snapshot'], true));
@@ -201,13 +204,12 @@ final class Contrato extends Modelo
 
             $pdo->prepare(
                 "UPDATE contratos SET status = 'ATIVO', empresa_id = :empresa, numero_contrato = :numero, numero_locacao = :locacao,
-                        condicoes_gerais_snapshot = :condicoes, dados_cliente_snapshot = :cliente, dados_empresa_snapshot = :dados_empresa,
-                        dados_entrega_snapshot = :entrega
+                        condicoes_gerais_snapshot = :condicoes, dados_cliente_snapshot = :cliente, dados_empresa_snapshot = :dados_empresa
                   WHERE id = :id"
             )->execute([
                 'empresa' => $empresa['id'], 'numero' => $numeroContrato, 'locacao' => $numeroLocacao,
                 'condicoes' => $preferencias['condicoes_gerais'], 'cliente' => self::json($dadosCliente),
-                'dados_empresa' => self::json($empresa), 'entrega' => $entrega !== null ? self::json($entrega) : null, 'id' => $id,
+                'dados_empresa' => self::json($empresa), 'id' => $id,
             ]);
 
             self::auditar($usuarioId, 'contratos', $id, 'GERAR', ['numero_contrato' => $numeroContrato, 'valor_total' => self::reais($totalC)]);
@@ -305,14 +307,25 @@ final class Contrato extends Modelo
             return null;
         }
 
-        foreach (['id', 'empresa_id', 'cliente_id', 'endereco_entrega_id', 'condicao_pagamento_id', 'criado_por', 'dia_vencimento', 'numero_parcelas'] as $campo) {
+        foreach (['id', 'empresa_id', 'cliente_id', 'condicao_pagamento_id', 'criado_por', 'dia_vencimento', 'numero_parcelas'] as $campo) {
             $contrato[$campo] = $contrato[$campo] !== null ? (int) $contrato[$campo] : null;
         }
         foreach (['frete_deslocamento', 'outros_valores', 'caucao'] as $campo) {
             $contrato[$campo] = (float) $contrato[$campo];
         }
-        foreach (['dados_cliente_snapshot', 'dados_empresa_snapshot', 'dados_entrega_snapshot'] as $campo) {
+        foreach (['dados_cliente_snapshot', 'dados_empresa_snapshot'] as $campo) {
             $contrato[$campo] = $contrato[$campo] !== null ? json_decode($contrato[$campo], true) : null;
+        }
+
+        // Local de entrega do contrato (contrato_enderecos_entrega), usado na prévia e na impressão.
+        $entrega = self::pdo()->prepare(
+            'SELECT endereco_do_cliente, cep, rua, numero, bairro, cidade, uf, complemento, referencia
+               FROM contrato_enderecos_entrega WHERE contrato_id = :id'
+        );
+        $entrega->execute(['id' => $id]);
+        $contrato['entrega'] = $entrega->fetch() ?: null;
+        if ($contrato['entrega'] !== null) {
+            $contrato['entrega']['endereco_do_cliente'] = (bool) $contrato['entrega']['endereco_do_cliente'];
         }
 
         $itens                 = self::listarItens($id);
@@ -400,7 +413,8 @@ final class Contrato extends Modelo
         $erros = [];
 
         $clienteId     = self::campoInteiro($dados, 'cliente_id', $erros, true, 1);
-        $entregaId     = self::campoInteiro($dados, 'endereco_entrega_id', $erros, false, 1);
+        // Local de entrega: CLIENTE copia o endereço cadastral do cliente; OUTRO usa o endereço digitado na tela.
+        $origemEntrega = self::campoOpcao($dados, 'entrega_origem', ['CLIENTE', 'OUTRO'], $erros) ?? 'CLIENTE';
         $condicaoId    = self::campoInteiro($dados, 'condicao_pagamento_id', $erros, false, 1);
         $prazo         = self::campoOpcao($dados, 'prazo', ['DETERMINADO', 'INDETERMINADO'], $erros) ?? 'DETERMINADO';
         $dataInicio    = self::campoData($dados, 'data_inicio', $erros, true);
@@ -426,9 +440,6 @@ final class Contrato extends Modelo
         $cliente = $clienteId !== null ? Cliente::buscarCliente($clienteId) : null;
         if ($clienteId !== null && ($cliente === null || !$cliente['ativo'] || $cliente['tipo_cadastro'] === 'FORNECEDOR')) {
             $erros['cliente_id'] = 'Selecione um cliente ativo.';
-        }
-        if ($cliente !== null && $entregaId !== null && !in_array($entregaId, array_column($cliente['enderecos'], 'id'), true)) {
-            $erros['endereco_entrega_id'] = 'O endereço de entrega precisa ser um endereço ativo do cliente.';
         }
         $condicaoId ??= $cliente['condicao_pagamento_id'] ?? null;
         $condicao     = $condicaoId !== null ? CondicaoPagamento::buscar($condicaoId) : null;
@@ -457,8 +468,7 @@ final class Contrato extends Modelo
             $valores[$campo] = self::campoDecimal($dados, $campo, $erros) ?? '0.00';
         }
 
-        // Local de entrega digitado na tela (pode ser um endereço do cliente ajustado só para este contrato).
-        $entregaSnapshot = self::validarEntrega($dados['entrega'] ?? null, $erros);
+        $entrega = self::validarEntrega($origemEntrega, $dados['entrega'] ?? null, $cliente, $erros);
         // Responsável pela assinatura (opcional, para pessoa jurídica): nome + CPF juntos.
         $responsavel = self::validarResponsavel($dados['responsavel'] ?? null, $erros);
 
@@ -576,7 +586,6 @@ final class Contrato extends Modelo
             'contrato' => [
                 'empresa_id'            => $empresa['id'] ?? null,
                 'cliente_id'            => $clienteId,
-                'endereco_entrega_id'   => $entregaId,
                 'condicao_pagamento_id' => $condicaoId,
                 'numero_contrato'       => $numeroContrato,
                 'numero_locacao'        => $numeroLocacao,
@@ -589,10 +598,10 @@ final class Contrato extends Modelo
                 'primeiro_vencimento'   => $primeiroVenc,
                 'numero_parcelas'       => $parcelas,
                 'observacoes'           => $observacoes,
-                // Gravados já no rascunho; gerarContrato() os completa com os dados do cadastro.
-                'dados_entrega_snapshot' => $entregaSnapshot !== null ? self::json($entregaSnapshot) : null,
+                // Gravado já no rascunho; gerarContrato() o completa com os dados do cadastro.
                 'dados_cliente_snapshot' => $responsavel !== null ? self::json($responsavel) : null,
             ] + $valores,
+            'entrega'       => $entrega,
             'itens'         => $itens,
             'unidades'      => $unidadesEscolhidas,
             'valor_itens_c' => $valorItensC,
@@ -601,16 +610,34 @@ final class Contrato extends Modelo
     }
 
     /**
-     * Endereço de entrega enviado pela tela: { cep, rua, numero, bairro, cidade, uf, complemento, referencia }.
-     * Vazio/ausente = usa o endereço do cliente escolhido em endereco_entrega_id. Erros voltam como "entrega.campo".
+     * Local de entrega do contrato (linha de contrato_enderecos_entrega, sem o contrato_id).
+     *  - CLIENTE: copia o endereço cadastral do cliente; da tela só aproveita a referência.
+     *  - OUTRO:   endereço digitado na tela { cep, rua, numero, bairro, cidade, uf, complemento, referencia },
+     *             todos obrigatórios menos complemento e referência.
+     * Erros voltam como "entrega.campo" (ou "entrega_origem") para a tela marcar o campo certo.
      */
-    private static function validarEntrega(mixed $entrega, array &$erros): ?array
+    private static function validarEntrega(string $origem, mixed $entrega, ?array $cliente, array &$erros): ?array
     {
-        if (!is_array($entrega) || !array_filter($entrega, static fn ($v) => trim((string) $v) !== '')) {
-            return null;
+        $entrega = is_array($entrega) ? $entrega : [];
+
+        if ($origem === 'CLIENTE') {
+            if ($cliente === null) {
+                return null; // o erro do cliente_id já foi registrado
+            }
+            if ($cliente['endereco'] === null) {
+                $erros['entrega_origem'] = 'Este cliente não tem endereço cadastrado. Informe outro endereço de entrega.';
+                return null;
+            }
+            $referencia = self::campoTexto($entrega, 'referencia', 150, $erros);
+            if (isset($erros['referencia'])) {
+                $erros['entrega.referencia'] = $erros['referencia'];
+                unset($erros['referencia']);
+            }
+
+            return ['endereco_do_cliente' => 1] + $cliente['endereco'] + ['referencia' => $referencia];
         }
 
-        $e = [];
+        $e = ['endereco_do_cliente' => 0];
         $campos = ['rua' => 200, 'numero' => 20, 'bairro' => 100, 'cidade' => 100];
         foreach ($campos as $campo => $maximo) {
             $e[$campo] = self::campoTexto($entrega, $campo, $maximo, $erros, true);
@@ -734,6 +761,20 @@ final class Contrato extends Modelo
         }
 
         return $contrato;
+    }
+
+    /** Grava o local de entrega do contrato (um por contrato: contrato_id é UNIQUE). */
+    private static function gravarEntrega(int $contratoId, array $e): void
+    {
+        self::pdo()->prepare(
+            'INSERT INTO contrato_enderecos_entrega
+                    (contrato_id, endereco_do_cliente, cep, rua, numero, bairro, cidade, uf, complemento, referencia)
+             VALUES (:contrato, :do_cliente, :cep, :rua, :numero, :bairro, :cidade, :uf, :complemento, :referencia)'
+        )->execute([
+            'contrato' => $contratoId, 'do_cliente' => $e['endereco_do_cliente'], 'cep' => $e['cep'], 'rua' => $e['rua'],
+            'numero' => $e['numero'], 'bairro' => $e['bairro'], 'cidade' => $e['cidade'], 'uf' => $e['uf'],
+            'complemento' => $e['complemento'], 'referencia' => $e['referencia'],
+        ]);
     }
 
     private static function gravarItens(int $contratoId, array $itens): void

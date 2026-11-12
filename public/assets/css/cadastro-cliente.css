@@ -424,69 +424,26 @@
    7. Endereços
    ========================================================================== */
 
-/* Seção 2: lista de endereços */
+/* Seção 2: endereço cadastral do cliente (um só; a entrega fica no contrato) */
 .addresses-card {
     background-image: url('../img/cadastro-cliente/ea60b.svg');
-    padding: 18px 24px 30px;
-    min-height: 662px
+    padding: 18px 24px 30px
 }
 
-/* Cabeçalho da seção com o botão "Novo endereço" */
-.addresses-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 10px
-}
-
-/* Botão "+ Novo endereço" */
-.add-address {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    background: url('../img/cadastro-cliente/6d979.svg') center/100% 100% no-repeat;
-    width: 157px;
-    min-width: 157px;
-    height: 39px;
-    border: 0;
-    font-size: 13px;
-    font-weight: 700;
-    color: #184c39
-}
-
-.add-address>span {
-    font-size: 20px;
-    font-weight: 400
-}
-
-/* Erro geral da seção (ex.: falta endereço principal) */
-.section-error {
-    margin: 8px 0
-}
-
-/* Bloco de um endereço; o principal recebe destaque */
+/* Bloco do endereço, com o fundo de destaque */
 .address-block {
     position: relative;
-    margin-top: 8px
-}
-
-.address-block.primary {
+    margin-top: 8px;
     background: url('../img/cadastro-cliente/4340e.svg') center/100% 100% no-repeat
 }
 
-/* Barra do endereço: ícone, título, tipo e ações */
+/* Barra do endereço: ícone e título */
 .address-header {
-    min-height: 38px;
+    height: 48px;
     padding: 0 16px;
     display: flex;
     align-items: center;
-    gap: 16px
-}
-
-.address-block.primary .address-header {
-    height: 48px;
+    gap: 16px;
     background: url('../img/cadastro-cliente/8e47f.svg') center/100% 100% no-repeat
 }
 
@@ -503,92 +460,12 @@
     font-weight: 700
 }
 
-/* Seleção do tipo (residencial, comercial, entrega...) */
-.address-kind {
-    height: 22px;
-    min-width: 88px;
-    background: url('../img/cadastro-cliente/f4bb0.svg') center/100% 100% no-repeat
-}
-
-.address-kind select {
-    display: block;
-    width: 100%;
-    max-width: 120px;
-    font-size: 10px;
-    line-height: 22px;
-    color: #2e6c4f;
-    font-weight: 700;
-    border: 0;
-    appearance: none;
-    background: none;
-    padding: 0 10px;
-    cursor: pointer
-}
-
-.address-block:not(.primary):not(.has-data) .address-kind {
-    visibility: hidden
-}
-
-/* Ações "Definir principal" e "Remover" (aparecem quando há dados) */
-.address-tools {
-    margin-left: auto;
-    display: flex;
-    gap: 10px;
-    opacity: 0
-}
-
-.address-header:hover .address-tools,
-.address-header:focus-within .address-tools,
-.has-data .address-tools {
-    opacity: 1
-}
-
-.address-tools button {
-    border: 0;
-    background: none;
-    font-size: 10px;
-    color: #4f6458;
-    padding: 4px
-}
-
-/* Esconde ações que não fazem sentido (já é principal / único endereço) */
-.primary .make-primary {
-    display: none
-}
-
-.address-block:only-child .remove-address {
-    display: none
-}
-
-/* Botão de recolher/expandir o endereço: seta oficial para baixo (recolhido) e girada para cima (aberto) */
-.collapse-address {
-    display: grid;
-    place-items: center;
-    width: 24px;
-    height: 24px;
-    border: 0;
-    background: none
-}
-
-.collapse-address img {
-    transition: transform .15s
-}
-
-.collapse-address[aria-expanded=true] img {
-    transform: rotate(180deg)
-}
-
 /* Campos do endereço em três linhas */
 .address-body {
-    padding: 6px 16px 0;
+    padding: 16px 16px 22px;
     display: flex;
     flex-direction: column;
     gap: 10px
-}
-
-.primary .address-body {
-    padding-top: 16px;
-    padding-bottom: 22px
 }
 
 .address-row-one {
@@ -938,31 +815,8 @@
         grid-column: 1/-1
     }
 
-    .addresses-heading {
-        flex-wrap: wrap
-    }
-
-    .add-address {
-        margin-left: 60px
-    }
-
-    .address-header {
-        flex-wrap: wrap;
-        padding-top: 8px;
-        padding-bottom: 8px
-    }
-
-    .address-tools {
-        opacity: 1
-    }
-
     .address-title {
         font-size: 14px
-    }
-
-    .address-block.primary .address-header {
-        height: auto;
-        min-height: 48px
     }
 
     .form-page .workspace {
@@ -1053,31 +907,12 @@
         min-height: 48px
     }
 
-    .address-body,
-    .primary .address-body {
+    .address-body {
         padding: 16px 12px 22px
     }
 
     .address-header {
         gap: 8px
-    }
-
-    .address-tools {
-        width: 100%;
-        justify-content: flex-end;
-        order: 5
-    }
-
-    .collapse-address {
-        margin-left: auto
-    }
-
-    .address-kind {
-        margin-left: 0
-    }
-
-    .addresses-card {
-        min-height: 0
     }
 
     .finance-fields {

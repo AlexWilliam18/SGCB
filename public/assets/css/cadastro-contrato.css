@@ -117,7 +117,6 @@
    ========================================================================== */
 
 .address-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; min-width: 0; margin: 0; padding: 0; border: 0; }
-.address-options:empty { display: none; }
 .address-option { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 16px; border: 1px solid var(--contract-border); border-radius: 10px; cursor: pointer; }
 /* Cartão marcado: fundo verde claro e borda verde */
 .address-option:has(input:checked) { border-color: var(--forest); background: #d8f3dc; }
@@ -125,8 +124,10 @@
 .address-option:has(input:checked) .address-option-title { color: var(--forest); }
 .address-option input { width: 14px; height: 14px; margin: 0; accent-color: var(--forest); }
 .address-option small { font-size: 11px; line-height: 18px; color: var(--contract-muted); overflow-wrap: anywhere; }
-/* "✓ Usar endereço do cliente" */
-.use-client-address { display: flex; align-items: center; gap: 6px; margin-top: -4px; color: var(--forest); font-size: 12px; font-weight: 700; }
+/* Opção indisponível (cliente sem endereço cadastrado) */
+.address-option:has(input:disabled) { cursor: not-allowed; opacity: .6; }
+/* Campos preenchidos com o endereço do cliente: só leitura (desativados) */
+.address-grid input:disabled, .address-bottom-grid input:disabled, .address-bottom-grid select:disabled { background: #f3f5f4; color: var(--contract-muted); }
 .address-grid { grid-template-columns: 148fr 330fr 110fr 184fr; }
 .address-bottom-grid { grid-template-columns: 200fr 80fr 220fr 272fr; }
 

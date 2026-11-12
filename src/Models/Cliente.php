@@ -1,7 +1,8 @@
 <?php
 /**
- * Clientes e fornecedores (tabela pessoas), com endereços (enderecos_pessoa),
+ * Clientes e fornecedores (tabela pessoas), com o endereço cadastral (enderecos_pessoa, um por pessoa),
  * foto e anexos (arquivos + pessoa_anexos).
+ * O local de entrega dos contêineres não é do cliente: fica no contrato (Contrato, contrato_enderecos_entrega).
  *
  * No diagrama de classes é a classe Cliente. No banco, cliente e fornecedor ficam
  * na mesma tabela e se diferenciam por tipo_cadastro (CLIENTE, FORNECEDOR ou AMBOS).
@@ -11,17 +12,8 @@ final class Cliente extends Modelo
 {
     public const TIPOS_CADASTRO = ['CLIENTE', 'FORNECEDOR', 'AMBOS'];
 
-    /**
-     * Tipos de endereço da tela → rótulo gravado em descricao.
-     * OUTRO não existe no ENUM do banco: o tipo fica vazio e a descrição registra "Outro".
-     */
-    private const TIPOS_ENDERECO = [
-        'RESIDENCIAL' => 'Residencial',
-        'COMERCIAL'   => 'Comercial',
-        'ENTREGA'     => 'Entrega',
-        'COBRANCA'    => 'Cobrança',
-        'OUTRO'       => 'Outro',
-    ];
+    /** Campos do endereço cadastral e o tamanho máximo de cada um (iguais às colunas de enderecos_pessoa). */
+    private const CAMPOS_ENDERECO = ['rua' => 200, 'numero' => 20, 'bairro' => 100, 'cidade' => 100];
 
     /**
      * Listagem da tela Clientes (clientes.js). Só pessoas CLIENTE ou AMBOS.
@@ -67,10 +59,10 @@ final class Cliente extends Modelo
             $params['cidade'] = $cidade;
         }
 
-        // O endereço principal é o que tem principal_pessoa_id preenchido (no máximo um por pessoa).
+        // Cada pessoa tem um único endereço (pessoa_id é UNIQUE em enderecos_pessoa).
         $resultado = self::paginar(
             'p.id, p.nome_razao_social AS nome, p.cpf_cnpj, p.telefone, e.cidade, e.uf, p.criado_em, p.ativo',
-            'FROM pessoas p LEFT JOIN enderecos_pessoa e ON e.principal_pessoa_id = p.id WHERE ' . implode(' AND ', $where),
+            'FROM pessoas p LEFT JOIN enderecos_pessoa e ON e.pessoa_id = p.id WHERE ' . implode(' AND ', $where),
             $params,
             'p.nome_razao_social, p.id',
             (int) ($filtros['page'] ?? 1)
@@ -88,11 +80,11 @@ final class Cliente extends Modelo
         return $resultado;
     }
 
-    /** UFs dos endereços principais dos clientes (filtro de estado da listagem), sem repetir, em ordem. */
+    /** UFs dos endereços dos clientes (filtro de estado da listagem), sem repetir, em ordem. */
     public static function listarUfs(): array
     {
         $consulta = self::pdo()->prepare(
-            "SELECT DISTINCT e.uf FROM enderecos_pessoa e JOIN pessoas p ON p.id = e.principal_pessoa_id
+            "SELECT DISTINCT e.uf FROM enderecos_pessoa e JOIN pessoas p ON p.id = e.pessoa_id
               WHERE p.tipo_cadastro IN ('CLIENTE', 'AMBOS') AND e.uf IS NOT NULL AND e.uf <> ''
               ORDER BY e.uf"
         );
@@ -101,10 +93,10 @@ final class Cliente extends Modelo
         return $consulta->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    /** Cidades dos endereços principais dos clientes (filtro da listagem), opcionalmente de uma UF. */
+    /** Cidades dos endereços dos clientes (filtro da listagem), opcionalmente de uma UF. */
     public static function listarCidades(?string $uf = null): array
     {
-        $sql    = "SELECT DISTINCT e.cidade FROM enderecos_pessoa e JOIN pessoas p ON p.id = e.principal_pessoa_id
+        $sql    = "SELECT DISTINCT e.cidade FROM enderecos_pessoa e JOIN pessoas p ON p.id = e.pessoa_id
                     WHERE p.tipo_cadastro IN ('CLIENTE', 'AMBOS') AND e.cidade IS NOT NULL AND e.cidade <> ''";
         $params = [];
         if ($uf !== null) {
@@ -118,8 +110,8 @@ final class Cliente extends Modelo
     }
 
     /**
-     * Detalhes de uma pessoa (diálogo "Dados do cliente" e futura tela de edição).
-     * Inclui endereços ativos, foto e anexos.
+     * Detalhes de uma pessoa (diálogo "Dados do cliente" e tela de edição).
+     * Inclui o endereço cadastral (endereco: objeto ou null), foto e anexos.
      */
     public static function buscarCliente(int $id): ?array
     {
@@ -145,7 +137,7 @@ final class Cliente extends Modelo
         $cliente['limite_credito']             = (float) $cliente['limite_credito'];
         $cliente['permite_ultrapassar_limite'] = (bool) $cliente['permite_ultrapassar_limite'];
         $cliente['ativo']                      = (bool) $cliente['ativo'];
-        $cliente['enderecos']                  = self::listarEnderecos($id);
+        $cliente['endereco']                   = self::buscarEndereco($id);
 
         $anexos = self::pdo()->prepare(
             'SELECT a.id, a.nome_original, a.caminho_armazenamento, a.mime_type, a.tamanho_bytes, pa.descricao
@@ -158,21 +150,15 @@ final class Cliente extends Modelo
         return $cliente;
     }
 
-    /** Endereços ativos de uma pessoa (o principal primeiro). */
-    public static function listarEnderecos(int $pessoaId): array
+    /** Endereço cadastral da pessoa ({ cep, rua, numero, bairro, cidade, uf, complemento }) ou null. */
+    public static function buscarEndereco(int $pessoaId): ?array
     {
         $consulta = self::pdo()->prepare(
-            'SELECT id, tipo, descricao, principal, cep, rua, numero, bairro, cidade, uf, complemento
-               FROM enderecos_pessoa WHERE pessoa_id = :id AND ativo = 1
-              ORDER BY principal DESC, id'
+            'SELECT cep, rua, numero, bairro, cidade, uf, complemento FROM enderecos_pessoa WHERE pessoa_id = :id'
         );
         $consulta->execute(['id' => $pessoaId]);
 
-        return array_map(static function (array $e): array {
-            $e['id']        = (int) $e['id'];
-            $e['principal'] = (bool) $e['principal'];
-            return $e;
-        }, $consulta->fetchAll());
+        return $consulta->fetch() ?: null;
     }
 
     /**
@@ -180,18 +166,19 @@ final class Cliente extends Modelo
      *
      * @param array $dados  JSON do campo "dados": tipo_cadastro, nome_razao_social, nome_fantasia, cpf_cnpj,
      *                      email, telefone, data_nascimento, profissao, nacionalidade, condicao_pagamento_id,
-     *                      limite_credito, permite_ultrapassar_limite e enderecos[].
+     *                      limite_credito, permite_ultrapassar_limite e endereco { cep, rua, numero, bairro,
+     *                      cidade, uf, complemento }.
      * @param ?array $foto   Item de $_FILES['foto'] (opcional).
      * @param array  $anexos Lista de Arquivo::normalizarLista($_FILES['anexos']).
      * @return array{id: int, tipo_cadastro: string}
      */
     public static function cadastrarCliente(array $dados, int $usuarioId, ?array $foto = null, array $anexos = []): array
     {
-        [$campos, $enderecos] = self::validar($dados);
+        [$campos, $endereco] = self::validar($dados);
         self::exigirDocumentoLivre($campos['cpf_cnpj']);
 
         try {
-            return self::transacao(static function (PDO $pdo) use ($campos, $enderecos, $usuarioId, $foto, $anexos): array {
+            return self::transacao(static function (PDO $pdo) use ($campos, $endereco, $usuarioId, $foto, $anexos): array {
                 $agora = self::agora();
 
                 if ($foto !== null && ($foto['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
@@ -205,7 +192,7 @@ final class Cliente extends Modelo
                 )->execute($campos + ['criado_por' => $usuarioId, 'criado' => $agora, 'atualizado' => $agora]);
                 $id = (int) $pdo->lastInsertId();
 
-                self::gravarEnderecos($id, $enderecos);
+                self::gravarEndereco($id, $endereco);
 
                 foreach ($anexos as $anexo) {
                     $arquivoId = Arquivo::salvarUpload($anexo, $usuarioId, Arquivo::DOCUMENTOS, Arquivo::LIMITE_DOCUMENTO, 'anexos');
@@ -227,8 +214,8 @@ final class Cliente extends Modelo
     }
 
     /**
-     * Atualiza o cadastro (mesmos campos do cadastro). Os endereços enviados substituem os atuais:
-     * os antigos são desativados, não apagados, porque contratos podem apontar para eles.
+     * Atualiza o cadastro (mesmos campos do cadastro). O endereço enviado substitui o atual;
+     * contratos não são afetados, porque cada um guarda o próprio local de entrega.
      * Foto nova (opcional) substitui a atual; anexos novos (opcionais) são somados aos que já existem.
      */
     public static function atualizarDados(int $id, array $dados, int $usuarioId, ?array $foto = null, array $anexos = []): void
@@ -236,11 +223,11 @@ final class Cliente extends Modelo
         if (self::buscarCliente($id) === null) {
             throw new ErroValidacao('Cadastro não encontrado.', [], 404);
         }
-        [$campos, $enderecos] = self::validar($dados);
+        [$campos, $endereco] = self::validar($dados);
         self::exigirDocumentoLivre($campos['cpf_cnpj'], $id);
 
         try {
-            self::transacao(static function (PDO $pdo) use ($id, $campos, $enderecos, $usuarioId, $foto, $anexos): void {
+            self::transacao(static function (PDO $pdo) use ($id, $campos, $endereco, $usuarioId, $foto, $anexos): void {
                 if ($foto !== null && ($foto['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
                     $campos['foto_arquivo_id'] = Arquivo::salvarUpload($foto, $usuarioId, Arquivo::IMAGENS, Arquivo::LIMITE_IMAGEM, 'foto');
                 }
@@ -249,9 +236,7 @@ final class Cliente extends Modelo
                 $pdo->prepare("UPDATE pessoas SET $sets, atualizado_em = :agora WHERE id = :id")
                     ->execute($campos + ['agora' => self::agora(), 'id' => $id]);
 
-                $pdo->prepare('UPDATE enderecos_pessoa SET ativo = 0, principal = 0, principal_pessoa_id = NULL WHERE pessoa_id = :id')
-                    ->execute(['id' => $id]);
-                self::gravarEnderecos($id, $enderecos);
+                self::gravarEndereco($id, $endereco);
 
                 foreach ($anexos as $anexo) {
                     $arquivoId = Arquivo::salvarUpload($anexo, $usuarioId, Arquivo::DOCUMENTOS, Arquivo::LIMITE_DOCUMENTO, 'anexos');
@@ -381,9 +366,9 @@ final class Cliente extends Modelo
 
     /**
      * Valida os dados do formulário. Os nomes dos erros seguem os ids da tela
-     * (ex.: 'enderecos.0.cep'), para o cadastro-cliente.js destacar o campo certo.
+     * (ex.: 'endereco.cep'), para o cadastro-cliente.js destacar o campo certo.
      *
-     * @return array{0: array, 1: array} [colunas da tabela pessoas, endereços normalizados]
+     * @return array{0: array, 1: array} [colunas da tabela pessoas, endereço normalizado]
      */
     private static function validar(array $dados): array
     {
@@ -433,92 +418,59 @@ final class Cliente extends Modelo
             }
         }
 
-        $enderecos = self::validarEnderecos($dados['enderecos'] ?? [], $erros);
+        $endereco = self::validarEndereco($dados['endereco'] ?? null, $erros);
         self::lancarSeErros($erros);
 
-        return [$campos, $enderecos];
+        return [$campos, $endereco];
     }
 
-    /** Endereços: ignora blocos vazios, exige ao menos um completo e exatamente um principal. */
-    private static function validarEnderecos(mixed $lista, array &$erros): array
+    /** Endereço cadastral (obrigatório). Erros voltam como "endereco.campo". */
+    private static function validarEndereco(mixed $e, array &$erros): array
     {
-        $enderecos  = [];
-        $principais = 0;
+        $e = is_array($e) ? array_map(static fn ($v): mixed => is_string($v) ? trim($v) : $v, $e) : [];
 
-        foreach (is_array($lista) ? $lista : [] as $i => $e) {
-            if (!is_array($e)) {
-                continue;
-            }
-            $p = "enderecos.$i.";
-            $e = array_map(static fn ($v): mixed => is_string($v) ? trim($v) : $v, $e);
+        $endereco = [
+            'cep'         => self::somenteDigitos((string) ($e['cep'] ?? '')),
+            'rua'         => (string) ($e['rua'] ?? ''),
+            'numero'      => (string) ($e['numero'] ?? ''),
+            'bairro'      => (string) ($e['bairro'] ?? ''),
+            'cidade'      => (string) ($e['cidade'] ?? ''),
+            'uf'          => strtoupper((string) ($e['uf'] ?? '')),
+            'complemento' => ($e['complemento'] ?? '') !== '' ? (string) $e['complemento'] : null,
+        ];
 
-            // Bloco totalmente vazio (o usuário abriu e não preencheu) é ignorado, como na tela.
-            if (!array_filter(array_intersect_key($e, array_flip(['cep', 'rua', 'numero', 'bairro', 'cidade', 'uf', 'complemento'])))) {
-                continue;
+        foreach (self::CAMPOS_ENDERECO as $campo => $maximo) {
+            if ($endereco[$campo] === '') {
+                $erros['endereco.' . $campo] = 'Preencha este campo.';
+            } elseif (mb_strlen($endereco[$campo]) > $maximo) {
+                $erros['endereco.' . $campo] = "Use no máximo $maximo caracteres.";
             }
-
-            $endereco = [
-                'tipo'        => strtoupper((string) ($e['tipo'] ?? '')),
-                'principal'   => !empty($e['principal']) && $e['principal'] !== 'false' ? 1 : 0,
-                'cep'         => self::somenteDigitos($e['cep'] ?? ''),
-                'rua'         => (string) ($e['rua'] ?? ''),
-                'numero'      => (string) ($e['numero'] ?? ''),
-                'bairro'      => (string) ($e['bairro'] ?? ''),
-                'cidade'      => (string) ($e['cidade'] ?? ''),
-                'uf'          => strtoupper((string) ($e['uf'] ?? '')),
-                'complemento' => ($e['complemento'] ?? '') !== '' ? (string) $e['complemento'] : null,
-            ];
-
-            foreach (['rua' => 200, 'numero' => 20, 'bairro' => 100, 'cidade' => 100] as $campo => $maximo) {
-                if ($endereco[$campo] === '') {
-                    $erros[$p . $campo] = 'Preencha este campo.';
-                } elseif (mb_strlen($endereco[$campo]) > $maximo) {
-                    $erros[$p . $campo] = "Use no máximo $maximo caracteres.";
-                }
-            }
-            if ($endereco['complemento'] !== null && mb_strlen($endereco['complemento']) > 150) {
-                $erros[$p . 'complemento'] = 'Use no máximo 150 caracteres.';
-            }
-            if (strlen($endereco['cep']) !== 8) {
-                $erros[$p . 'cep'] = 'Informe um CEP com 8 dígitos.';
-            }
-            if (!preg_match('/^[A-Z]{2}$/', $endereco['uf'])) {
-                $erros[$p . 'uf'] = 'Informe a UF com 2 letras.';
-            }
-            if ($endereco['tipo'] !== '' && !isset(self::TIPOS_ENDERECO[$endereco['tipo']])) {
-                $erros[$p . 'tipo'] = 'Tipo de endereço inválido.';
-            }
-
-            $principais += $endereco['principal'];
-            $enderecos[] = $endereco;
+        }
+        if ($endereco['complemento'] !== null && mb_strlen($endereco['complemento']) > 150) {
+            $erros['endereco.complemento'] = 'Use no máximo 150 caracteres.';
+        }
+        if (strlen($endereco['cep']) !== 8) {
+            $erros['endereco.cep'] = 'Informe um CEP com 8 dígitos.';
+        }
+        if (!preg_match('/^[A-Z]{2}$/', $endereco['uf'])) {
+            $erros['endereco.uf'] = 'Informe a UF com 2 letras.';
         }
 
-        if (!$enderecos) {
-            $erros['enderecos'] = 'Preencha ao menos um endereço completo.';
-        } elseif ($principais !== 1) {
-            $erros['enderecos'] = 'Defina exatamente um endereço principal.';
-        }
-
-        return $enderecos;
+        return $endereco;
     }
 
-    /** Insere os endereços já validados. O principal recebe principal_pessoa_id (UNIQUE: só um por pessoa). */
-    private static function gravarEnderecos(int $pessoaId, array $enderecos): void
+    /**
+     * Grava o endereço já validado. pessoa_id é UNIQUE: no cadastro insere, na edição
+     * o ON DUPLICATE KEY atualiza a linha que já existe.
+     */
+    private static function gravarEndereco(int $pessoaId, array $e): void
     {
-        $insere = self::pdo()->prepare(
-            'INSERT INTO enderecos_pessoa (pessoa_id, tipo, descricao, principal, cep, rua, numero, bairro, cidade, uf, complemento, ativo, principal_pessoa_id)
-             VALUES (:pessoa, :tipo, :descricao, :principal, :cep, :rua, :numero, :bairro, :cidade, :uf, :complemento, 1, :principal_de)'
-        );
-
-        foreach ($enderecos as $e) {
-            $tipoBanco = $e['tipo'] !== '' && $e['tipo'] !== 'OUTRO' ? $e['tipo'] : null;
-            $insere->execute([
-                'pessoa' => $pessoaId, 'tipo' => $tipoBanco, 'descricao' => self::TIPOS_ENDERECO[$e['tipo']] ?? null,
-                'principal' => $e['principal'], 'cep' => $e['cep'], 'rua' => $e['rua'], 'numero' => $e['numero'],
-                'bairro' => $e['bairro'], 'cidade' => $e['cidade'], 'uf' => $e['uf'], 'complemento' => $e['complemento'],
-                'principal_de' => $e['principal'] ? $pessoaId : null,
-            ]);
-        }
+        self::pdo()->prepare(
+            'INSERT INTO enderecos_pessoa (pessoa_id, cep, rua, numero, bairro, cidade, uf, complemento)
+             VALUES (:pessoa, :cep, :rua, :numero, :bairro, :cidade, :uf, :complemento)
+             ON DUPLICATE KEY UPDATE cep = VALUES(cep), rua = VALUES(rua), numero = VALUES(numero), bairro = VALUES(bairro),
+                                     cidade = VALUES(cidade), uf = VALUES(uf), complemento = VALUES(complemento)'
+        )->execute(['pessoa' => $pessoaId] + $e);
     }
 
     private static function exigirDocumentoLivre(string $documento, int $ignorarId = 0): void

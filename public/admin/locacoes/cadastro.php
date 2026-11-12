@@ -70,12 +70,15 @@ require __DIR__ . '/../../../includes/head.php';
             </fieldset>
           </section>
 
-          <!-- 2. Local de entrega: cartões com os endereços do cliente + campos editáveis só para este contrato -->
+          <!-- 2. Local de entrega: é do contrato (contrato_enderecos_entrega). Ou copia o endereço do cliente, ou recebe outro endereço digitado aqui. -->
           <section class="contract-card" aria-labelledby="delivery-title">
             <div class="step-heading"><span class="step-number" aria-hidden="true">2</span><h3 id="delivery-title">Local de entrega / instalação</h3></div>
-            <p class="section-help">Escolha um endereço do cliente. Ajustes feitos aqui valem só para este contrato.</p>
-            <fieldset class="address-options" id="address-options"><legend class="sr-only">Endereço para entrega</legend></fieldset>
-            <p class="use-client-address" id="use-client-address" hidden><span class="icon icon-check" aria-hidden="true"></span>Usar endereço do cliente</p>
+            <p class="section-help">Entregue no endereço do cliente ou informe outro local (obra, evento…). O endereço fica salvo só neste contrato.</p>
+            <fieldset class="address-options" id="address-options">
+              <legend class="sr-only">Onde os contêineres serão entregues</legend>
+              <label class="address-option"><span class="address-option-title"><input type="radio" name="deliverySource" value="CLIENTE" checked><span>Endereço do cliente</span></span><small id="client-address-line">Selecione um cliente.</small></label>
+              <label class="address-option"><span class="address-option-title"><input type="radio" name="deliverySource" value="OUTRO"><span>Outro endereço</span></span><small>Digite o local de entrega abaixo.</small></label>
+            </fieldset>
             <div class="field-grid address-grid">
               <label class="contract-field">CEP *<input name="deliveryPostalCode" required maxlength="9" inputmode="numeric" placeholder="00000-000"></label>
               <label class="contract-field street-field">Rua *<input name="deliveryStreet" required maxlength="200" autocomplete="off"></label>
