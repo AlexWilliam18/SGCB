@@ -109,7 +109,7 @@ require __DIR__ . '/../includes/head.php';
   <!-- Diálogo "Esqueceu a senha?" (aberto pelo login.js) -->
   <dialog id="help-dialog" aria-labelledby="help-title">
     <h2 id="help-title">Recuperar acesso</h2>
-    <p>Entre em contato com o administrador da Casa Barretto para solicitar a recuperação da sua senha.</p>
+    <p>Entre em contato com o administrador deste sistema para realizar a troca ou a recuperação da sua senha.</p>
     <form method="dialog"><button class="submit-button">Entendi</button></form>
   </dialog>
 
