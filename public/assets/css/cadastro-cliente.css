@@ -21,11 +21,10 @@
    1. Ajustes do layout nesta página (fundo, menu e cabeçalho)
    ========================================================================== */
 
-/* Fundo areia com a textura decorativa no topo */
+/* Fundo areia da página (antes era uma imagem SVG; agora segue o tema) */
 .form-page {
     position: relative;
-    background: var(--paper) url('../img/cadastro-cliente/99018.svg') top left/100% auto no-repeat
-}
+    background: var(--bg)}
 
 /* Área de trabalho com a fonte Inter do formulário */
 .form-page .workspace {
@@ -38,8 +37,7 @@
     min-height: 100px;
     padding: 43px 38px 13px 40px;
     align-items: flex-start;
-    border: 0;
-    background-image: url('../img/cadastro-cliente/ba23e.svg');
+    border-bottom: 1px solid var(--line);
     background-position: bottom center;
     background-size: 100% 1px;
     background-repeat: no-repeat
@@ -56,7 +54,7 @@
     margin-top: 7px;
     font-size: 10px;
     line-height: 12px;
-    color: #747a76
+    color: var(--muted)
 }
 
 /* Data mantém a fonte Figtree */
@@ -68,7 +66,7 @@
 .cadastro-main {
     padding: 8px 38px 54px 40px;
     outline: none;
-    color: #171917
+    color: var(--ink)
 }
 
 /* ==========================================================================
@@ -95,11 +93,12 @@
     margin-top: 6px;
     font-size: 13px;
     line-height: 16px;
-    color: #6f746f
+    color: var(--muted)
 }
 
 /* Botão "← Voltar" para a listagem */
 .return-button {
+    border-radius: 9px; /* cantos que antes vinham da imagem SVG */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -107,7 +106,7 @@
     width: 97px;
     min-width: 97px;
     height: 41px;
-    background: url('../img/cadastro-cliente/4c017.svg') center/100% 100% no-repeat;
+    background: var(--surface); border: 1px solid var(--line);
     font-size: 13px;
     font-weight: 700;
     text-decoration: none
@@ -147,18 +146,21 @@
     height: 42px
 }
 
+/* Círculo do número da seção: antes era a imagem a8134.svg (verde claro), agora é CSS */
 .section-number>img {
-    display: block
+    display: none
 }
 
 .section-number>span {
     position: absolute;
     inset: 0;
+    border-radius: 50%;
+    background: var(--accent-soft-2);
     display: grid;
     place-items: center;
     font-size: 18px;
     font-weight: 700;
-    color: #184c39
+    color: var(--accent-ink)
 }
 
 /* Título e descrição da seção */
@@ -173,7 +175,7 @@
     font-size: 10px;
     line-height: 12px;
     margin-top: 8px;
-    color: #747a76
+    color: var(--muted)
 }
 
 /* ==========================================================================
@@ -182,7 +184,8 @@
 
 /* Seção 1: foto à esquerda e campos à direita */
 .identity-card {
-    background-image: url('../img/cadastro-cliente/6ca1f.svg');
+    border-radius: 18px; /* cantos que antes vinham da imagem SVG */
+    background: var(--surface); border: 1px solid var(--line);
     min-height: 300px;
     margin-left: -3px
 }
@@ -235,14 +238,15 @@
     margin-bottom: 10px
 }
 
-/* Caixa do campo com ícone à esquerda (imagem vem da variável --control-image no HTML) */
+/* Caixa do campo. Antes o fundo vinha de uma imagem SVG por campo (--control-image no HTML);
+   agora é CSS, para acompanhar o tema claro/escuro. A variável no HTML ficou sem uso. */
 .control {
     position: relative;
     min-width: 0;
     height: 39px;
-    background-image: var(--control-image);
-    background-size: 100% 100%;
-    background-repeat: no-repeat
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 8px
 }
 
 .control input,
@@ -250,7 +254,7 @@
     font: inherit;
     font-size: 13px;
     line-height: 16px;
-    color: #171917;
+    color: var(--ink);
     border: 0;
     width: 100%;
     height: 100%;
@@ -262,7 +266,7 @@
 
 /* Texto de exemplo dos campos */
 .control input::placeholder {
-    color: #747a76;
+    color: var(--subtle);
     opacity: 1
 }
 
@@ -275,7 +279,7 @@
 
 /* Seleção sem escolha: texto em cinza */
 .control select:has(option[value='']:checked) {
-    color: #747a76
+    color: var(--subtle)
 }
 
 /* Seta das seleções */
@@ -290,13 +294,13 @@
 .control input:focus-visible,
 /* Foco pelo teclado */
 .control select:focus-visible {
-    outline: 2px solid #3c7359;
+    outline: 2px solid var(--accent-ink);
     outline-offset: 2px
 }
 
 /* Campo com erro: borda vermelha */
 .control:has([aria-invalid=true]) {
-    outline: 2px solid #bd4740;
+    outline: 2px solid var(--danger);
     outline-offset: 1px;
     border-radius: 6px
 }
@@ -306,7 +310,7 @@
     display: block;
     font-size: 11px;
     line-height: 16px;
-    color: #a7342d
+    color: var(--danger)
 }
 
 .field-error:empty {
@@ -319,13 +323,13 @@
 
 /* Cartão da foto */
 .photo-card {
+    border-radius: 12px; /* cantos que antes vinham da imagem SVG */
     position: absolute;
     right: 23px;
     top: 12px;
     width: 276px;
     min-height: 121px;
-    background: url('../img/cadastro-cliente/e3382.svg') center/100% 100% no-repeat
-}
+    background: var(--surface); border: 1px solid var(--line)}
 
 .photo-card h4 {
     position: absolute;
@@ -370,7 +374,7 @@
     height: 68px;
     object-fit: cover;
     border-radius: 50%;
-    background: white
+    background: var(--surface)
 }
 
 /* Formatos aceitos e botão "Adicionar foto" */
@@ -383,20 +387,20 @@
 .photo-help p {
     font-size: 10px;
     line-height: 12px;
-    color: #747a76;
+    color: var(--muted);
     margin: 0 0 6px
 }
 
 .photo-help button {
+    border-radius: 8px; /* cantos que antes vinham da imagem SVG */
     display: block;
     width: 133px;
     height: 33px;
-    background: url('../img/cadastro-cliente/1fa8b.svg') center/100% 100% no-repeat;
+    background: var(--surface); border: 1px solid var(--line-strong);
     padding: 0;
-    border: 0;
     font-size: 13px;
     font-weight: 700;
-    color: #171917;
+    color: var(--ink);
     margin-top: 7px
 }
 
@@ -409,7 +413,7 @@
     padding: 3px 0;
     background: none;
     font-size: 10px;
-    color: #9b3a32
+    color: var(--danger)
 }
 
 /* Erro da foto (formato/tamanho) */
@@ -426,26 +430,27 @@
 
 /* Seção 2: endereço cadastral do cliente (um só; a entrega fica no contrato) */
 .addresses-card {
-    background-image: url('../img/cadastro-cliente/ea60b.svg');
+    border-radius: 18px; /* cantos que antes vinham da imagem SVG */
+    background: var(--surface); border: 1px solid var(--line);
     padding: 18px 24px 30px
 }
 
 /* Bloco do endereço, com o fundo de destaque */
 .address-block {
+    border-radius: 13px; /* cantos que antes vinham da imagem SVG */
     position: relative;
     margin-top: 8px;
-    background: url('../img/cadastro-cliente/4340e.svg') center/100% 100% no-repeat
-}
+    background: var(--surface); border: 1px solid var(--line)}
 
 /* Barra do endereço: ícone e título */
 .address-header {
+    border-radius: 12px; /* cantos que antes vinham da imagem SVG */
     height: 48px;
     padding: 0 16px;
     display: flex;
     align-items: center;
     gap: 16px;
-    background: url('../img/cadastro-cliente/8e47f.svg') center/100% 100% no-repeat
-}
+    background: var(--surface-2)}
 
 /* Símbolo de casa e título do endereço */
 .home-symbol {
@@ -491,7 +496,8 @@
 
 /* Seção 3: condição de pagamento e limite de crédito */
 .finance-card {
-    background-image: url('../img/cadastro-cliente/8c268.svg');
+    border-radius: 19px; /* cantos que antes vinham da imagem SVG */
+    background: var(--surface); border: 1px solid var(--line);
     min-height: 146px;
     padding: 18px 24px 12px
 }
@@ -511,11 +517,12 @@
 }
 
 .money-control>span {
+    border-radius: 8px; /* cantos que antes vinham da imagem SVG */
     flex-shrink: 0;
     display: grid;
     place-items: center;
     width: 52px;
-    background: url('../img/cadastro-cliente/f7c35.svg') center/100% 100% no-repeat;
+    background: var(--surface-2);
     font-size: 13px
 }
 
@@ -541,13 +548,13 @@
     height: 25px;
     margin: 0;
     border-radius: 5px;
-    background: #d9d9d9;
+    background: var(--line-strong);
     cursor: pointer
 }
 
 .credit-check input:checked {
     appearance: auto;
-    accent-color: #1b4332
+    accent-color: var(--accent)
 }
 
 /* ==========================================================================
@@ -556,7 +563,8 @@
 
 /* Seção 4: anexos */
 .attachments-card {
-    background-image: url('../img/cadastro-cliente/f3b56.svg');
+    border-radius: 18px; /* cantos que antes vinham da imagem SVG */
+    background: var(--surface); border: 1px solid var(--line);
     min-height: 140px;
     padding: 18px 24px 20px
 }
@@ -571,24 +579,23 @@
     min-height: 55px;
     padding: 0 12px;
     margin-top: 6px;
-    border: 0;
-    background: url('../img/cadastro-cliente/c6bc9.svg') center/100% 100% no-repeat;
-    color: #171917;
+    background: var(--surface); border: 1px dashed var(--line-strong); border-radius: 10px;
+    color: var(--ink);
     text-align: left
 }
 
 .dropzone.dragover {
-    outline: 2px solid #2e6c4f;
+    outline: 2px solid var(--accent-ink);
     outline-offset: 2px;
     border-radius: 8px;
-    background-color: #e9f3ed
+    background-color: var(--accent-soft)
 }
 
 /* Seta de envio e textos da área de anexos */
 .upload-symbol {
     font-size: 28px;
     font-weight: 400;
-    color: #184c39;
+    color: var(--accent-ink);
     line-height: 34px
 }
 
@@ -602,7 +609,7 @@
     display: block;
     font-size: 10px;
     line-height: 12px;
-    color: #747a76;
+    color: var(--muted);
     margin-top: 4px
 }
 
@@ -622,7 +629,7 @@
     justify-content: space-between;
     gap: 10px;
     padding: 8px 12px;
-    background: #f5f8f5;
+    background: var(--surface-2);
     border-radius: 6px;
     font-size: 12px;
     overflow-wrap: anywhere
@@ -631,7 +638,7 @@
 .attachment-list button {
     border: 0;
     background: none;
-    color: #9b3a32;
+    color: var(--danger);
     font-size: 11px
 }
 
@@ -650,11 +657,12 @@
 
 /* Botão Cancelar (contorno) */
 .cancel-button {
+    border-radius: 8px; /* cantos que antes vinham da imagem SVG */
     display: grid;
     place-items: center;
     width: 111px;
     height: 35px;
-    background: url('../img/cadastro-cliente/a8825.svg') center/100% 100% no-repeat;
+    background: var(--surface); border: 1px solid var(--line);
     text-decoration: none;
     font-size: 13px;
     font-weight: 700
@@ -662,12 +670,13 @@
 
 /* Botão Salvar (verde); fica desabilitado até as opções carregarem */
 .save-button {
+    border-radius: 8px; /* cantos que antes vinham da imagem SVG */
     border: 0;
-    color: white;
+    color: var(--on-accent);
     width: 136px;
     height: 34px;
     padding: 0;
-    background: url('../img/cadastro-cliente/0a77f.svg') center/100% 100% no-repeat;
+    background: var(--accent);
     font-size: 13px;
     font-weight: 700
 }
@@ -679,9 +688,9 @@
 
 /* Aviso no topo do formulário (erro, tentar novamente, sucesso) */
 .form-notice {
-    border: 1px solid #d6c195;
-    background: #fff7e5;
-    color: #775b2c;
+    border: 1px solid var(--warning-line);
+    background: var(--warning-soft);
+    color: var(--warning);
     padding: 14px 18px;
     border-radius: 10px;
     margin-bottom: 22px;
@@ -691,17 +700,17 @@
 
 .form-notice button {
     margin-top: 10px;
-    border: 1px solid #c4ac83;
+    border: 1px solid var(--warning-line);
     padding: 6px 12px;
     border-radius: 6px;
-    background: white;
+    background: var(--surface);
     color: inherit
 }
 
 .form-notice.success {
-    border-color: #a7cbb2;
-    background: #eaf6ed;
-    color: #1b4332
+    border-color: var(--accent-line);
+    background: var(--accent-soft);
+    color: var(--accent-ink)
 }
 
 /* Remove sublinhado do link "Novo cliente" */
@@ -982,5 +991,5 @@
 .existing-attachments {
   margin: 10px 0 0;
   font-size: 12px;
-  color: var(--muted, #5d625e);
+  color: var(--muted);
 }

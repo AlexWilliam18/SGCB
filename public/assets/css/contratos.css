@@ -82,7 +82,7 @@
     padding-left: 16px;
     border: 1px solid var(--line);
     border-radius: 12px;
-    background: #fff;
+    background: var(--surface);
     overflow: hidden
 }
 
@@ -122,7 +122,7 @@
 .date-placeholder {
     position: absolute;
     left: 48px;
-    color: #121212b3;
+    color: color-mix(in srgb, var(--ink) 70%, transparent);
     font-size: 14px;
     pointer-events: none;
     white-space: nowrap
@@ -163,7 +163,7 @@
     padding: 0;
     border: 0;
     background: none;
-    color: var(--forest);
+    color: var(--accent-ink);
     font: inherit;
     font-weight: 700;
     text-align: left;
@@ -183,8 +183,8 @@
     display: inline-block;
     padding: 3px 9px;
     border-radius: 30px;
-    background: #e7f2eb;
-    color: #235438;
+    background: var(--success-soft);
+    color: var(--success);
     font-size: 11px;
     font-weight: 600;
     line-height: 16px;
@@ -192,18 +192,18 @@
 }
 
 .contract-status.draft {
-    background: #fff3d6;
-    color: #7a550c
+    background: var(--warning-soft);
+    color: var(--warning)
 }
 
 .contract-status.finished {
-    background: #ededed;
-    color: #5d625e
+    background: var(--surface-3);
+    color: var(--muted)
 }
 
 .contract-status.canceled {
-    background: #fbe9e7;
-    color: #a73328
+    background: var(--danger-soft);
+    color: var(--danger)
 }
 
 /* Lista vazia com o ícone de documento */
@@ -213,7 +213,7 @@
 
 /* Contorno ao focar a tabela pelo teclado */
 .contracts-page .table-scroll:focus-visible {
-    outline: 2px solid #b58b36;
+    outline: 2px solid var(--focus);
     outline-offset: -2px
 }
 
@@ -233,7 +233,7 @@
 /* "CASA BARRETTO" em verde, com a fonte do logotipo */
 .contract-brand {
     font: 700 22px/30px 'Libre Caslon Text', Georgia, serif;
-    color: var(--forest);
+    color: var(--accent-ink);
     letter-spacing: .5px
 }
 

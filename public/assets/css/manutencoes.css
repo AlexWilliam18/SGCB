@@ -26,7 +26,7 @@
 
 /* Botão "Nova manutenção" um pouco mais escuro que o "Novo cliente" */
 .maintenance-page .new-client {
-    background: #264636
+    background: var(--accent)
 }
 
 /* ==========================================================================
@@ -35,19 +35,19 @@
 
 /* Fundo colorido do ícone de cada card */
 .maintenance-page .stat-icon.ongoing {
-    background: #e5b7004d
+    background: var(--tint-yellow)
 }
 
 .maintenance-page .stat-icon.scheduled {
-    background: #044bff33
+    background: var(--tint-blue)
 }
 
 .maintenance-page .stat-icon.urgent {
-    background: #f3040733
+    background: var(--tint-red)
 }
 
 .maintenance-page .stat-icon.completed {
-    background: #00f27933
+    background: var(--tint-green)
 }
 
 /* Recorte das imagens PNG dos ícones */
@@ -140,7 +140,7 @@
     height: 44px;
     border: 1px solid var(--line);
     border-radius: 12px;
-    background: white
+    background: var(--surface)
 }
 
 .date-input > img {
@@ -185,7 +185,7 @@
     top: 13px;
     font-size: 14px;
     line-height: 18px;
-    color: #121212b3;
+    color: color-mix(in srgb, var(--ink) 70%, transparent);
     pointer-events: none
 }
 
@@ -211,7 +211,7 @@
 .maintenance-card {
     margin-top: 42px;
     overflow: hidden;
-    box-shadow: 0 6px 24px -16px #14291e40
+    box-shadow: 0 6px 24px -16px var(--shadow)
 }
 
 /* Largura mínima: abaixo disso a tabela rola na horizontal */
@@ -229,7 +229,7 @@
 }
 
 .maintenance-page .table-scroll:focus-visible {
-    outline: 2px solid #b58b36;
+    outline: 2px solid var(--focus);
     outline-offset: -2px
 }
 
@@ -242,46 +242,46 @@
     display: inline-block;
     border-radius: 6px;
     padding: 3px 7px;
-    background: #f8f1dd;
-    color: #7b5c17;
+    background: var(--warning-soft);
+    color: var(--warning);
     font-size: 10px;
     font-weight: 600
 }
 
 .maintenance-badge.agendada {
-    background: #e9efff;
-    color: #34569a
+    background: var(--info-soft);
+    color: var(--info)
 }
 
 .maintenance-badge.concluida {
-    background: #e7f5ec;
-    color: #235338
+    background: var(--success-soft);
+    color: var(--success)
 }
 
 .maintenance-badge.cancelada {
-    background: #eee;
-    color: #616761
+    background: var(--surface-3);
+    color: var(--muted)
 }
 
 /* Prioridades (classe "priority-" + valor) */
 .priority-urgente {
-    color: #a53232;
-    background: #fdebea
+    color: var(--danger);
+    background: var(--danger-soft)
 }
 
 .priority-alta {
-    color: #885315;
-    background: #fff2df
+    color: color-mix(in srgb, var(--warning) 75%, var(--danger));
+    background: var(--warning-soft)
 }
 
 .priority-media {
-    color: #775f21;
-    background: #faf3dd
+    color: var(--warning);
+    background: color-mix(in srgb, var(--warning-soft) 60%, var(--surface))
 }
 
 .priority-baixa {
-    color: #396545;
-    background: #edf5ef
+    color: var(--accent-ink);
+    background: var(--accent-soft)
 }
 
 .maintenance-main > .data-notice {
@@ -411,7 +411,7 @@
 
     .maintenance-page .new-client {
         width: auto;
-        box-shadow: 0 6px 12px #14291e55;
+        box-shadow: 0 6px 12px var(--shadow);
         font-size: 12px;
         padding: 0 12px
     }

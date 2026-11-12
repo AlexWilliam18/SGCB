@@ -56,7 +56,14 @@ $inicial = mb_strtoupper(mb_substr($usuario['nome'] ?: $usuario['email'], 0, 1))
 endforeach; ?>
     </nav>
     <!-- Usuário logado (dados da sessão gravados por Autenticacao::entrar) e botão Sair -->
-    <div class="user-box"><button class="user-profile" id="open-profile" type="button" aria-haspopup="dialog"
+    <!-- Clicar no usuário abre o menu do perfil (painel.js): Perfil, Tema, Cor de destaque e Sair.
+         A escolha fica salva no navegador e é aplicada pelo script do head.php. -->
+    <div class="profile-menu" id="profile-menu" role="menu" aria-label="Menu do perfil" hidden>
+      <button class="profile-menu-item" type="button" role="menuitem" id="profile-info"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Perfil</button>
+<?php require __DIR__ . '/opcoes-tema.php'; ?>
+      <a class="profile-menu-item danger" role="menuitem" href="<?= $urlSair ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sair</a>
+    </div>
+    <div class="user-box"><button class="user-profile" id="open-profile" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="profile-menu"
         data-name="<?= htmlspecialchars($usuario['nome']) ?>" data-email="<?= htmlspecialchars($usuario['email']) ?>"
         data-role="<?= htmlspecialchars($usuario['cargo_nome']) ?>"><span class="avatar"><?= htmlspecialchars($inicial) ?></span><span class="user-info"><strong><?= htmlspecialchars($usuario['nome']) ?></strong><span><?= htmlspecialchars($usuario['cargo_codigo']) ?></span></span></button><a class="logout" href="<?= $urlSair ?>"><img src="<?= $iconesNav ?>sair.svg" alt="" width="16" height="16">Sair</a></div>
   </aside>

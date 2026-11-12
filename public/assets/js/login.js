@@ -47,7 +47,6 @@ document.getElementById('login-form').addEventListener('submit', () => {
 
 [
   ['forgot-password', 'help-dialog'],
-  ['open-library', 'library-dialog'],
 ].forEach(([buttonId, dialogId]) => {
   const dialog = document.getElementById(dialogId);
   document.getElementById(buttonId).addEventListener('click', () => dialog.showModal());

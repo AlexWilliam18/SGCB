@@ -18,11 +18,11 @@
    1. Área principal, título e botões
    ========================================================================== */
 
-/* Cores da tela (cinzas do Figma) */
+/* Cores da tela: apontam para o tema (tema.css), assim acompanham claro/escuro */
 .contract-form-page {
-  --contract-border: #e5e7eb;
-  --contract-ink: #111827;
-  --contract-muted: #6b7280;
+  --contract-border: var(--line);
+  --contract-ink: var(--ink);
+  --contract-muted: var(--muted);
 }
 
 .contract-form-main {
@@ -37,18 +37,18 @@
 .contract-intro { display: flex; justify-content: space-between; align-items: center; gap: 20px; min-height: 58px; margin-bottom: 20px; }
 .contract-breadcrumb { color: var(--contract-muted); font-size: 10px; font-weight: 700; line-height: 15px; }
 .contract-intro h2 { margin-top: 4px; font-family: Figtree, Arial, sans-serif; font-size: 28px; line-height: 34px; font-weight: 700; }
-.contract-intro p:last-child { margin-top: 6px; font-size: 13px; line-height: 18px; color: #6f746f; }
+.contract-intro p:last-child { margin-top: 6px; font-size: 13px; line-height: 18px; color: var(--muted); }
 
 /* Botão "← Voltar": o outline-button do dashboard.css com o ajuste usado no cadastro de produto */
 .contract-intro .outline-button { gap: 6px; min-width: 96px; min-height: 40px; margin-right: 6px; padding: 0 20px; flex-shrink: 0; border-radius: 9px; color: var(--ink); font-family: Figtree, Arial, sans-serif; font-size: 13px; font-weight: 700; }
 .contract-form-main > .data-notice { margin-bottom: 18px; }
 
 /* Botão padrão (contorno) e botão principal (verde) */
-.contract-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 11px 20px; border: 1px solid var(--contract-border); border-radius: 8px; background: #fff; color: var(--forest); font: 700 13px/20px Inter, Arial, sans-serif; text-align: center; cursor: pointer; }
-.contract-button:hover { background: #f0f5f1; }
+.contract-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 11px 20px; border: 1px solid var(--contract-border); border-radius: 8px; background: var(--surface); color: var(--accent-ink); font: 700 13px/20px Inter, Arial, sans-serif; text-align: center; cursor: pointer; }
+.contract-button:hover { background: var(--accent-soft); }
 .contract-button:disabled { opacity: .6; cursor: default; }
-.contract-primary { color: #fff; background: var(--forest); border-color: var(--forest); }
-.contract-primary:hover { background: #123b28; }
+.contract-primary { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+.contract-primary:hover { background: var(--accent-hover); }
 
 /* ==========================================================================
    2. Cartões das etapas e campos
@@ -57,28 +57,28 @@
 /* Formulário à esquerda, resumo à direita */
 .contract-layout { display: grid; grid-template-columns: minmax(0, 1fr) 374px; gap: 24px; align-items: start; }
 .contract-fields { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-.contract-card { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 24px; background: #fff; border: 1px solid var(--contract-border); border-radius: 10px; }
+.contract-card { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 24px; background: var(--surface); border: 1px solid var(--contract-border); border-radius: 10px; }
 
 /* Número da etapa no quadrado verde claro + título */
 .step-heading { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-.step-number { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border-radius: 8px; background: #d8f3dc; color: var(--forest); font-size: 13px; font-weight: 700; }
+.step-number { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border-radius: 8px; background: var(--accent-soft-2); color: var(--accent-ink); font-size: 13px; font-weight: 700; }
 .contract-card h3 { font-size: 17px; line-height: 25px; }
 .section-help { font-size: 12px; line-height: 18px; color: var(--contract-muted); }
 
 /* Rótulo em cima e campo embaixo */
 .contract-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: 12px; line-height: 18px; font-weight: 700; }
-.contract-field input, .contract-field select, .contract-field textarea, .readonly-output, .item-subtotal { width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--contract-border); border-radius: 10px; background: #fff; color: var(--contract-ink); font: 400 13px/normal Inter, Arial, sans-serif; }
+.contract-field input, .contract-field select, .contract-field textarea, .readonly-output, .item-subtotal { width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--contract-border); border-radius: 10px; background: var(--surface); color: var(--contract-ink); font: 400 13px/normal Inter, Arial, sans-serif; }
 /* Seta oficial (icones/seta-baixo.svg) no lugar da seta nativa, que fica colada na borda.
    Fica a 16px da borda direita, como nos filtros; o padding evita que o texto passe por baixo dela. */
-.contract-field select { appearance: none; -webkit-appearance: none; padding-right: 40px; background: #fff url("../img/icones/seta-baixo.svg") no-repeat right 16px center / 10px 6px; cursor: pointer; }
-.contract-field input[readonly], .readonly-output { background: #f8f9fa; color: #4b5563; }
-.contract-field input:disabled { background: #f3f4f6; color: #9ca3af; cursor: default; }
+.contract-field select { appearance: none; -webkit-appearance: none; padding-right: 40px; background: var(--surface) url("../img/icones/seta-baixo.svg") no-repeat right 16px center / 10px 6px; cursor: pointer; }
+.contract-field input[readonly], .readonly-output { background: var(--surface-2); color: var(--muted); }
+.contract-field input:disabled { background: var(--surface-2); color: var(--subtle); cursor: default; }
 .contract-field textarea { height: auto; min-height: 110px; padding: 12px; resize: vertical; line-height: 21px; }
-.contract-field input::placeholder, .contract-field textarea::placeholder { color: #9ca3af; }
+.contract-field input::placeholder, .contract-field textarea::placeholder { color: var(--subtle); }
 /* Campo recusado (pela tela ou pelo servidor) */
-.contract-field [aria-invalid=true] { border-color: #ad4137; background-color: #fffafa; }
+.contract-field [aria-invalid=true] { border-color: var(--danger); background-color: color-mix(in srgb, var(--danger-soft) 40%, var(--surface)); }
 .readonly-output, .item-subtotal { display: flex; align-items: center; overflow-wrap: anywhere; }
-.item-subtotal { background: #edf6ee; color: var(--forest); font-weight: 700; }
+.item-subtotal { background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; }
 .field-hint { font-size: 11px; line-height: 18px; font-weight: 400; color: var(--contract-muted); }
 .optional-label { font-weight: 400; color: var(--contract-muted); }
 .character-count { margin-top: -10px; text-align: right; font-size: 10px; color: var(--contract-muted); }
@@ -95,10 +95,10 @@
 
 .client-search { max-width: 640px; }
 /* Caixa cinza com os dados cadastrais do cliente */
-.client-data { display: flex; flex-direction: column; gap: 14px; padding: 16px; border: 1px solid var(--contract-border); border-radius: 10px; background: #f8f9fa; }
+.client-data { display: flex; flex-direction: column; gap: 14px; padding: 16px; border: 1px solid var(--contract-border); border-radius: 10px; background: var(--surface-2); }
 .client-data-heading { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .client-data-heading strong { font-size: 15px; line-height: 23px; }
-.source-tag { padding: 2px 7px; border: 1px solid #d6e4d9; border-radius: 5px; background: #edf6ee; color: var(--forest); font-size: 10px; line-height: 16px; white-space: nowrap; }
+.source-tag { padding: 2px 7px; border: 1px solid var(--accent-line); border-radius: 5px; background: var(--accent-soft); color: var(--accent-ink); font-size: 10px; line-height: 16px; white-space: nowrap; }
 .client-data-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 20px; margin: 0; }
 .client-data-grid dt, .registered-address > span { font-size: 11px; line-height: 17px; color: var(--contract-muted); }
 .client-data-grid dd { margin: 3px 0 0; font-size: 13px; line-height: 20px; overflow-wrap: anywhere; }
@@ -119,15 +119,15 @@
 .address-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; min-width: 0; margin: 0; padding: 0; border: 0; }
 .address-option { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 16px; border: 1px solid var(--contract-border); border-radius: 10px; cursor: pointer; }
 /* Cartão marcado: fundo verde claro e borda verde */
-.address-option:has(input:checked) { border-color: var(--forest); background: #d8f3dc; }
+.address-option:has(input:checked) { border-color: var(--accent); background: var(--accent-soft-2); }
 .address-option-title { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 20px; font-weight: 700; }
-.address-option:has(input:checked) .address-option-title { color: var(--forest); }
-.address-option input { width: 14px; height: 14px; margin: 0; accent-color: var(--forest); }
+.address-option:has(input:checked) .address-option-title { color: var(--accent-ink); }
+.address-option input { width: 14px; height: 14px; margin: 0; accent-color: var(--accent); }
 .address-option small { font-size: 11px; line-height: 18px; color: var(--contract-muted); overflow-wrap: anywhere; }
 /* Opção indisponível (cliente sem endereço cadastrado) */
 .address-option:has(input:disabled) { cursor: not-allowed; opacity: .6; }
 /* Campos preenchidos com o endereço do cliente: só leitura (desativados) */
-.address-grid input:disabled, .address-bottom-grid input:disabled, .address-bottom-grid select:disabled { background: #f3f5f4; color: var(--contract-muted); }
+.address-grid input:disabled, .address-bottom-grid input:disabled, .address-bottom-grid select:disabled { background: var(--surface-2); color: var(--contract-muted); }
 .address-grid { grid-template-columns: 148fr 330fr 110fr 184fr; }
 .address-bottom-grid { grid-template-columns: 200fr 80fr 220fr 272fr; }
 
@@ -136,7 +136,7 @@
    ========================================================================== */
 
 /* "+ Adicionar item" à direita do título */
-.add-item { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 5px 0 5px 10px; border: 0; background: none; color: var(--forest); font: 700 12px Inter, Arial, sans-serif; cursor: pointer; }
+.add-item { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 5px 0 5px 10px; border: 0; background: none; color: var(--accent-ink); font: 700 12px Inter, Arial, sans-serif; cursor: pointer; }
 .add-item:hover, .remove-item:hover { text-decoration: underline; }
 .rental-items { display: flex; flex-direction: column; gap: 20px; }
 .rental-item { display: flex; flex-direction: column; gap: 16px; min-width: 0; margin: 0; padding: 18px; border: 1px solid var(--contract-border); border-radius: 10px; }
@@ -148,21 +148,21 @@
 .physical-units legend { margin-bottom: 8px; padding: 0; font-size: 12px; line-height: 18px; font-weight: 700; }
 .unit-options { display: flex; flex-wrap: wrap; gap: 8px; }
 .unit-option { display: flex; align-items: center; gap: 7px; padding: 9px 10px; border: 1px solid var(--contract-border); border-radius: 8px; font-size: 12px; cursor: pointer; }
-.unit-option:has(input:checked) { border-color: #8eb59a; background: #edf6ee; color: var(--forest); }
+.unit-option:has(input:checked) { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-ink); }
 /* Ocupado no período ou já escolhido em outro item: riscado e apagado */
-.unit-option:has(input:disabled) { background: #f9fafb; color: #9ca3af; text-decoration: line-through; cursor: default; }
-.unit-option input { width: 14px; height: 14px; margin: 0; accent-color: var(--forest); }
+.unit-option:has(input:disabled) { background: var(--surface-2); color: var(--subtle); text-decoration: line-through; cursor: default; }
+.unit-option input { width: 14px; height: 14px; margin: 0; accent-color: var(--accent); }
 .unit-availability { margin-top: 8px; }
-.unit-availability.has-selection { color: var(--forest); }
+.unit-availability.has-selection { color: var(--accent-ink); }
 .item-bottom { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
-.remove-item { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 5px 0; border: 0; background: none; color: #9b3d35; font: 11px Inter, Arial, sans-serif; cursor: pointer; }
+.remove-item { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 5px 0; border: 0; background: none; color: var(--danger); font: 11px Inter, Arial, sans-serif; cursor: pointer; }
 
 /* ==========================================================================
    6. Resumo lateral (fica parado enquanto o formulário rola)
    ========================================================================== */
 
 .contract-summary { position: sticky; top: 24px; max-height: calc(100dvh - 48px); overflow: hidden; gap: 16px; }
-.summary-details { display: flex; flex-direction: column; flex: 1; gap: 18px; min-height: 100px; padding-right: 6px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #cad8ce transparent; }
+.summary-details { display: flex; flex-direction: column; flex: 1; gap: 18px; min-height: 100px; padding-right: 6px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--accent-line) transparent; }
 .summary-details > * { flex-shrink: 0; }
 .summary-footer { display: flex; flex-direction: column; flex-shrink: 0; gap: 10px; }
 .contract-summary h3 { font-size: 20px; line-height: 29px; }
@@ -180,30 +180,30 @@
 .summary-products span { display: block; font-size: 11px; color: var(--contract-muted); }
 .summary-notes { font-size: 12px; line-height: 20px; white-space: pre-wrap; overflow-wrap: anywhere; }
 /* Caixa verde com o total */
-.summary-total { padding: 16px; border-radius: 10px; background: var(--forest); color: #fff; }
+.summary-total { padding: 16px; border-radius: 10px; background: var(--accent); color: var(--on-accent); }
 .summary-total span { display: block; font-size: 12px; font-weight: 700; line-height: 18px; }
 .summary-total strong { display: block; margin-top: 4px; font-size: 28px; line-height: 40px; overflow-wrap: anywhere; }
 /* Pendências: verde quando completo, amarelo quando falta algo */
-.completeness { padding: 14px; border-radius: 8px; background: #d8f3dc; color: var(--forest); }
+.completeness { padding: 14px; border-radius: 8px; background: var(--accent-soft-2); color: var(--accent-ink); }
 .completeness strong { display: block; font-size: 13px; line-height: 20px; }
 .completeness p, .completeness li { font-size: 11px; line-height: 18px; }
 .completeness p { margin-top: 6px; }
 .completeness ul { max-height: 90px; margin: 8px 0 0; padding-left: 18px; overflow-y: auto; }
-.completeness.is-pending { background: #fff5df; color: #805b16; }
+.completeness.is-pending { background: var(--warning-soft); color: var(--warning); }
 .summary-footer > .contract-button { width: 100%; }
-.contract-error { font-size: 12px; line-height: 19px; color: #a42e28; }
+.contract-error { font-size: 12px; line-height: 19px; color: var(--danger); }
 
 /* ==========================================================================
    7. Diálogos (Prévia do contrato, Contrato gerado com sucesso, Cancelar cadastro?)
    ========================================================================== */
 
-.contract-modal { width: min(460px, calc(100% - 32px)); max-height: 88vh; padding: 24px; overflow: auto; border: 1px solid var(--contract-border); border-radius: 12px; color: var(--contract-ink); font-family: Inter, Arial, sans-serif; }
+.contract-modal { width: min(460px, calc(100% - 32px)); max-height: 88vh; padding: 24px; overflow: auto; border: 1px solid var(--contract-border); border-radius: 12px; background: var(--surface); color: var(--contract-ink); font-family: Inter, Arial, sans-serif; }
 #preview-dialog { width: min(560px, calc(100% - 32px)); }
-.contract-modal::backdrop { background: #14291e80; backdrop-filter: blur(3px); }
+.contract-modal::backdrop { background: var(--overlay); backdrop-filter: blur(3px); }
 .contract-modal h2 { font-size: 18px; line-height: 26px; }
 .contract-modal .contract-sheet { margin-top: 10px; }
 .modal-text { margin-top: 8px; font-size: 12px; line-height: 18px; color: var(--contract-muted); }
-.modal-error { margin-top: 12px; font-size: 12px; color: #a42e28; }
+.modal-error { margin-top: 12px; font-size: 12px; color: var(--danger); }
 .modal-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
 .modal-actions .contract-button { width: 100%; }
 

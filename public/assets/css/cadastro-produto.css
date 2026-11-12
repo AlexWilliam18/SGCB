@@ -21,8 +21,8 @@
    ========================================================================== */
 
 .product-form-page {
-    background: #f8f7f5;
-    color: #171917
+    background: var(--bg);
+    color: var(--ink)
 }
 
 /* Área de trabalho com a fonte Inter do formulário */
@@ -47,7 +47,7 @@
     margin-top: 6px;
     font-size: 10px;
     line-height: 12px;
-    color: #747a76
+    color: var(--muted)
 }
 
 .product-main {
@@ -76,7 +76,7 @@
 
 .product-intro p {
     margin-top: 6px;
-    color: #6f746f;
+    color: var(--muted);
     font-size: 13px;
     line-height: 18px
 }
@@ -105,7 +105,7 @@
 .product-card {
     border: 1px solid var(--line);
     border-radius: 18px;
-    background: white;
+    background: var(--surface);
     overflow: hidden
 }
 
@@ -128,7 +128,7 @@
 /* Textos de ajuda abaixo do título da seção e dos campos */
 .section-hint,
 .hint {
-    color: #747a76;
+    color: var(--muted);
     font-size: 10px;
     line-height: 15px
 }
@@ -160,34 +160,34 @@
     width: 100%;
     height: 40px;
     padding: 0 16px;
-    border: 1px solid #d8dad6;
+    border: 1px solid var(--line-strong);
     border-radius: 8px;
-    background: white;
+    background: var(--surface);
     font: 400 13px/20px Inter, Arial, sans-serif;
-    color: #171917;
+    color: var(--ink);
     outline-offset: 2px
 }
 
 .field input::placeholder,
 .field textarea::placeholder {
-    color: #747a76;
+    color: var(--subtle);
     opacity: 1
 }
 
 .field :is(input, select, textarea):focus-visible {
-    outline: 2px solid var(--forest);
-    border-color: var(--forest)
+    outline: 2px solid var(--accent-ink);
+    border-color: var(--accent-ink)
 }
 
 /* Campo com erro (aria-invalid definido pelo cadastro-produto.js) */
 .field [aria-invalid=true] {
-    border-color: #a7342c
+    border-color: var(--danger)
 }
 
 .field-error {
     font-size: 11px;
     line-height: 16px;
-    color: #a7342c;
+    color: var(--danger);
     margin-top: 6px
 }
 
@@ -225,7 +225,7 @@
     position: absolute;
     right: 20px;
     bottom: 12px;
-    color: #747a76;
+    color: var(--subtle);
     font-size: 10px;
     line-height: 12px
 }
@@ -296,16 +296,16 @@
 /* Caixa verde-clara com o exemplo de preços */
 .price-example {
     padding: 10px 16px;
-    border: 1px solid #deebe5;
+    border: 1px solid var(--accent-line);
     border-radius: 12px;
-    background: #f6faf8;
-    color: #747a76;
+    background: var(--accent-soft);
+    color: var(--muted);
     font-size: 10px;
     line-height: 15px
 }
 
 .price-example strong {
-    color: #184c39;
+    color: var(--accent-ink);
     margin-right: 5px
 }
 
@@ -372,14 +372,14 @@
     min-height: 38px;
     border: 0;
     border-radius: 8px;
-    background: #184c39;
-    color: white;
+    background: var(--accent);
+    color: var(--on-accent);
     padding: 0 18px;
     font: 700 13px/20px Inter, Arial, sans-serif
 }
 
 .save-product:hover:not(:disabled) {
-    background: var(--forest-light)
+    background: var(--accent-hover)
 }
 
 /* Desabilitado enquanto as opções não carregam ou durante o salvamento */
