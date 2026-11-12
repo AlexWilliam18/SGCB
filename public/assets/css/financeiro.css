@@ -80,22 +80,6 @@
     object-fit: cover
 }
 
-.upcoming-icon {
-    position: relative;
-    display: block;
-    overflow: hidden;
-    width: 40px;
-    height: 40px
-}
-
-.upcoming-icon img {
-    position: absolute;
-    left: 6px;
-    top: 8px;
-    display: block;
-    object-fit: cover
-}
-
 /* Valores em R$ podem ser longos: quebram e usam números de largura fixa */
 .finance-page .stat-value {
     overflow-wrap: anywhere;

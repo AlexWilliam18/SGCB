@@ -372,7 +372,8 @@ h2 {
 .icone--m { width: 17px; height: 17px; }     /* campo de pesquisa */
 .icone--g { width: 22px; height: 22px; }     /* campo de data (Período) */
 .icone--xg { width: 32px; height: 32px; }    /* lista vazia */
-.icone--seta { width: 10px; height: 6px; }   /* seta para baixo dos selects */
+.icone--seta { width: 10px; height: 6px; }
+.icone--ok { width: 28px; height: 24px; }    /* visto (ok.svg): cards e diálogo de sucesso */   /* seta para baixo dos selects */
 
 /* Área principal com os blocos do painel empilhados */
 .dashboard {

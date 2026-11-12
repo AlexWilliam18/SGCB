@@ -156,7 +156,7 @@ require __DIR__ . '/../../../includes/head.php';
           <div class="summary-footer">
             <div class="summary-total"><span id="total-label">Total do contrato</span><strong id="summary-total">R$ 0,00</strong></div>
             <p class="field-hint" id="total-hint">Itens × períodos do contrato, mais frete e despesas gerais. Caução separada do total.</p>
-            <div class="completeness" id="completeness"><strong id="completeness-title"></strong><ul id="pending-fields"></ul><p id="completeness-description"></p></div>
+            <div class="completeness" id="completeness"><strong><img class="icone completeness-ok" src="<?= $icones ?>ok.svg" alt="" width="16" height="14"><span id="completeness-title"></span></strong><ul id="pending-fields"></ul><p id="completeness-description"></p></div>
             <p id="form-error" class="contract-error" role="alert" hidden></p>
             <button type="submit" class="contract-button contract-primary" id="save-contract">Conferir e salvar</button>
             <a class="contract-button" href="<?= $urlLista ?>">Cancelar</a>
@@ -189,7 +189,7 @@ require __DIR__ . '/../../../includes/head.php';
   <dialog class="contract-modal" id="preview-dialog" aria-labelledby="preview-title"><h2 id="preview-title">Prévia do contrato</h2><div class="contract-sheet" id="preview-sheet"></div><p class="modal-error" id="save-error" role="alert" hidden></p><div class="modal-actions"><button class="contract-button contract-primary" type="button" id="confirm-save">Confirmar e salvar</button><button class="contract-button" type="button" id="close-preview">Fechar prévia</button></div></dialog>
 
   <!-- Diálogo "Contrato gerado com sucesso" (depois de salvar) -->
-  <dialog class="contract-modal" id="success-dialog" aria-labelledby="success-title"><h2 id="success-title">Contrato gerado com sucesso</h2><span class="icon icon-success" aria-hidden="true"></span><p class="modal-text" id="success-text">O documento está pronto para conferência.</p><div class="modal-actions"><a class="contract-button contract-primary" id="view-document" href="<?= $urlLista ?>">Visualizar documento</a><button class="contract-button" type="button" id="new-contract">Voltar ao cadastro</button></div></dialog>
+  <dialog class="contract-modal" id="success-dialog" aria-labelledby="success-title"><h2 id="success-title">Contrato gerado com sucesso</h2><img class="icone icone--ok success-icon" src="<?= $icones ?>ok.svg" alt="" width="28" height="24"><p class="modal-text" id="success-text">O documento está pronto para conferência.</p><div class="modal-actions"><a class="contract-button contract-primary" id="view-document" href="<?= $urlLista ?>">Visualizar documento</a><button class="contract-button" type="button" id="new-contract">Voltar ao cadastro</button></div></dialog>
 
 <?php require __DIR__ . '/../../../includes/dialogo-descartar.php'; ?>
 <?php require __DIR__ . '/../../../includes/footer.php'; ?>

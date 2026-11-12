@@ -552,7 +552,7 @@
     const issues = getIssues();
     if (!issues.length && calcMessage) issues.push({ text: calcMessage, element: field('client') });
     $('#completeness').classList.toggle('is-pending', issues.length > 0);
-    $('#completeness-title').textContent = issues.length ? `${issues.length} pendência(s) para conferir` : '✓ Dados obrigatórios completos';
+    $('#completeness-title').textContent = issues.length ? `${issues.length} pendência(s) para conferir` : 'Dados obrigatórios completos';
     $('#completeness-description').textContent = issues.length ? 'Preencha ou corrija os campos indicados.' : 'Cliente, entrega, período, contêineres e condições comerciais conferidos.';
     $('#pending-fields').replaceChildren();
     $('#pending-fields').hidden = !issues.length;
