@@ -17,6 +17,21 @@ final class Categoria extends Modelo
         return array_map([self::class, 'formatar'], $linhas);
     }
 
+    /**
+     * Categorias com a quantidade de produtos de cada uma (pop-up de categorias):
+     * a tela usa "produtos" para avisar que uma categoria em uso não pode ser excluída.
+     */
+    public static function listarComUso(): array
+    {
+        $linhas = self::pdo()->query(
+            'SELECT c.id, c.nome, c.ativo, COUNT(p.id) AS produtos
+               FROM categorias c LEFT JOIN produtos p ON p.categoria_id = c.id
+              GROUP BY c.id, c.nome, c.ativo ORDER BY c.nome'
+        )->fetchAll();
+
+        return array_map(static fn (array $c): array => self::formatar($c) + ['produtos' => (int) $c['produtos']], $linhas);
+    }
+
     public static function buscar(int $id): ?array
     {
         $consulta = self::pdo()->prepare('SELECT id, nome, ativo FROM categorias WHERE id = :id');
@@ -66,7 +81,7 @@ final class Categoria extends Modelo
     }
 
     /**
-     * Ativar/inativar (método inativar do diagrama): só faz UPDATE ativo, nunca DELETE.
+     * Ativar/inativar (método inativar do diagrama): só faz UPDATE ativo (a exclusão é o excluir(), só do administrador).
      * Inativa, a categoria continua listada mas não pode ser escolhida em produto novo;
      * os produtos que já a usam continuam exibindo a categoria normalmente.
      */
@@ -77,6 +92,39 @@ final class Categoria extends Modelo
         self::transacao(static function (PDO $pdo) use ($id, $ativo, $usuarioId): void {
             $pdo->prepare('UPDATE categorias SET ativo = :ativo WHERE id = :id')->execute(['ativo' => $ativo ? 1 : 0, 'id' => $id]);
             self::auditar($usuarioId, 'categorias', $id, $ativo ? 'ATIVAR' : 'INATIVAR');
+        });
+    }
+
+    /**
+     * Exclusão definitiva (DELETE), só para o administrador (o controller exige o cargo ADMIN).
+     * Regras: a categoria precisa estar desativada antes (desativar → excluir) e não pode ter
+     * nenhum produto vinculado; com produtos, ela continua existindo como inativa.
+     */
+    public static function excluir(int $id, int $usuarioId): void
+    {
+        self::transacao(static function (PDO $pdo) use ($id, $usuarioId): void {
+            $consulta = $pdo->prepare('SELECT nome, ativo FROM categorias WHERE id = :id FOR UPDATE');
+            $consulta->execute(['id' => $id]);
+            $categoria = $consulta->fetch();
+            if (!$categoria) {
+                throw new ErroValidacao('Categoria não encontrada.', [], 404);
+            }
+            if ($categoria['ativo']) {
+                throw new ErroValidacao('Desative a categoria antes de excluí-la.', [], 409);
+            }
+            $uso = $pdo->prepare('SELECT COUNT(*) FROM produtos WHERE categoria_id = :id');
+            $uso->execute(['id' => $id]);
+            $produtos = (int) $uso->fetchColumn();
+            if ($produtos > 0) {
+                throw new ErroValidacao(
+                    "Esta categoria tem $produtos produto(s) vinculado(s). Ela pode ficar desativada, mas não pode ser excluída.",
+                    [],
+                    409
+                );
+            }
+
+            $pdo->prepare('DELETE FROM categorias WHERE id = :id')->execute(['id' => $id]);
+            self::auditar($usuarioId, 'categorias', $id, 'EXCLUIR', ['nome' => $categoria['nome']]);
         });
     }
 

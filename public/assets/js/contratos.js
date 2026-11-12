@@ -324,9 +324,11 @@
     const itens = c.itens || [];
     const unidades = (c.unidades || []).map(u => u.codigo).filter(Boolean);
     const quantidade = itens.reduce((total, i) => total + (i.quantidade || 0), 0);
-    const entrega = c.dados_entrega_snapshot;
+    // Local de entrega do próprio contrato (contrato_enderecos_entrega); a referência vai no fim, se houver.
+    const entrega = c.entrega;
     const endereco = entrega
-      ? `${entrega.rua || ''}, ${entrega.numero || 'S/N'} • ${entrega.bairro || ''} • ${entrega.cidade || ''} - ${entrega.uf || ''} • ${cep(entrega.cep)}`
+      ? `${entrega.rua || ''}, ${entrega.numero || 'S/N'} • ${entrega.bairro || ''} • ${entrega.cidade || ''} - ${entrega.uf || ''} • ${cep(entrega.cep)}` +
+        (entrega.referencia ? ` • Ref.: ${entrega.referencia}` : '')
       : 'endereço não informado';
     const periodo = c.data_fim ? `${date(c.data_inicio)} a ${date(c.data_fim)}` : `a partir de ${date(c.data_inicio)} (prazo indeterminado)`;
     const cobranca = [PERIODICIDADE[c.periodicidade] || c.periodicidade || '—', c.condicao_pagamento].filter(Boolean).join(' • ');

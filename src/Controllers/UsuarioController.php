@@ -8,7 +8,7 @@
  *   GET  api/usuarios/{id}            buscar
  *   POST api/usuarios                 salvar (senha inicial, status e troca de senha no 1º acesso)
  *   POST api/usuarios/{id}            atualizar (nome, e-mail, telefone, cargo)
- *   POST api/usuarios/{id}/status     ativar/desativar ({ "ativo": false })
+ *   POST api/usuarios/{id}/status     ativar/desativar ({ "ativo": false }); administrador (cargo ADMIN) não pode ser desativado
  *   POST api/conta/senha              o próprio usuário troca a senha ({ senha_atual, nova_senha })
  */
 

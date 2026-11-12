@@ -288,11 +288,12 @@
         dl.append(field);
       });
       container.append(dl);
-      (client.enderecos || []).forEach(address => {
+      // Endereço cadastral (um por cliente; o local de entrega fica em cada contrato).
+      [client.endereco].filter(Boolean).forEach(address => {
         const section = document.createElement('section');
         section.className = 'detail-address';
         const heading = document.createElement('h3');
-        heading.textContent = address.principal ? 'Endereço principal' : address.descricao || 'Endereço';
+        heading.textContent = 'Endereço';
         const text = document.createElement('p');
         text.textContent = [
           address.rua,

@@ -74,13 +74,13 @@ try {
 
     // ------------------------------------------------------------------
     secao('Clientes e fornecedores');
-    $endereco = ['principal' => true, 'tipo' => 'COMERCIAL', 'cep' => '12245-000', 'rua' => 'Rua das Flores', 'numero' => '100',
+    $endereco = ['cep' => '12245-000', 'rua' => 'Rua das Flores', 'numero' => '100',
                  'bairro' => 'Centro', 'cidade' => 'São José dos Campos', 'uf' => 'SP', 'complemento' => ''];
 
     $fornecedor = Cliente::cadastrarCliente([
         'tipo_cadastro' => 'FORNECEDOR', 'nome_razao_social' => 'Fornecedora de Contêineres LTDA', 'cpf_cnpj' => '99.888.777/0001-00',
         'email' => 'vendas@fornecedora.com', 'telefone' => '(11) 3333-4444', 'condicao_pagamento_id' => $condicao,
-        'limite_credito' => '0', 'enderecos' => [$endereco],
+        'limite_credito' => '0', 'endereco' => $endereco,
     ], $admin);
     confere($fornecedor['tipo_cadastro'] === 'FORNECEDOR', 'fornecedor (CNPJ) cadastrado');
 
@@ -88,24 +88,32 @@ try {
         'tipo_cadastro' => 'CLIENTE', 'nome_razao_social' => 'João da Silva', 'cpf_cnpj' => '529.982.247-25',
         'email' => 'JOAO@EMAIL.COM', 'telefone' => '(12) 99999-8888', 'nacionalidade' => 'Brasileira', 'profissao' => 'Construção civil',
         'condicao_pagamento_id' => $condicao, 'limite_credito' => '50000,00', 'permite_ultrapassar_limite' => false,
-        'enderecos' => [$endereco, ['principal' => false, 'tipo' => 'ENTREGA', 'cep' => '12245001', 'rua' => 'Av. Obra', 'numero' => 'S/N',
-                                    'bairro' => 'Distrito', 'cidade' => 'Jacareí', 'uf' => 'sp']],
+        'endereco' => $endereco,
     ], $admin);
-    confere($cliente['id'] > 0, 'cliente (CPF) com 2 endereços cadastrado');
+    confere($cliente['id'] > 0, 'cliente (CPF) com endereço cadastrado');
 
     esperaErro(fn () => Cliente::cadastrarCliente(['tipo_cadastro' => 'CLIENTE', 'nome_razao_social' => 'X', 'cpf_cnpj' => '529.982.247-25',
-        'email' => 'x@x.com', 'telefone' => '12999998888', 'condicao_pagamento_id' => $condicao, 'enderecos' => [$endereco]], $admin), 409, 'CPF duplicado');
+        'email' => 'x@x.com', 'telefone' => '12999998888', 'condicao_pagamento_id' => $condicao, 'endereco' => $endereco], $admin), 409, 'CPF duplicado');
     try {
-        Cliente::cadastrarCliente(['tipo_cadastro' => 'CLIENTE', 'cpf_cnpj' => '123.456.789-00', 'enderecos' => [['cep' => '1']]], $admin);
+        Cliente::cadastrarCliente(['tipo_cadastro' => 'CLIENTE', 'cpf_cnpj' => '123.456.789-00', 'endereco' => ['cep' => '1']], $admin);
         confere(false, 'dados inválidos recusados');
     } catch (ErroValidacao $e) {
         $campos = $e->getCampos();
-        confere(isset($campos['cpf_cnpj'], $campos['email'], $campos['enderecos.0.cep'], $campos['enderecos.0.rua']), 'erros por campo no formato da tela (cpf_cnpj, email, enderecos.0.cep...)');
+        confere(isset($campos['cpf_cnpj'], $campos['email'], $campos['endereco.cep'], $campos['endereco.rua']), 'erros por campo no formato da tela (cpf_cnpj, email, endereco.cep...)');
     }
 
     $detalhe = Cliente::buscarCliente($cliente['id']);
     confere($detalhe['email'] === 'joao@email.com' && $detalhe['cpf_cnpj'] === '52998224725', 'e-mail em minúsculas e CPF só com números');
-    confere(count($detalhe['enderecos']) === 2 && $detalhe['enderecos'][0]['principal'] === true, 'endereço principal vem primeiro');
+    confere($detalhe['endereco']['cep'] === '12245000' && $detalhe['endereco']['uf'] === 'SP', 'endereço único: CEP só com números');
+
+    // Edição troca o endereço (pessoa_id é UNIQUE: continua um só).
+    Cliente::atualizarDados($cliente['id'], [
+        'tipo_cadastro' => 'CLIENTE', 'nome_razao_social' => 'João da Silva', 'cpf_cnpj' => '529.982.247-25',
+        'email' => 'joao@email.com', 'telefone' => '(12) 99999-8888', 'condicao_pagamento_id' => $condicao, 'limite_credito' => '50000,00',
+        'endereco' => ['cep' => '12245100'] + $endereco,
+    ], $admin);
+    $qtdEnderecos = Conexao::obter()->query('SELECT COUNT(*) FROM enderecos_pessoa WHERE pessoa_id = ' . (int) $cliente['id'])->fetchColumn();
+    confere((int) $qtdEnderecos === 1 && Cliente::buscarEndereco($cliente['id'])['cep'] === '12245100', 'edição atualiza o mesmo endereço');
 
     $lista = Cliente::listarClientes(['q' => '529.982', 'situacao' => 'ativos']);
     confere($lista['total'] === 1 && $lista['items'][0]['cidade'] === 'São José dos Campos', 'listagem busca por CPF formatado e traz a cidade principal');
@@ -135,7 +143,10 @@ try {
     // ------------------------------------------------------------------
     secao('Contrato');
     $dadosContrato = [
-        'cliente_id' => $cliente['id'], 'endereco_entrega_id' => $detalhe['enderecos'][1]['id'], 'prazo' => 'DETERMINADO',
+        'cliente_id' => $cliente['id'], 'prazo' => 'DETERMINADO',
+        // Entrega em outro endereço (obra), digitado no contrato.
+        'entrega_origem' => 'OUTRO', 'entrega' => ['cep' => '12245001', 'rua' => 'Av. Obra', 'numero' => 'S/N', 'bairro' => 'Distrito',
+                                                  'cidade' => 'Jacareí', 'uf' => 'sp', 'referencia' => 'Portão 2'],
         'data_inicio' => $hoje, 'data_fim' => $em10, 'periodicidade' => 'DIARIA', 'frete_deslocamento' => '50.00',
         'itens' => [['produto_id' => $produto['id'], 'quantidade' => 2, 'desconto' => '0']],
     ];
@@ -144,7 +155,18 @@ try {
     confere($previa['valor_total'] === 2050.0, 'calcularValorTotal: 100 × 2 × 10 dias + 50 frete = 2050');
 
     $contratoId = Contrato::criarContrato($dadosContrato, $admin);
-    confere(Contrato::buscarContrato($contratoId)['status'] === 'RASCUNHO', 'contrato criado como RASCUNHO');
+    $rascunho = Contrato::buscarContrato($contratoId);
+    confere($rascunho['status'] === 'RASCUNHO', 'contrato criado como RASCUNHO');
+    confere($rascunho['entrega']['rua'] === 'Av. Obra' && $rascunho['entrega']['uf'] === 'SP' && $rascunho['entrega']['endereco_do_cliente'] === false,
+        'local de entrega digitado fica no contrato');
+    esperaErro(fn () => Contrato::criarContrato(['entrega_origem' => 'OUTRO', 'entrega' => ['cep' => '1']] + $dadosContrato, $admin), 422,
+        'outro endereço de entrega incompleto');
+    // Entrega no endereço do cliente: o contrato guarda uma cópia do endereço cadastral.
+    $noCliente = Contrato::criarContrato(['entrega_origem' => 'CLIENTE', 'entrega' => ['referencia' => 'Casa azul']] + $dadosContrato, $admin);
+    $entregaCliente = Contrato::buscarContrato($noCliente)['entrega'];
+    confere($entregaCliente['endereco_do_cliente'] === true && $entregaCliente['cep'] === '12245100' && $entregaCliente['referencia'] === 'Casa azul',
+        'entrega no endereço do cliente copia o cadastro');
+    Contrato::cancelarContrato($noCliente, 'Teste', $admin);
     confere(Produto::verificarDisponibilidade($produto['id'], 3, $hoje, $em10), 'rascunho ainda não reserva contêineres');
 
     $gerado = Contrato::gerarContrato($contratoId, $admin);
