@@ -43,8 +43,10 @@ require __DIR__ . '/../../../includes/head.php';
       <!-- Filtros: pesquisa por nome/e-mail, perfil (código do cargo) e status -->
       <form class="filter-card users-filters" id="user-filters" role="search" aria-label="Pesquisar usuários">
         <div class="search-field"><img src="<?= $icones ?>pesquisar.svg" alt="" width="17" height="17"><label class="sr-only" for="user-search">Nome ou e-mail</label><input id="user-search" name="q" type="search" placeholder="Nome ou e-mail" maxlength="200" autocomplete="off"></div>
-        <div class="users-labeled-filter"><label for="user-role">Perfil de acesso</label><div class="select-field"><select id="user-role" name="cargo"><option value="">Todos</option><option value="ADMIN">Administrador</option><option value="OPERADOR">Operador</option></select><img class="icone icone--seta" src="<?= $icones ?>seta-baixo.svg" alt="" width="10" height="6"></div></div>
+        <div class="users-labeled-filter"><label for="user-role">Perfil de acesso</label><div class="select-field"><select id="user-role" name="cargo"><option value="">Todos</option><option value="ADMIN">Dono</option><option value="OPERADOR">Operador</option></select><img class="icone icone--seta" src="<?= $icones ?>seta-baixo.svg" alt="" width="10" height="6"></div></div>
         <div class="users-labeled-filter"><label for="user-status">Status</label><div class="select-field"><select id="user-status" name="situacao"><option value="">Todos</option><option value="ativos">Ativos</option><option value="inativos">Inativos</option></select><img class="icone icone--seta" src="<?= $icones ?>seta-baixo.svg" alt="" width="10" height="6"></div></div>
+        <!-- Ordem alfabética (A → Z / Z → A); vazio = A → Z, que já é o padrão desta tela -->
+        <div class="users-labeled-filter"><label for="user-order">Ordem</label><div class="select-field"><select id="user-order" name="ordem"><option value="">A → Z</option><option value="za">Z → A</option></select><img class="icone icone--seta" src="<?= $icones ?>seta-baixo.svg" alt="" width="10" height="6"></div></div>
         <button class="clear-filters" id="clear-user-filters" type="button"><img src="<?= $icones ?>limpar-filtro.svg" alt="" width="16" height="16">Limpar</button><button class="sr-only" type="submit">Pesquisar</button>
       </form>
 

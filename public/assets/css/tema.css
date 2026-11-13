@@ -350,3 +350,23 @@ img[src*="/img/login/instagram.svg"],    /* ícone do @casabarretto (login) */
   border-top: 0;
   padding-top: 6px;
 }
+
+/* Aviso da busca de endereço pelo CEP (cep.js), abaixo do campo CEP do cliente e da entrega do contrato.
+   data-tipo: carregando (cinza), ok (verde) ou erro (vermelho); some quando vazio. */
+.cep-status {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.cep-status:empty {
+  display: none;
+}
+.cep-status[data-tipo="ok"] {
+  color: var(--success);
+}
+.cep-status[data-tipo="erro"] {
+  color: var(--danger);
+}

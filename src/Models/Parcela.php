@@ -132,7 +132,13 @@ final class Parcela extends Modelo
             't.*',
             'FROM ' . self::SQL_BASE . ' WHERE ' . implode(' AND ', $where),
             $params,
-            "FIELD(t.status, 'ATRASADA', 'PARCIAL', 'ABERTA', 'PAGA', 'CANCELADA'), t.vencimento, t.id",
+            // Com o filtro "Ordem", pelo nome do cliente.
+            self::ordemAlfabetica(
+                $filtros,
+                't.cliente',
+                "FIELD(t.status, 'ATRASADA', 'PARCIAL', 'ABERTA', 'PAGA', 'CANCELADA'), t.vencimento, t.id",
+                't.id'
+            ),
             (int) ($filtros['page'] ?? 1)
         );
         $resultado['items']   = array_map([self::class, 'formatar'], $resultado['items']);

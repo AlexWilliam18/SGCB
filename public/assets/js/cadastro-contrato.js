@@ -45,7 +45,10 @@
     return element;
   };
   // Valor de um <input type="number"> como texto "1234.56" (o formato que a API aceita).
-  const decimal = input => (Number.isFinite(input.valueAsNumber) ? input.valueAsNumber.toFixed(2) : '0.00');
+  // Máscaras e validações compartilhadas (public/assets/js/validacao.js).
+  const V = window.Validacao;
+  // Campos de dinheiro usam a máscara "1.234,56"; para a API vão como texto "1234.56".
+  const decimal = input => V.valorMoeda(input.value).toFixed(2);
 
   // CPF (11) / CNPJ (14) com pontuação; CEP 12345678 → 12345-678.
   function documentLabel(value) {
@@ -143,6 +146,8 @@
     else if (ADDRESS_KEYS.some(key => field(DELIVERY[key]).disabled)) fillDelivery(null); // vinha do cliente: começa vazio
     // Campos desativados não entram na conferência da tela (getIssues); o servidor copia o endereço do cliente.
     for (const key of ADDRESS_KEYS) field(DELIVERY[key]).disabled = fromClient;
+    const status = $('.cep-status');
+    if (status) status.textContent = ''; // aviso da busca de CEP não vale mais
     if (!fromClient && focus) field(DELIVERY.cep).focus();
     update();
   }
@@ -222,7 +227,7 @@
   // Sugere o preço do produto para a periodicidade atual.
   function applyPrice(item) {
     const price = priceFor(currentProduct(item));
-    itemField(item, 'price').value = price !== null ? Number(price).toFixed(2) : '';
+    itemField(item, 'price').value = price !== null ? V.formatarMoeda(price) : '';
   }
 
   // Busca os contêineres do produto e marca quais estão livres nas datas do contrato.
@@ -293,6 +298,11 @@
     $('#rental-items').append(fragment);
     items.push(item);
 
+    // Valores do item formatam a cada número digitado (5 → 0,05 … 150000 → 1.500,00).
+    // Locação unitária pode ficar vazia (é obrigatória: o "Conferir" acusa); os outros voltam a 0,00.
+    V.ligarMoeda(itemField(item, 'price'), { vazioPermitido: true });
+    V.ligarMoeda(itemField(item, 'other'));
+    V.ligarMoeda(itemField(item, 'discount'));
     select.addEventListener('change', () => {
       applyPrice(item);
       loadUnits(item);
@@ -371,6 +381,8 @@
     if (!$('#signatory-fields').hidden) {
       const name = field('signerName').value.trim(), cpf = digits(field('signerDocument').value);
       if ((name || cpf) && (!name || cpf.length !== 11)) issues.push({ text: 'Complete o nome e os 11 dígitos do CPF do responsável, ou deixe ambos vazios.', element: name ? field('signerDocument') : field('signerName') });
+      // 11 dígitos, mas com dígitos verificadores errados (validacao.js).
+      else if (cpf && !V.cpf(cpf)) issues.push({ text: 'CPF do responsável inválido. Confira os números informados.', element: field('signerDocument') });
     }
     if (!items.length) issues.push({ text: 'Adicione pelo menos um produto.', element: $('#add-item') });
     items.forEach((item, index) => {
@@ -380,6 +392,8 @@
         const input = itemField(item, name);
         if ((input.required && !input.value) || !input.validity.valid) issues.push({ text: `Confira os valores do item ${index + 1}.`, element: input });
       }
+      // Locação unitária precisa ser maior que zero (antes era o min="0.01" do campo numérico).
+      if (itemField(item, 'price').value && V.valorMoeda(itemField(item, 'price').value) <= 0) issues.push({ text: `Informe a locação unitária do item ${index + 1}.`, element: itemField(item, 'price') });
     });
     return issues;
   }
@@ -507,7 +521,7 @@
         ['strong', `${codes.length} × ${product.nome}`],
         ['span', codes.join(' • ') || 'Contêineres pendentes'],
         ['span', `Bem: ${reais(product.valor_total_bem)} por unidade`],
-        ['span', `Locação: ${reais(itemField(item, 'price').value)} por unidade · ${billing.toLowerCase()}`],
+        ['span', `Locação: ${reais(V.valorMoeda(itemField(item, 'price').value))} por unidade · ${billing.toLowerCase()}`],
         ['span', `Subtotal: ${calc?.itens?.[index] ? reais(calc.itens[index].subtotal) : '—'}`],
       ];
       lines.forEach(([tag, text]) => {
@@ -536,8 +550,8 @@
     summaryRows('#summary-finance', [
       ['Itens', calc ? reais(calc.valor_itens) : '—', true],
       ['Períodos', calc ? String(calc.numero_periodos).replace('.', ',') : '—'],
-      ['Frete', reais(field('freight').value)], ['Outros', reais(field('other').value)],
-      ['Caução à parte', reais(field('deposit').value)], ['Pagamento', condition?.nome],
+      ['Frete', reais(V.valorMoeda(field('freight').value))], ['Outros', reais(V.valorMoeda(field('other').value))],
+      ['Caução à parte', reais(V.valorMoeda(field('deposit').value))], ['Pagamento', condition?.nome],
       ['Parcelas', installmentText], ['1º vencimento', dateLabel(field('firstDue').value)],
       ['Dia de cobrança', field('dueDay').value ? `Dia ${field('dueDay').value}` : 'Pela condição'],
     ]);
@@ -584,8 +598,8 @@
       ['p', 'contract-line', `Unidades: ${allCodes.join(', ')} • Quantidade: ${allCodes.length}`],
       ['p', 'contract-line', `Período: ${field('term').value === 'DETERMINADO' ? `${dateLabel(field('start').value)} a ${dateLabel(field('end').value)}` : `a partir de ${dateLabel(field('start').value)} (indeterminado)`}`],
       ['p', 'contract-line', `Cobrança: ${BILLING[field('billing').value]} • Itens: ${calc ? reais(calc.valor_itens) : '—'}`],
-      ['p', 'contract-line', `Frete: ${reais(field('freight').value)} • Total: ${calc ? reais(calc.valor_total) : '—'}`],
-      ['p', 'contract-line', `Caução: ${reais(field('deposit').value)}`],
+      ['p', 'contract-line', `Frete: ${reais(V.valorMoeda(field('freight').value))} • Total: ${calc ? reais(calc.valor_total) : '—'}`],
+      ['p', 'contract-line', `Caução: ${reais(V.valorMoeda(field('deposit').value))}`],
       ['p', 'contract-line', `Entrega: ${delivery.rua}, ${delivery.numero} • ${delivery.bairro} • ${delivery.cidade} - ${delivery.uf}`],
       ['p', 'contract-note', field('status').value === 'ATIVO' ? 'Ao confirmar, o contrato é gerado: os contêineres são reservados, o número é criado e as parcelas vão para o Financeiro.' : 'Ao confirmar, o contrato fica salvo como rascunho (sem reservar contêineres).'],
     ];
@@ -694,6 +708,26 @@
     update();
   });
   field('client').addEventListener('change', selectCustomer);
+  // Endereço de entrega digitado ("Outro endereço"): máscara do CEP e busca de rua, bairro, cidade
+  // e estado ao completar os 8 dígitos (cep.js). Com "Endereço do cliente" os campos ficam
+  // desativados e a busca não roda.
+  const cepStatus = document.createElement('small');
+  cepStatus.className = 'cep-status';
+  cepStatus.setAttribute('aria-live', 'polite');
+  field(DELIVERY.cep).closest('label').append(cepStatus);
+  window.BuscaCep.ligar(
+    Object.fromEntries(['cep', 'rua', 'numero', 'bairro', 'cidade', 'uf'].map(key => [key, field(DELIVERY[key])])),
+    cepStatus
+  );
+  // Frete, outras despesas e caução formatam a cada número digitado.
+  ['freight', 'other', 'deposit'].forEach(name => V.ligarMoeda(field(name)));
+  // CPF do responsável: máscara 000.000.000-00 a cada tecla; ao sair do campo, borda vermelha se for inválido.
+  V.ligar(field('signerDocument'), {
+    mascara: V.mascaraCpf,
+    regra: V.cpf,
+    mensagem: 'CPF do responsável inválido.',
+    mostrarErro: (input, message) => (message ? input.setAttribute('aria-invalid', 'true') : input.removeAttribute('aria-invalid')),
+  });
   field('paymentCondition').addEventListener('change', applyCondition);
   field('firstDue').addEventListener('input', () => { firstDueEdited = true; });
   // Datas mudam os contêineres livres e o 1º vencimento sugerido.

@@ -13,7 +13,7 @@ Autenticacao::exigirLogin();
 
 $titulo      = 'Contratos de Locação';
 $css         = ['dashboard.css', 'clientes.css', 'acoes.css', 'contratos.css'];
-$js          = ['painel.js', 'contratos.js'];
+$js          = ['painel.js', 'validacao.js', 'cep.js', 'acoes.js', 'contratos.js'];   // validacao/cep/acoes: formulário de edição
 $classeBody  = 'contracts-page';   // ajustes de layout do contratos.css
 $paginaAtual = 'locacoes';         // item destacado no menu
 
@@ -34,6 +34,8 @@ require __DIR__ . '/../../../includes/head.php';
         <div class="search-field"><img class="icone icone--m" src="<?= $icones ?>pesquisar.svg" alt="" width="17" height="17"><label class="sr-only" for="contract-search">Cliente, CPF/CNPJ ou número do contrato</label><input id="contract-search" name="q" type="search" placeholder="Nome, CPF, CNPJ ou nº do contrato" maxlength="200" autocomplete="off"></div>
         <div class="select-field contract-status-filter"><label class="sr-only" for="contract-status">Status do contrato</label><select id="contract-status" name="status"><option value="">Todos os status</option><option value="ATIVO">Ativo</option><option value="RASCUNHO">Rascunho</option><option value="FINALIZADO">Finalizado</option><option value="CANCELADO">Cancelado</option></select><img class="icone icone--seta" src="<?= $icones ?>seta-baixo.svg" alt="" width="10" height="6"></div>
         <div class="period-filter"><label for="contract-date">Período</label><div class="date-field" id="date-field"><img class="icone icone--g" src="<?= $icones ?>calendario-relogio.png" alt="" width="22" height="22"><input id="contract-date" name="data" type="date"><span class="date-placeholder" id="date-placeholder" aria-hidden="true">Selecione uma data</span></div></div>
+        <!-- Ordem alfabética (A → Z / Z → A); vazio = ordem padrão da tela -->
+        <div class="select-field order-filter"><label class="sr-only" for="contract-order">Ordem</label><select id="contract-order" name="ordem"><option value="">Mais recentes</option><option value="az">A → Z</option><option value="za">Z → A</option></select><img class="icone icone--seta" src="<?= $icones ?>seta-baixo.svg" alt="" width="10" height="6"></div>
         <button class="clear-filters" id="clear-contract-filters" type="button"><img class="icone" src="<?= $icones ?>limpar-filtro.svg" alt="" width="16" height="16">Limpar</button><button class="sr-only" type="submit">Pesquisar</button>
       </form>
 
@@ -45,6 +47,6 @@ require __DIR__ . '/../../../includes/head.php';
     </main>
   </div>
 
-  <!-- Diálogo "Prévia do contrato" (aberto pelo número ou pelo botão "Ver" de cada linha); só visualização -->
+  <!-- Diálogo "Prévia do contrato" (aberto pelo número ou pelo botão "Ver" de cada linha): prévia, edição limitada e versões guardadas -->
   <dialog class="client-dialog contract-dialog" id="contract-dialog" aria-labelledby="contract-dialog-title"><div class="detail-heading"><h2 id="contract-dialog-title">Prévia do contrato</h2><form method="dialog"><button class="detail-close" aria-label="Fechar prévia">×</button></form></div><div id="contract-detail" aria-live="polite"></div></dialog>
 <?php require __DIR__ . '/../../../includes/footer.php'; ?>

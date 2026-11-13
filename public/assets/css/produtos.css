@@ -553,3 +553,9 @@
         padding: 0 16px
     }
 }
+
+/* Seleção "Ordem" (A → Z / Z → A) do cartão de filtros */
+.products-page .order-filter {
+    width: 130px;
+    flex-shrink: 0
+}

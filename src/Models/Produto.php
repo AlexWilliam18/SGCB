@@ -65,7 +65,9 @@ final class Produto extends Modelo
              " . self::SQL_ESTOQUE . '
              WHERE ' . implode(' AND ', $where),
             $params,
-            'p.nome, p.id',
+            // Ordem de cadastro: o id é sequencial (AUTO_INCREMENT), então segue a data de cadastro
+            // mesmo quando criado_em está vazio. Padrão: mais antigo → mais recente.
+            ($filtros['ordem'] ?? '') === 'recentes' ? 'p.id DESC' : 'p.id ASC',
             (int) ($filtros['page'] ?? 1)
         );
 

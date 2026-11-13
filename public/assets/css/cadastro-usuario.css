@@ -105,8 +105,8 @@
 /* Rádio redondo desenhado com CSS */
 .user-role-title{display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px;color:var(--ink)}
 .user-role-title input{appearance:none;display:grid;place-content:center;margin:0;width:13px;height:13px;border:1px solid currentColor;border-radius:50%;color:var(--ink);flex-shrink:0;cursor:pointer}
-.user-role-title input:checked{color:var(--accent-ink)}
-.user-role-title input:checked:before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+/* Perfil selecionado: a bolinha fica totalmente preenchida (sem o anel em volta) */
+.user-role-title input:checked{color:var(--accent-ink);background:currentColor;border-color:currentColor}
 .user-role-description{font-size:12px;line-height:17px;color:var(--muted)}
 
 /* ==========================================================================

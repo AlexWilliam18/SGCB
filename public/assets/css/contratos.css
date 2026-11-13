@@ -48,7 +48,8 @@
 /* Pesquisa ocupa o espaço livre; status e período com largura fixa */
 .contracts-filters {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 205px 205px auto;
+    /* pesquisa | status | período | ordem | limpar */
+    grid-template-columns: minmax(0, 1fr) 205px 205px 160px auto;
     align-items: center;
     gap: 18px;
     padding: 20px 40px 20px 20px
@@ -272,6 +273,140 @@
     margin-top: 20px
 }
 
+/* Histórico de versões (segunda via) abaixo da folha do contrato */
+.contract-versions {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-2)
+}
+
+.contract-versions h4 {
+    margin: 0 0 8px;
+    font-size: 13px
+}
+
+.contract-versions ol {
+    margin: 0;
+    padding: 0;
+    list-style: none
+}
+
+.contract-versions li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    line-height: 18px
+}
+
+.contract-versions li:first-child {
+    border-top: 0
+}
+
+.contract-versions li div {
+    display: grid;
+    min-width: 0;
+    overflow-wrap: anywhere
+}
+
+.contract-versions li span {
+    color: var(--muted)
+}
+
+.contract-versions li.current strong {
+    color: var(--accent-ink)
+}
+
+/* Aviso no topo de uma versão guardada (somente leitura) */
+.contract-version-banner {
+    margin: 0;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-2);
+    font-size: 12px;
+    line-height: 18px
+}
+
+/* Formulário "Editar contrato" (usa o .detail-form do acoes.css em cada bloco) */
+.contract-edit-help {
+    margin: 0;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--muted)
+}
+
+.contract-edit fieldset {
+    min-width: 0;
+    margin: 14px 0 0
+}
+
+.contract-edit legend {
+    padding: 0 4px;
+    font-size: 13px;
+    font-weight: 700
+}
+
+.contract-edit .detail-form-grid {
+    margin-bottom: 0
+}
+
+/* Motivo e observações ocupam a linha inteira */
+.contract-edit .detail-form-grid label.wide {
+    grid-column: 1 / -1
+}
+
+.contract-edit textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 6px 9px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--ink);
+    resize: vertical
+}
+
+.contract-edit input:disabled,
+.contract-edit select:disabled {
+    opacity: .6;
+    cursor: not-allowed
+}
+
+/* Opções "Endereço do cliente" / "Outro endereço" */
+.contract-edit-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 10px;
+    font-size: 13px
+}
+
+.contract-edit-options label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer
+}
+
+.contract-edit .cep-status {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--muted)
+}
+
+.contract-edit .cep-status[data-tipo="erro"] {
+    color: var(--danger)
+}
+
+
 /* ==========================================================================
    6. Responsivo
    ========================================================================== */
@@ -279,7 +414,7 @@
 /* Tablet: pesquisa em linha própria */
 @media(max-width:1200px) {
     .contracts-filters {
-        grid-template-columns: 1fr 1fr auto;
+        grid-template-columns: 1fr 1fr 1fr auto;
         gap: 34px 18px;
         padding: 24px
     }

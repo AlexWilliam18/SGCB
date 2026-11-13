@@ -395,6 +395,22 @@ CREATE TABLE contrato_enderecos_entrega (
   FOREIGN KEY (contrato_id) REFERENCES contratos(id)
 );
 
+-- Versões (segunda via) do contrato: antes de cada correção de um contrato já gerado,
+-- guarda uma cópia completa de como ele estava. versao 1 = original.
+CREATE TABLE contrato_versoes (
+  id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  contrato_id   BIGINT UNSIGNED NOT NULL,
+  versao        INT UNSIGNED NOT NULL,   -- 1 = original, 2, 3...
+  dados         JSON NOT NULL,           -- contrato completo como estava nesta versão
+  motivo        VARCHAR(500) NOT NULL,   -- por que esta versão foi substituída
+  alteracoes    VARCHAR(255),            -- o que mudou (ex.: "Local de entrega, Vencimentos")
+  alterado_por  BIGINT UNSIGNED,         -- quem fez a alteração que substituiu esta versão
+  alterado_em   DATETIME NOT NULL,
+  UNIQUE (contrato_id, versao),
+  FOREIGN KEY (contrato_id) REFERENCES contratos(id),
+  FOREIGN KEY (alterado_por) REFERENCES usuarios(id)
+);
+
 -- Itens do contrato: quais produtos foram alugados, quantidade e valores.
 -- Funciona como a tabela intermediária entre contratos e produtos (N:N).
 CREATE TABLE contrato_itens (

@@ -1,7 +1,7 @@
 'use strict';
 /*
  * Cadastro de usuário: carrega os cargos, valida os campos e grava pela API.
- *   GET  /api/usuarios/opcoes → cargos ativos (ligam os cards Operador/Administrador ao id do cargo) e token CSRF
+ *   GET  /api/usuarios/opcoes → cargos ativos (ligam os cards Operador/Dono ao id do cargo) e token CSRF
  *   POST /api/usuarios        → cria o usuário (UsuarioController::salvar → Usuario::cadastrarUsuario)
  * Modo edição (cadastro.php?id=5, data-edit-id no <main>):
  *   GET  /api/usuarios/5        → preenche o formulário
@@ -15,6 +15,8 @@
     listaUrl = $('user-create-main').dataset.listaUrl,
     // Id do usuário em edição; vazio = cadastro novo.
     editId = $('user-create-main').dataset.editId || '';
+  // Validações e máscaras compartilhadas (public/assets/js/validacao.js).
+  const V = window.Validacao;
   // Status com que o usuário foi carregado (na edição, para saber se precisa chamar a rota de status).
   let originalStatus = '';
   // dirty = há dados não salvos; leaving = saída confirmada; saving = envio em andamento.
@@ -109,7 +111,7 @@
   }
   $('reload-options').addEventListener('click', loadOptions);
 
-  // Perfil Administrador: por segurança o status fica sempre "Ativo" (o servidor também recusa).
+  // Perfil Dono (cargo ADMIN): por segurança o status fica sempre "Ativo" (o servidor também recusa).
   // A opção "Inativo" fica desabilitada e aparece a explicação abaixo do campo.
   function syncAdminStatus() {
     const admin = form.querySelector('input[name="perfil"]:checked')?.dataset.cargo === 'ADMIN';
@@ -135,8 +137,7 @@
       if (!response.ok || !user) throw Error();
       $('nome').value = user.nome || '';
       $('email').value = user.email || '';
-      $('telefone').value = user.telefone || '';
-      $('telefone').dispatchEvent(new Event('blur')); // aplica a máscara do telefone
+      $('telefone').value = V.mascaraTelefone(user.telefone || ''); // aplica a máscara do telefone
       originalStatus = user.ativo ? 'ativo' : 'inativo';
       $('status').value = originalStatus;
       // Marca o card cujo value (id do cargo) é o cargo atual do usuário.
@@ -165,12 +166,28 @@
     dirty = true;
   });
 
-  // Máscara do telefone ao sair do campo: (12) 98888-7777 ou (12) 3888-7777.
-  $('telefone').addEventListener('blur', event => {
-    const digits = event.target.value.replace(/\D/g, '');
-    if (digits.length === 11) event.target.value = digits.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-    else if (digits.length === 10) event.target.value = digits.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-  });
+  const EMAIL_MSG = 'E-mail inválido. Use o formato nome@empresa.com.br.';
+  const PHONE_MSG = 'Telefone inválido. Use DDD + número: (12) 3456-7890 ou (12) 98765-4321.';
+
+  // Mostra (ou esconde, com mensagem vazia) o erro de um único campo, no mesmo formato do showErrors.
+  function fieldError(input, text) {
+    const error = $('error-' + input.id);
+    if (!error) return;
+    error.textContent = text;
+    error.hidden = !text;
+    if (text) {
+      input.setAttribute('aria-invalid', 'true');
+      input.setAttribute('aria-describedby', error.id);
+    } else {
+      input.removeAttribute('aria-invalid');
+      input.removeAttribute('aria-describedby');
+    }
+  }
+
+  // Telefone com máscara a cada tecla: (12) 98888-7777 ou (12) 3888-7777. E-mail e telefone são
+  // conferidos ao sair do campo, para o erro aparecer antes de clicar em Salvar.
+  V.ligar($('telefone'), { mascara: V.mascaraTelefone, regra: V.telefone, mensagem: PHONE_MSG, mostrarErro: fieldError });
+  V.ligar($('email'), { regra: V.email, mensagem: EMAIL_MSG, mostrarErro: fieldError });
 
   // ---------------------------------------------------------------------------
   // Validação no navegador (as mesmas regras são conferidas de novo no model Usuario)
@@ -179,10 +196,10 @@
   function validate() {
     const errors = {};
     if (!$('nome').value.trim()) errors.nome = 'Informe o nome completo.';
-    if (!$('email').value.trim() || !$('email').validity.valid) errors.email = 'Informe um e-mail válido.';
-    const phone = $('telefone').value.replace(/\D/g, '');
-    if ($('telefone').value.trim() && !/^\d{10,11}$/.test(phone))
-      errors.telefone = 'Informe um telefone válido, incluindo o DDD.';
+    if (!$('email').value.trim()) errors.email = 'Informe o e-mail.';
+    else if (!V.email($('email').value)) errors.email = EMAIL_MSG;
+    // Telefone é opcional aqui; se preenchido, precisa ser válido.
+    if ($('telefone').value.trim() && !V.telefone($('telefone').value)) errors.telefone = PHONE_MSG;
     if (!['ativo', 'inativo'].includes($('status').value)) errors.status = 'Selecione o status.';
     // Senha: 8 a 72 caracteres (limite do bcrypt), com letras e números. Na edição a senha não muda.
     const password = $('senha').value;

@@ -60,49 +60,46 @@
     });
     first?.focus();
   }
-  function maskDoc(value) {
-    let d = value.replace(/\D/g, '').slice(0, 14);
-    if (d.length <= 11)
-      return d
-        .replace(/^(\d{3})(\d)/, '$1.$2')
-        .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
-        .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4');
-    return d
-      .replace(/^(\d{2})(\d)/, '$1.$2')
-      .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-      .replace(/\.(\d{3})(\d)/, '.$1/$2')
-      .replace(/(\d{4})(\d)/, '$1-$2');
+  // Validações e máscaras compartilhadas (public/assets/js/validacao.js).
+  const V = window.Validacao;
+  const maskDoc = V.mascaraCpfCnpj;
+  // Mensagem do CPF/CNPJ conforme o problema: incompleto ou dígitos verificadores errados.
+  function docError(value) {
+    const size = V.digitos(value).length;
+    if (size !== 11 && size !== 14) return 'Informe os 11 dígitos do CPF ou os 14 do CNPJ.';
+    if (V.cpfCnpj(value)) return '';
+    return size === 11 ? 'CPF inválido. Confira os números informados.' : 'CNPJ inválido. Confira os números informados.';
   }
-  // Confere os dígitos verificadores do CPF (11 dígitos) ou do CNPJ (14 dígitos).
-  function validDoc(value) {
-    const d = value.replace(/\D/g, '');
-    if (!/^(?:[0-9]{11}|[0-9]{14})$/.test(d) || new Set(d).size === 1) return false;
-    let base = d.slice(0, d.length === 11 ? 9 : 12);
-    const all =
-      d.length === 11
-        ? [
-            [10, 9, 8, 7, 6, 5, 4, 3, 2],
-            [11, 10, 9, 8, 7, 6, 5, 4, 3, 2],
-          ]
-        : [
-            [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2],
-            [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2],
-          ];
-    for (const w of all) {
-      const mod = [...base].reduce((sum, n, i) => sum + Number(n) * w[i], 0) % 11;
-      base += String(mod < 2 ? 0 : 11 - mod);
+  // Mostra (ou limpa, com mensagem vazia) o erro de um único campo, no mesmo formato do showErrors.
+  function fieldError(input, message) {
+    const error = $('error-' + input.id);
+    if (error) error.textContent = message;
+    if (message) {
+      input.setAttribute('aria-invalid', 'true');
+      if (error) input.setAttribute('aria-describedby', error.id);
+    } else {
+      input.removeAttribute('aria-invalid');
+      input.removeAttribute('aria-describedby');
     }
-    return base === d;
   }
-  // Estados do select e máscara do CEP (00000-000) do endereço cadastral.
+  // Estados do select do endereço cadastral.
   ufs.forEach(uf => $('endereco_uf').append(new Option(uf, uf)));
-  $('endereco_cep').addEventListener(
-    'input',
-    e =>
-      (e.target.value = e.target.value
-        .replace(/\D/g, '')
-        .slice(0, 8)
-        .replace(/(\d{5})(\d)/, '$1-$2'))
+  // CEP: máscara 00000-000 e, ao completar os 8 dígitos, busca rua, bairro, cidade e estado (cep.js).
+  // O aviso ("Buscando…", "CEP não encontrado…") aparece logo abaixo do campo.
+  const cepStatus = document.createElement('small');
+  cepStatus.className = 'cep-status';
+  cepStatus.setAttribute('aria-live', 'polite');
+  $('endereco_cep').closest('.form-field').append(cepStatus);
+  window.BuscaCep.ligar(
+    {
+      cep: $('endereco_cep'),
+      rua: $('endereco_rua'),
+      numero: $('endereco_numero'),
+      bairro: $('endereco_bairro'),
+      cidade: $('endereco_cidade'),
+      uf: $('endereco_uf'),
+    },
+    cepStatus
   );
   // Textos da tela no modo edição.
   if (editId) {
@@ -119,11 +116,19 @@
     e.target.removeAttribute('aria-invalid');
   });
   form.addEventListener('change', () => (dirty = true));
-  $('cpf_cnpj').addEventListener('input', e => (e.target.value = maskDoc(e.target.value)));
-  $('telefone').addEventListener('blur', e => {
-    const d = e.target.value.replace(/\D/g, '');
-    if (d.length === 10) e.target.value = d.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-    if (d.length === 11) e.target.value = d.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  // Máscara a cada tecla e conferência ao sair do campo (o erro aparece antes de clicar em Salvar).
+  V.ligar($('cpf_cnpj'), { mascara: maskDoc });
+  $('cpf_cnpj').addEventListener('blur', e => e.target.value.trim() && fieldError(e.target, docError(e.target.value)));
+  V.ligar($('telefone'), {
+    mascara: V.mascaraTelefone,
+    regra: V.telefone,
+    mensagem: 'Telefone inválido. Use DDD + número: (12) 3456-7890 ou (12) 98765-4321.',
+    mostrarErro: fieldError,
+  });
+  V.ligar($('email'), {
+    regra: V.email,
+    mensagem: 'E-mail inválido. Use o formato nome@empresa.com.br.',
+    mostrarErro: fieldError,
   });
   $('nacionalidade').addEventListener('change', () => {
     $('other-nationality').hidden = $('nacionalidade').value !== 'Outra';
@@ -133,14 +138,8 @@
     const raw = $('limite_credito').value.trim();
     return raw.includes(',') ? raw.replace(/\./g, '').replace(',', '.') : raw;
   }
-  $('limite_credito').addEventListener('blur', () => {
-    const value = credit();
-    if (/^\d{1,12}(\.\d{1,2})?$/.test(value))
-      $('limite_credito').value = new Intl.NumberFormat('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(Number(value));
-  });
+  // Limite de crédito formata a cada número digitado: 5 → 0,05 … 150000 → 1.500,00 (validacao.js).
+  V.ligarMoeda($('limite_credito'));
   function removePhoto() {
     if (photoURL) URL.revokeObjectURL(photoURL);
     photo = null;
@@ -257,8 +256,7 @@
     $('nome_fantasia').value = client.nome_fantasia || '';
     $('cpf_cnpj').value = maskDoc(client.cpf_cnpj || '');
     $('email').value = client.email || '';
-    $('telefone').value = client.telefone || '';
-    $('telefone').dispatchEvent(new Event('blur')); // aplica a máscara (12) 99999-9999
+    $('telefone').value = V.mascaraTelefone(client.telefone || ''); // aplica a máscara (12) 99999-9999
     $('data_nascimento').value = client.data_nascimento || '';
     $('profissao').value = client.profissao || '';
     // Nacionalidade fora da lista vai para "Outra" + campo de texto.
@@ -268,9 +266,7 @@
     $('other-nationality').hidden = known || !nationality;
     $('nacionalidade_outra').value = known ? '' : nationality;
     $('condicao_pagamento_id').value = client.condicao_pagamento_id ? String(client.condicao_pagamento_id) : '';
-    $('limite_credito').value = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
-      Number(client.limite_credito) || 0
-    );
+    $('limite_credito').value = V.formatarMoeda(client.limite_credito);
     $('permite_ultrapassar_limite').checked = Boolean(client.permite_ultrapassar_limite);
 
     // Endereço cadastral (um só por cliente).
@@ -355,10 +351,12 @@
     ['tipo_cadastro', 'nome_razao_social', 'email', 'telefone', 'condicao_pagamento_id'].forEach(k => {
       if (!data[k]) errors[k] = 'Preencha este campo.';
     });
-    if (!validDoc(data.cpf_cnpj)) errors.cpf_cnpj = 'CPF/CNPJ inválido. Confira os números informados.';
-    if (!$('email').validity.valid) errors.email = 'Informe um e-mail válido.';
-    if (!/^\d{8,15}$/.test(data.telefone.replace(/\D/g, '')))
-      errors.telefone = 'Informe um telefone válido, incluindo o DDD.';
+    // Formato só é conferido quando o campo foi preenchido (vazio já ficou como "Preencha este campo").
+    const docMessage = docError(data.cpf_cnpj);
+    if (docMessage) errors.cpf_cnpj = docMessage;
+    if (data.email && !V.email(data.email)) errors.email = 'E-mail inválido. Use o formato nome@empresa.com.br.';
+    if (data.telefone && !V.telefone(data.telefone))
+      errors.telefone = 'Telefone inválido. Use DDD + número: (12) 3456-7890 ou (12) 98765-4321.';
     if (data.data_nascimento && !$('data_nascimento').validity.valid)
       errors.data_nascimento = 'Informe uma data válida, até o dia de hoje.';
     if (!/^\d{1,12}(\.\d{1,2})?$/.test(data.limite_credito))

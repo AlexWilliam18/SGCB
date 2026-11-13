@@ -604,3 +604,14 @@ select:focus-visible {
     color: var(--accent-ink)
 }
 
+
+/* Seleção "Ordem" (A → Z / Z → A) do cartão de filtros */
+.order-filter {
+    width: 130px
+}
+
+@media(max-width:1450px) {
+    .order-filter {
+        flex: 1 1 120px
+    }
+}
