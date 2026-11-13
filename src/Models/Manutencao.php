@@ -74,8 +74,14 @@ final class Manutencao extends Modelo
             self::COLUNAS,
             self::JUNCOES . ' WHERE ' . implode(' AND ', $where),
             $params,
-            "FIELD(m.status, 'EM_ANDAMENTO', 'AGENDADA', 'CONCLUIDA', 'CANCELADA'),
-             FIELD(m.prioridade, 'URGENTE', 'ALTA', 'MEDIA', 'BAIXA'), m.data_prevista DESC, m.id DESC",
+            // Padrão: por status/prioridade; com o filtro "Ordem", pelo nome do contêiner.
+            self::ordemAlfabetica(
+                $filtros,
+                'p.nome',
+                "FIELD(m.status, 'EM_ANDAMENTO', 'AGENDADA', 'CONCLUIDA', 'CANCELADA'),
+                 FIELD(m.prioridade, 'URGENTE', 'ALTA', 'MEDIA', 'BAIXA'), m.data_prevista DESC, m.id DESC",
+                'm.id'
+            ),
             (int) ($filtros['page'] ?? 1)
         );
         $resultado['items']       = array_map([self::class, 'formatar'], $resultado['items']);

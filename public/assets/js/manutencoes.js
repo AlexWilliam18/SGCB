@@ -16,6 +16,8 @@
     status: params.get('status') || '',
     localidade: params.get('localidade') || '',
     data: params.get('data') || '',
+    // Ordem alfabética: só 'az' ou 'za' (vazio = ordem padrão da tela).
+    ordem: ['az', 'za'].includes(params.get('ordem')) ? params.get('ordem') : '',
     page: Math.max(1, Number(params.get('page')) || 1),
     pages: 1,
   };
@@ -29,6 +31,7 @@
     status: 'maintenance-status',
     localidade: 'maintenance-location',
     data: 'maintenance-date',
+    ordem: 'maintenance-order',
   };
   // Preenche os campos com os filtros da URL (a localidade só depois que as opções chegam da API).
   Object.entries(fields).forEach(([key, id]) => {
@@ -232,7 +235,7 @@
     clearTimeout(debounce);
     debounce = setTimeout(applyFilters, 350);
   });
-  ['maintenance-priority', 'maintenance-status', 'maintenance-location', 'maintenance-date'].forEach(id =>
+  ['maintenance-priority', 'maintenance-status', 'maintenance-location', 'maintenance-date', 'maintenance-order'].forEach(id =>
     $(id).addEventListener('change', applyFilters)
   );
   $('clear-maintenance-filters').addEventListener('click', () => {

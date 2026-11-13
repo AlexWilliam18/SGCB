@@ -12,6 +12,9 @@
  *   POST api/contratos/{id}/iniciar        entrega dos contêineres
  *   POST api/contratos/{id}/finalizar      devolução dos contêineres
  *   POST api/contratos/{id}/cancelar       cancela ({ motivo })
+ *   POST api/contratos/{id}/editar         edição limitada com versão ({ motivo, observacoes, entrega_origem, entrega,
+ *                                          responsavel, vencimentos })
+ *   GET  api/contratos/{id}/versoes?versao=N  cópia completa de uma versão guardada
  */
 
 final class ContratoController
@@ -110,5 +113,26 @@ final class ContratoController
         Contrato::cancelarContrato($id, (string) (Api::dados()['motivo'] ?? ''), $usuario['id']);
 
         return Contrato::buscarContrato($id);
+    }
+
+    /** Edição limitada: guarda a versão anterior e grava as correções (Contrato::editarContrato). */
+    public static function editar(int $id): array
+    {
+        $usuario = Api::permitir('contratos', 'editar');
+
+        return Contrato::editarContrato($id, Api::dados(), $usuario['id']);
+    }
+
+    /** Versão guardada do contrato (?versao=N), para a prévia mostrar como ele era. */
+    public static function versao(int $id): array
+    {
+        Api::usuario();
+
+        $versao = filter_var($_GET['versao'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if ($versao === false) {
+            throw new ErroValidacao('Informe a versão.', [], 422);
+        }
+
+        return Api::ouNaoEncontrado(Contrato::buscarVersao($id, $versao), 'Versão não encontrada.');
     }
 }

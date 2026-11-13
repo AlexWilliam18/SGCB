@@ -15,6 +15,8 @@
     prioridade: url.get('prioridade') || '',
     status: url.get('status') || '',
     data: url.get('data') || '',
+    // Ordem alfabética: só 'az' ou 'za' (vazio = ordem padrão da tela).
+    ordem: ['az', 'za'].includes(url.get('ordem')) ? url.get('ordem') : '',
     periodo: url.get('periodo') || 'mes', // período do card de faturamento (lista branca no servidor)
     page: Math.max(1, Number(url.get('page')) || 1),
     pages: 1,
@@ -75,6 +77,7 @@
   $('finance-priority').value = state.prioridade;
   $('finance-status').value = state.status;
   $('finance-date').value = state.data;
+  $('finance-order').value = state.ordem;
 
   // Mostra/esconde a linha "Filtros aplicados" (com o resumo) e o texto "Selecione uma data".
   function updateFilters() {
@@ -280,6 +283,7 @@
       prioridade: $('finance-priority').value,
       status: $('finance-status').value,
       data: $('finance-date').value,
+      ordem: $('finance-order').value,
       page: 1,
     });
     updateFilters();
@@ -330,7 +334,7 @@
   });
   // Rolar a página fecha a lista (ela é fixa na tela e ficaria longe do card).
   addEventListener('scroll', () => revenueMenu.matches(':popover-open') && revenueMenu.hidePopover(), { passive: true });
-  ['finance-priority', 'finance-status', 'finance-date'].forEach(id =>
+  ['finance-priority', 'finance-status', 'finance-date', 'finance-order'].forEach(id =>
     $(id).addEventListener('change', () => {
       clearTimeout(debounce);
       readFilters();
@@ -340,7 +344,7 @@
   $('clear-finance-filters').addEventListener('click', () => {
     clearTimeout(debounce);
     $('finance-filters').reset();
-    Object.assign(state, { q: '', prioridade: '', status: '', data: '', page: 1 });
+    Object.assign(state, { q: '', prioridade: '', status: '', data: '', ordem: '', page: 1 });
     updateFilters();
     load();
     $('finance-search').focus();

@@ -43,7 +43,8 @@
    ========================================================================== */
 
 /* Pesquisa ocupa o espaço livre; os dois selects têm largura fixa */
-.users-filters{display:grid;grid-template-columns:minmax(0,1fr) 159px 159px auto;align-items:center;gap:18px;margin-top:20px;padding:20px 40px 20px 20px;min-height:124px}
+/* pesquisa | perfil | status | ordem | limpar */
+.users-filters{display:grid;grid-template-columns:minmax(0,1fr) 159px 159px 159px auto;align-items:center;gap:18px;margin-top:20px;padding:20px 40px 20px 20px;min-height:124px}
 .users-filters .search-field{min-width:0;width:100%;gap:18px}
 .users-filters .search-field input{padding-left:40px}
 
@@ -95,7 +96,7 @@
 @media(max-width:1200px){
   .users-main{padding:24px}
   .users-stats{gap:16px;padding:0;grid-template-columns:repeat(3,minmax(0,1fr));height:auto}
-  .users-filters{grid-template-columns:1fr 1fr auto;gap:32px 18px;padding:24px}
+  .users-filters{grid-template-columns:1fr 1fr 1fr auto;gap:32px 18px;padding:24px}
   .users-filters .search-field{grid-column:1/-1}
   .new-user{margin-right:0}
 }

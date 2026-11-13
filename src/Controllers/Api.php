@@ -66,7 +66,7 @@ final class Api
         $usuario = self::usuario();
         self::verificarToken();
         if (!self::ehAdmin($usuario)) {
-            throw new ErroValidacao('Somente o administrador pode excluir.', [], 403);
+            throw new ErroValidacao('Somente o dono pode excluir.', [], 403);
         }
 
         return $usuario;

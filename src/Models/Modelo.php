@@ -88,6 +88,27 @@ abstract class Modelo
         return ['items' => $lista->fetchAll(), 'total' => $total, 'page' => $pagina, 'pages' => $paginas];
     }
 
+    /**
+     * Ordem escolhida no filtro "Ordem" das listagens (?ordem=az ou ?ordem=za).
+     * Só aceita esses dois valores; qualquer outro usa a ordem padrão da tela.
+     * A coluna vem sempre do código, nunca do usuário, então pode entrar direto no SQL.
+     *
+     * @param string $coluna Coluna de nome usada na ordem alfabética (ex.: "p.nome").
+     * @param string $padrao ORDER BY usado quando o filtro está vazio.
+     * @param string $id     Coluna de desempate, para a paginação não repetir linhas.
+     */
+    protected static function ordemAlfabetica(array $filtros, string $coluna, string $padrao, string $id): string
+    {
+        $ordem = (string) ($filtros['ordem'] ?? '');
+        if ($ordem === 'az') {
+            return "$coluna ASC, $id ASC";
+        }
+        if ($ordem === 'za') {
+            return "$coluna DESC, $id DESC";
+        }
+        return $padrao;
+    }
+
     /** Registra uma ação na tabela auditoria (quem, o quê, em qual registro). */
     protected static function auditar(?int $usuarioId, string $entidade, int $registroId, string $acao, array $detalhes = []): void
     {
@@ -129,6 +150,26 @@ abstract class Modelo
     public static function somenteDigitos(?string $valor): string
     {
         return preg_replace('/\D+/', '', (string) $valor);
+    }
+
+    /**
+     * E-mail no formato nome@dominio.tld. O FILTER_VALIDATE_EMAIL aceita domínio sem extensão
+     * (ex.: "nome@empresa"); aqui o domínio precisa ter ponto e extensão de 2+ letras.
+     * Mesma regra do Validacao.email (public/assets/js/validacao.js).
+     */
+    public static function validarEmail(string $email): bool
+    {
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false
+            && preg_match('/@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/', $email) === 1;
+    }
+
+    /**
+     * Telefone brasileiro só com dígitos: DDD (11 a 99, sem zero) + fixo de 8 dígitos começando
+     * com 2 a 5, ou celular de 9 dígitos começando com 9. Mesma regra do Validacao.telefone.
+     */
+    public static function validarTelefone(string $digitos): bool
+    {
+        return preg_match('/^[1-9][1-9](?:[2-5]\d{7}|9\d{8})$/', $digitos) === 1;
     }
 
     // -------------------------------------------------------------------------

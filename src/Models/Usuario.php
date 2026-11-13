@@ -65,7 +65,7 @@ final class Usuario extends Modelo
              u.senha_alterada_em, u.criado_em, u.atualizado_em, c.codigo AS cargo_codigo, c.nome AS cargo_nome',
             'FROM usuarios u LEFT JOIN cargos c ON c.id = u.cargo_id WHERE ' . implode(' AND ', $where),
             $params,
-            'u.nome',
+            self::ordemAlfabetica($filtros, 'u.nome', 'u.nome, u.id', 'u.id'),
             (int) ($filtros['page'] ?? 1)
         );
         $resultado['items'] = array_map([self::class, 'formatar'], $resultado['items']);
@@ -124,7 +124,7 @@ final class Usuario extends Modelo
         $deveAlterar = array_key_exists('deve_alterar_senha', $dados) ? self::campoBool($dados, 'deve_alterar_senha') : 1;
         // Segurança: administrador nunca fica inativo (nem já nasce inativo).
         if (!$ativo && self::cargoEhAdmin($campos['cargo_id'])) {
-            throw new ErroValidacao('O administrador não pode ser cadastrado como inativo.', ['status' => 'O administrador não pode ficar inativo.']);
+            throw new ErroValidacao('O dono não pode ser cadastrado como inativo.', ['status' => 'O dono não pode ficar inativo.']);
         }
 
         return self::transacao(static function (PDO $pdo) use ($campos, $senha, $ativo, $deveAlterar, $criadoPor): int {
@@ -162,8 +162,8 @@ final class Usuario extends Modelo
         if ($atual['cargo_codigo'] === self::CARGO_ADMIN && $atual['ativo'] && !self::cargoEhAdmin($campos['cargo_id'])
             && self::adminsAtivos() <= 1) {
             throw new ErroValidacao(
-                'Este é o único administrador ativo: ele não pode deixar de ser administrador.',
-                ['cargo_id' => 'Mantenha o perfil Administrador (é o único administrador ativo).'],
+                'Este é o único dono ativo: ele não pode deixar de ser dono.',
+                ['cargo_id' => 'Mantenha o perfil Dono (é o único dono ativo).'],
                 409
             );
         }
@@ -188,7 +188,7 @@ final class Usuario extends Modelo
             throw new ErroValidacao('Você não pode desativar o seu próprio usuário.');
         }
         if (!$ativo && self::buscarPorId($id)['cargo_codigo'] === self::CARGO_ADMIN) {
-            throw new ErroValidacao('O administrador não pode ser desativado.', ['status' => 'O administrador não pode ficar inativo.'], 409);
+            throw new ErroValidacao('O dono não pode ser desativado.', ['status' => 'O dono não pode ficar inativo.'], 409);
         }
 
         self::transacao(static function (PDO $pdo) use ($id, $ativo, $alteradoPor): void {
@@ -429,8 +429,12 @@ final class Usuario extends Modelo
             'cargo_id' => self::campoInteiro($dados, 'cargo_id', $erros, true, 1),
         ];
 
-        if ($campos['email'] !== '' && !filter_var($campos['email'], FILTER_VALIDATE_EMAIL)) {
-            $erros['email'] = 'Informe um e-mail válido.';
+        if ($campos['email'] !== '' && !self::validarEmail($campos['email'])) {
+            $erros['email'] = 'E-mail inválido. Use o formato nome@empresa.com.br.';
+        }
+        // Telefone é opcional; se veio preenchido, precisa ser um número brasileiro válido.
+        if ($campos['telefone'] !== null && !self::validarTelefone($campos['telefone'])) {
+            $erros['telefone'] = 'Telefone inválido. Use DDD + número: (12) 3456-7890 ou (12) 98765-4321.';
         }
         if ($campos['cargo_id'] !== null) {
             $consulta = self::pdo()->prepare('SELECT 1 FROM cargos WHERE id = :id AND ativo = 1');

@@ -14,7 +14,7 @@ Autenticacao::exigirLogin();
 
 $titulo       = 'Novo contrato';
 $css          = ['dashboard.css', 'contratos.css', 'cadastro-contrato.css'];
-$js           = ['painel.js', 'descartar.js', 'cadastro-contrato.js'];
+$js           = ['painel.js', 'descartar.js', 'validacao.js', 'cep.js', 'cadastro-contrato.js'];
 $fontesExtras = ['Inter:wght@400;700'];   // usada no formulário
 $classeBody   = 'contract-form-page';      // ajustes de layout do cadastro-contrato.css
 $paginaAtual  = 'locacoes';                // o cadastro pertence ao módulo Contratos no menu
@@ -127,9 +127,9 @@ require __DIR__ . '/../../../includes/head.php';
               <label class="contract-field">Primeiro vencimento *<input name="firstDue" type="date" required></label>
               <label class="contract-field">Quantidade de parcelas *<input name="installments" type="number" min="1" max="120" step="1" value="1" required></label>
               <label class="contract-field">Dia recorrente de cobrança<input name="dueDay" type="number" min="1" max="31" step="1" placeholder="Opcional"></label>
-              <label class="contract-field">Frete / deslocamento (R$)<input name="freight" type="number" min="0" max="999999999" step="0.01" value="0.00"></label>
-              <label class="contract-field">Outras despesas gerais (R$)<input name="other" type="number" min="0" max="999999999" step="0.01" value="0.00"></label>
-              <label class="contract-field">Caução (R$)<input name="deposit" type="number" min="0" max="999999999" step="0.01" value="0.00"></label>
+              <label class="contract-field">Frete / deslocamento (R$)<input name="freight" type="text" inputmode="numeric" maxlength="18" value="0,00"></label>
+              <label class="contract-field">Outras despesas gerais (R$)<input name="other" type="text" inputmode="numeric" maxlength="18" value="0,00"></label>
+              <label class="contract-field">Caução (R$)<input name="deposit" type="text" inputmode="numeric" maxlength="18" value="0,00"></label>
             </div>
             <p class="field-hint">Frete e despesas gerais entram uma vez no total. A caução é apresentada separadamente.</p>
           </section>
@@ -176,9 +176,9 @@ require __DIR__ . '/../../../includes/head.php';
       <div class="field-grid three-columns">
         <div class="contract-field">Cobrança<output data-field="billing" class="readonly-output"></output></div>
         <div class="contract-field">Valor unitário do bem<output data-field="assetValue" class="readonly-output"></output></div>
-        <label class="contract-field">Locação unitária (R$) *<input data-field="price" type="number" min="0.01" max="999999999" step="0.01" required></label>
-        <label class="contract-field">Outras despesas do item (R$)<input data-field="other" type="number" min="0" max="999999999" step="0.01" value="0"></label>
-        <label class="contract-field">Desconto do item (R$)<input data-field="discount" type="number" min="0" max="999999999" step="0.01" value="0"></label>
+        <label class="contract-field">Locação unitária (R$) *<input data-field="price" type="text" inputmode="numeric" maxlength="18" required></label>
+        <label class="contract-field">Outras despesas do item (R$)<input data-field="other" type="text" inputmode="numeric" maxlength="18" value="0,00"></label>
+        <label class="contract-field">Desconto do item (R$)<input data-field="discount" type="text" inputmode="numeric" maxlength="18" value="0,00"></label>
         <div class="contract-field">Subtotal do item<output data-field="subtotal" class="item-subtotal">—</output></div>
       </div>
       <div class="item-bottom"><span class="field-hint">Preço sugerido pelo produto; pode ser ajustado.</span><button class="remove-item" type="button"><span class="icon icon-close-small" aria-hidden="true"></span>Remover item</button></div>
