@@ -14,6 +14,8 @@
     q: url.get('q') || '',
     status: url.get('status') || '',
     categoria: url.get('categoria') || '',
+    // Ordem de cadastro: 'recentes' ou vazio (vazio = mais antigo → mais recente).
+    ordem: url.get('ordem') === 'recentes' ? 'recentes' : '',
     page: Math.max(1, Number(url.get('page')) || 1),
     pages: 1,
   };
@@ -24,6 +26,7 @@
       : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value));
   $('product-search').value = state.q;
   $('product-status').value = state.status;
+  $('product-order').value = state.ordem;
   // Linha única de aviso na tabela (carregando, vazio ou erro).
   function emptyRow(text) {
     const tr = document.createElement('tr'),
@@ -195,6 +198,7 @@
     state.q = $('product-search').value.trim();
     state.status = $('product-status').value;
     state.categoria = $('product-category').value;
+    state.ordem = $('product-order').value;
     state.page = 1;
   }
   $('product-filters').addEventListener('submit', event => {
@@ -210,7 +214,7 @@
       loadProducts();
     }, 350);
   });
-  ['product-status', 'product-category'].forEach(id =>
+  ['product-status', 'product-category', 'product-order'].forEach(id =>
     $(id).addEventListener('change', () => {
       clearTimeout(debounce);
       readFilters();
@@ -220,7 +224,7 @@
   $('clear-filters').addEventListener('click', () => {
     clearTimeout(debounce);
     $('product-filters').reset();
-    Object.assign(state, { q: '', status: '', categoria: '', page: 1 });
+    Object.assign(state, { q: '', status: '', categoria: '', ordem: '', page: 1 });
     loadProducts();
     $('product-search').focus();
   });

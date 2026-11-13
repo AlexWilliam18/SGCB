@@ -2,6 +2,8 @@
 /*
  * Listagem de Contratos de Locação: pesquisa, filtros (status e período), paginação
  * e diálogo "Prévia do contrato" (o botão de PDF ainda não tem ação: fora do MVP).
+ * Na prévia: "Editar contrato" (números, observações, entrega, responsável e vencimentos, com a versão
+ * anterior guardada) e histórico de versões (segunda via).
  * Os dados vêm de /api/contratos (public/api/index.php → ContratoController → Contrato).
  * O cadastro fica em cadastro.php (cadastro-contrato.js); ?ver=ID abre a prévia ao chegar.
  */
@@ -23,6 +25,8 @@
     q: url.get('q') || '',
     status: url.get('status') || '',
     data: /^\d{4}-\d{2}-\d{2}$/.test(url.get('data') || '') ? url.get('data') : '',
+    // Ordem alfabética: só 'az' ou 'za' (vazio = ordem padrão da tela).
+    ordem: ['az', 'za'].includes(url.get('ordem')) ? url.get('ordem') : '',
     page: Math.max(1, Number(url.get('page')) || 1),
     pages: 1,
   };
@@ -260,11 +264,13 @@
     state.q = $('contract-search').value.trim();
     state.status = $('contract-status').value;
     state.data = $('contract-date').value;
+    state.ordem = $('contract-order').value;
     state.page = 1;
   }
   $('contract-search').value = state.q;
   $('contract-status').value = state.status;
   $('contract-date').value = state.data;
+  $('contract-order').value = state.ordem;
   syncDatePlaceholder();
 
   // Enter na pesquisa.
@@ -283,7 +289,7 @@
     }, 350);
   });
   // Status e período pesquisam na hora.
-  ['contract-status', 'contract-date'].forEach(id =>
+  ['contract-status', 'contract-date', 'contract-order'].forEach(id =>
     $(id).addEventListener('change', () => {
       clearTimeout(debounce);
       syncDatePlaceholder();
@@ -296,7 +302,7 @@
     clearTimeout(debounce);
     $('contract-filters').reset();
     syncDatePlaceholder();
-    Object.assign(state, { q: '', status: '', data: '', page: 1 });
+    Object.assign(state, { q: '', status: '', data: '', ordem: '', page: 1 });
     loadContracts();
     $('contract-search').focus();
   });
@@ -345,13 +351,115 @@
       ['Frete', `${money.format(c.frete_deslocamento || 0)} • Total: ${money.format(c.valor_total || 0)}`],
       ['Caução', money.format(c.caucao || 0)],
       ['Entrega', endereco],
+      // Responsável pela assinatura e observações só aparecem quando preenchidos.
+      ...(c.dados_cliente_snapshot?.representante_legal
+        ? [['Responsável', `${c.dados_cliente_snapshot.representante_legal} • CPF ${documento(c.dados_cliente_snapshot.cpf_representante)}`]]
+        : []),
+      ...(c.observacoes ? [['Observações', c.observacoes]] : []),
     ];
   }
 
   let detailRequest = 0;
+  // Contrato aberto na prévia (versão atual), usado pelo formulário de edição e pelo "Voltar".
+  let currentContract = null;
+  // Contratos nesses status podem ter a edição limitada (finalizado/cancelado ficam como estão).
+  const EDITAVEIS = ['RASCUNHO', 'ATIVO'];
+
+  // Data e hora do banco (AAAA-MM-DD HH:MM:SS) → DD/MM/AAAA às HH:MM.
+  function dateTime(value) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(value || '');
+    return m ? `${m[3]}/${m[2]}/${m[1]} às ${m[4]}:${m[5]}` : date(value);
+  }
+
+  // Elemento com classe e texto (atalho para montar a prévia e o formulário).
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  // Botão da barra de ações da prévia.
+  function actionButton(text, className, onClick) {
+    const button = el('button', 'detail-action' + (className ? ' ' + className : ''), text);
+    button.type = 'button';
+    button.addEventListener('click', onClick);
+    return button;
+  }
+
+  // Folha do contrato (marca, título, status e linhas). versionInfo != null = cópia de uma versão guardada.
+  function contractSheet(c, versionInfo) {
+    const sheet = el('article', 'contract-sheet');
+    const status = el('p', 'contract-sheet-status');
+    status.append('Status: ', badge(c.status));
+    sheet.append(el('p', 'contract-brand', 'CASA BARRETTO'), el('h3', '', 'CONTRATO DE LOCAÇÃO DE EQUIPAMENTOS'), status);
+    previewLines(c).forEach(([label, value]) => sheet.append(el('p', 'contract-line', `${label}: ${value}`)));
+
+    // Parcelas (quando o contrato já foi gerado).
+    if ((c.parcelas || []).length) {
+      sheet.append(
+        el('p', 'contract-line', 'Parcelas: ' + c.parcelas.map(pa => `${pa.numero}ª ${date(pa.vencimento)} ${money.format(pa.valor_devido)}`).join(' • '))
+      );
+    }
+    sheet.append(
+      el(
+        'p',
+        'contract-note',
+        versionInfo
+          ? `Segunda via: cópia da versão ${versionInfo.versao}, guardada antes da alteração de ${dateTime(versionInfo.alterado_em)}.`
+          : 'Prévia gerada a partir dos dados cadastrados no sistema.'
+      )
+    );
+    return sheet;
+  }
+
+  // Histórico: uma linha por versão guardada (com botão "Ver") e a versão atual no fim.
+  function versionHistory(c) {
+    const box = el('section', 'contract-versions');
+    box.setAttribute('aria-label', 'Histórico de versões');
+    box.append(el('h4', '', 'Histórico de versões'));
+    const list = el('ol');
+    c.versoes.forEach(v => {
+      const item = el('li');
+      const text = el('div');
+      text.append(
+        el('strong', '', `Versão ${v.versao}${v.versao === 1 ? ' (original)' : ''}`),
+        el('span', '', `Substituída em ${dateTime(v.alterado_em)}${v.alterado_por ? ' por ' + v.alterado_por : ''}`),
+        el('span', '', `Alterado: ${v.alteracoes || '—'} • Motivo: ${v.motivo}`)
+      );
+      item.append(text, actionButton('Ver', 'pequena', () => showVersion(c.id, v.versao)));
+      list.append(item);
+    });
+    const atual = el('li', 'current');
+    atual.append(el('strong', '', `Versão ${c.versao_atual} (atual)`));
+    list.append(atual);
+    box.append(list);
+    return box;
+  }
+
+  // Desenha a prévia da versão atual. notice = aviso verde no topo (ex.: depois de salvar).
+  function renderContract(c, notice) {
+    currentContract = c;
+    const container = $('contract-detail');
+    container.replaceChildren();
+    if (notice) container.append(el('p', 'action-success', notice));
+    container.append(contractSheet(c, null));
+    if ((c.versoes || []).length) container.append(versionHistory(c));
+
+    // Ações: "Editar contrato" (só rascunho/ativo); "Imprimir / salvar PDF" é só o botão (PDF fora do MVP); "Fechar prévia".
+    const actions = el('div', 'detail-actions');
+    if (EDITAVEIS.includes(c.status)) actions.append(actionButton('Editar contrato', 'primaria', () => renderEditForm(c)));
+    actions.append(
+      actionButton('Imprimir / salvar PDF', EDITAVEIS.includes(c.status) ? '' : 'primaria', () => {}),
+      actionButton('Fechar prévia', '', () => $('contract-dialog').close())
+    );
+    container.append(actions);
+  }
+
   async function showContract(id) {
     const current = ++detailRequest;
     const container = $('contract-detail');
+    $('contract-dialog-title').textContent = 'Prévia do contrato';
     container.textContent = 'Carregando contrato…';
     if (!$('contract-dialog').open) $('contract-dialog').showModal();
     try {
@@ -359,59 +467,239 @@
       if (!response.ok) throw Error();
       const c = await response.json();
       if (current !== detailRequest || !$('contract-dialog').open) return;
-      container.replaceChildren();
-
-      // Documento: marca, título, status e as linhas de dados (área que vai para a impressão).
-      const sheet = document.createElement('article');
-      sheet.className = 'contract-sheet';
-      const brand = document.createElement('p'),
-        title = document.createElement('h3'),
-        status = document.createElement('p');
-      brand.className = 'contract-brand';
-      brand.textContent = 'CASA BARRETTO';
-      title.textContent = 'CONTRATO DE LOCAÇÃO DE EQUIPAMENTOS';
-      status.className = 'contract-sheet-status';
-      status.append('Status: ', badge(c.status));
-      sheet.append(brand, title, status);
-      previewLines(c).forEach(([label, value]) => {
-        const p = document.createElement('p');
-        p.className = 'contract-line';
-        p.textContent = `${label}: ${value}`;
-        sheet.append(p);
-      });
-
-      // Parcelas (quando o contrato já foi gerado).
-      if ((c.parcelas || []).length) {
-        const p = document.createElement('p');
-        p.className = 'contract-line';
-        p.textContent = 'Parcelas: ' + c.parcelas.map(pa => `${pa.numero}ª ${date(pa.vencimento)} ${money.format(pa.valor_devido)}`).join(' • ');
-        sheet.append(p);
-      }
-      const note = document.createElement('p');
-      note.className = 'contract-note';
-      note.textContent = 'Prévia gerada a partir dos dados cadastrados no sistema.';
-      sheet.append(note);
-      container.append(sheet);
-
-      // Ações: "Imprimir / salvar PDF" é só o botão, sem nenhuma ação (geração de PDF fora do MVP); "Fechar prévia".
-      const actions = document.createElement('div');
-      actions.className = 'detail-actions';
-      const print = document.createElement('button'),
-        close = document.createElement('button');
-      print.type = 'button';
-      print.className = 'detail-action primaria';
-      print.textContent = 'Imprimir / salvar PDF';
-      close.type = 'button';
-      close.className = 'detail-action';
-      close.textContent = 'Fechar prévia';
-      close.addEventListener('click', () => $('contract-dialog').close());
-      actions.append(print, close);
-      container.append(actions);
+      renderContract(c);
     } catch (_) {
       if (current === detailRequest) {
         container.textContent = 'Não foi possível abrir o contrato. Feche esta janela e tente novamente.';
       }
     }
+  }
+
+  // Segunda via: mostra a cópia guardada de uma versão (GET /api/contratos/{id}/versoes?versao=N), só leitura.
+  async function showVersion(id, versao) {
+    const current = ++detailRequest;
+    const container = $('contract-detail');
+    $('contract-dialog-title').textContent = `Segunda via — versão ${versao}`;
+    container.textContent = 'Carregando versão…';
+    try {
+      const response = await fetch(window.SGCB_API + 'contratos/' + encodeURIComponent(id) + '/versoes?versao=' + versao, { cache: 'no-store' });
+      if (!response.ok) throw Error();
+      const v = await response.json();
+      if (current !== detailRequest) return;
+      container.replaceChildren();
+      const aviso = el('p', 'contract-version-banner');
+      aviso.textContent =
+        `Versão ${v.versao}${v.versao === 1 ? ' (original)' : ''} — somente leitura. ` +
+        `Substituída em ${dateTime(v.alterado_em)}${v.alterado_por ? ' por ' + v.alterado_por : ''}. Motivo: ${v.motivo}`;
+      container.append(aviso, contractSheet(v.dados, v));
+      const actions = el('div', 'detail-actions');
+      actions.append(
+        actionButton('Imprimir / salvar PDF', '', () => {}),
+        actionButton('Voltar à versão atual', 'primaria', () => {
+          $('contract-dialog-title').textContent = 'Prévia do contrato';
+          renderContract(currentContract);
+        })
+      );
+      container.append(actions);
+    } catch (_) {
+      if (current === detailRequest) container.textContent = 'Não foi possível abrir esta versão. Feche a janela e tente novamente.';
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Edição limitada (POST /api/contratos/{id}/editar): número do contrato e da locação, observações, local de entrega,
+  // responsável pela assinatura e vencimento das parcelas sem pagamento.
+  // Valores, itens, datas da locação e contêineres não mudam aqui.
+  // ---------------------------------------------------------------------------
+
+  const UFS = 'AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ');
+
+  // Campo do formulário: <label><span>Rótulo</span><input|select|textarea></label>.
+  function formField(label, name, { tag = 'input', type = 'text', value = '', maxLength, required, wide } = {}) {
+    const wrapper = el('label', wide ? 'wide' : '');
+    const control = document.createElement(tag);
+    control.name = name;
+    if (tag === 'input') control.type = type;
+    if (tag === 'select') {
+      control.append(new Option('Selecione', ''));
+      UFS.forEach(uf => control.append(new Option(uf, uf)));
+    }
+    if (tag === 'textarea') control.rows = 3;
+    if (maxLength) control.maxLength = maxLength;
+    control.value = value ?? '';
+    wrapper.append(el('span', '', label + (required ? ' *' : '')), control);
+    return wrapper;
+  }
+
+  function renderEditForm(c) {
+    ++detailRequest; // descarta respostas antigas que ainda estejam chegando
+    $('contract-dialog-title').textContent = 'Editar contrato ' + numero(c);
+    const container = $('contract-detail');
+    container.replaceChildren();
+
+    const form = el('form', 'contract-edit');
+    form.noValidate = true;
+    form.append(
+      el(
+        'p',
+        'contract-edit-help',
+        'Valores, cliente, produtos, contêineres e datas da locação não mudam. Ao salvar, a versão atual fica guardada como segunda via no histórico.'
+      )
+    );
+
+    // 1. Motivo (obrigatório) e observações.
+    const geral = el('fieldset', 'detail-form');
+    geral.append(el('legend', '', 'Alteração'));
+    const gridGeral = el('div', 'detail-form-grid');
+    gridGeral.append(
+      formField('Motivo da alteração', 'motivo', { maxLength: 500, required: true, wide: true }),
+      // Identificação: número do contrato (obrigatório no contrato ativo) e da locação.
+      formField('Número do contrato', 'numero_contrato', { value: c.numero_contrato, maxLength: 50, required: c.status === 'ATIVO' }),
+      formField('Número da locação', 'numero_locacao', { value: c.numero_locacao, maxLength: 50 }),
+      formField('Observações', 'observacoes', { tag: 'textarea', value: c.observacoes, maxLength: 800, wide: true })
+    );
+    geral.append(gridGeral);
+
+    // 2. Local de entrega: endereço do cliente (cópia do cadastro de hoje) ou outro digitado.
+    const entrega = c.entrega || {};
+    const local = el('fieldset', 'detail-form');
+    local.append(el('legend', '', 'Local de entrega'));
+    const origens = el('div', 'contract-edit-options');
+    [
+      ['CLIENTE', 'Endereço do cliente'],
+      ['OUTRO', 'Outro endereço'],
+    ].forEach(([value, text]) => {
+      const label = el('label');
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'entrega_origem';
+      radio.value = value;
+      radio.checked = (entrega.endereco_do_cliente === false ? 'OUTRO' : 'CLIENTE') === value;
+      label.append(radio, ' ' + text);
+      origens.append(label);
+    });
+    const gridEntrega = el('div', 'detail-form-grid');
+    gridEntrega.append(
+      formField('CEP', 'cep', { value: entrega.cep ? window.BuscaCep.mascaraCep(entrega.cep) : '', maxLength: 9, required: true }),
+      formField('Rua', 'rua', { value: entrega.rua, maxLength: 200, required: true }),
+      formField('Número', 'numero', { value: entrega.numero, maxLength: 20, required: true }),
+      formField('Bairro', 'bairro', { value: entrega.bairro, maxLength: 100, required: true }),
+      formField('Cidade', 'cidade', { value: entrega.cidade, maxLength: 100, required: true }),
+      formField('Estado', 'uf', { tag: 'select', value: entrega.uf, required: true }),
+      formField('Complemento', 'complemento', { value: entrega.complemento, maxLength: 150 }),
+      formField('Referência', 'referencia', { value: entrega.referencia, maxLength: 150 })
+    );
+    const cepStatus = el('small', 'cep-status');
+    cepStatus.setAttribute('aria-live', 'polite');
+    local.append(origens, gridEntrega, cepStatus);
+
+    // 3. Responsável pela assinatura (nome + CPF juntos, ou os dois vazios).
+    const snapshot = c.dados_cliente_snapshot || {};
+    const assinatura = el('fieldset', 'detail-form');
+    assinatura.append(el('legend', '', 'Responsável pela assinatura'));
+    const gridAssinatura = el('div', 'detail-form-grid');
+    gridAssinatura.append(
+      formField('Nome', 'responsavel_nome', { value: snapshot.representante_legal, maxLength: 100 }),
+      formField('CPF', 'responsavel_cpf', { value: snapshot.cpf_representante ? window.Validacao.mascaraCpf(snapshot.cpf_representante) : '', maxLength: 14 })
+    );
+    assinatura.append(gridAssinatura);
+
+    // 4. Vencimentos: só parcelas sem pagamento e não canceladas podem mudar.
+    const parcelas = c.parcelas || [];
+    const venc = el('fieldset', 'detail-form');
+    if (parcelas.length) {
+      venc.append(el('legend', '', 'Vencimento das parcelas'));
+      const gridVenc = el('div', 'detail-form-grid');
+      parcelas.forEach(pa => {
+        const editavel = pa.status !== 'CANCELADA' && !(pa.valor_recebido > 0);
+        const campo = formField(`${pa.numero}ª • ${money.format(pa.valor_devido)}${editavel ? '' : ' (paga/cancelada)'}`, 'venc_' + pa.id, {
+          type: 'date',
+          value: pa.vencimento,
+        });
+        const input = campo.querySelector('input');
+        input.disabled = !editavel;
+        input.dataset.parcela = pa.id;
+        input.dataset.original = pa.vencimento;
+        gridVenc.append(campo);
+      });
+      venc.append(gridVenc);
+    }
+
+    const feedback = el('p', 'detail-feedback');
+    feedback.setAttribute('role', 'alert');
+    feedback.hidden = true;
+    const actions = el('div', 'detail-actions');
+    const salvar = el('button', 'detail-action primaria', 'Salvar alterações');
+    salvar.type = 'submit';
+    actions.append(
+      actionButton('Cancelar', '', () => {
+        $('contract-dialog-title').textContent = 'Prévia do contrato';
+        renderContract(c);
+      }),
+      salvar
+    );
+
+    form.append(geral, local, assinatura);
+    if (parcelas.length) form.append(venc);
+    form.append(actions, feedback);
+    container.append(form);
+
+    const campo = name => form.elements[name];
+    // Endereço do cliente: os campos do endereço ficam travados (o servidor copia o cadastro do cliente);
+    // a referência continua editável nas duas opções.
+    const enderecoCampos = ['cep', 'rua', 'numero', 'bairro', 'cidade', 'uf', 'complemento'];
+    function syncOrigem() {
+      const doCliente = form.querySelector('input[name="entrega_origem"]:checked')?.value === 'CLIENTE';
+      enderecoCampos.forEach(name => (campo(name).disabled = doCliente));
+    }
+    origens.addEventListener('change', syncOrigem);
+    syncOrigem();
+    // CEP: máscara e busca de rua/bairro/cidade/UF ao completar 8 dígitos (cep.js).
+    window.BuscaCep.ligar(Object.fromEntries(['cep', 'rua', 'numero', 'bairro', 'cidade', 'uf'].map(k => [k, campo(k)])), cepStatus);
+    // CPF do responsável com máscara.
+    campo('responsavel_cpf').addEventListener('input', event => (event.target.value = window.Validacao.mascaraCpf(event.target.value)));
+    campo('motivo').focus();
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!campo('motivo').value.trim()) {
+        feedback.textContent = 'Informe o motivo da alteração.';
+        feedback.hidden = false;
+        campo('motivo').focus();
+        return;
+      }
+      // Só vão os vencimentos que mudaram.
+      const vencimentos = [...form.querySelectorAll('input[data-parcela]')]
+        .filter(input => !input.disabled && input.value !== input.dataset.original)
+        .map(input => ({ parcela_id: Number(input.dataset.parcela), vencimento: input.value }));
+      const dados = {
+        motivo: campo('motivo').value.trim(),
+        numero_contrato: campo('numero_contrato').value.trim(),
+        numero_locacao: campo('numero_locacao').value.trim(),
+        observacoes: campo('observacoes').value,
+        entrega_origem: form.querySelector('input[name="entrega_origem"]:checked').value,
+        entrega: Object.fromEntries(['cep', 'rua', 'numero', 'bairro', 'cidade', 'uf', 'complemento', 'referencia'].map(k => [k, campo(k).value])),
+        responsavel: { nome: campo('responsavel_nome').value.trim(), cpf: campo('responsavel_cpf').value },
+        vencimentos,
+      };
+      salvar.disabled = true;
+      feedback.hidden = true;
+      try {
+        // Chamada à API: grava as correções e guarda a versão anterior (acoes.js envia o token CSRF).
+        const atualizado = await SGCBAcoes.executar('contratos/' + encodeURIComponent(c.id) + '/editar', dados);
+        $('contract-dialog-title').textContent = 'Prévia do contrato';
+        renderContract(
+          atualizado,
+          `Contrato atualizado. A versão anterior foi guardada como versão ${atualizado.versao_atual - 1} no histórico.`
+        );
+        loadContracts();
+      } catch (erro) {
+        feedback.textContent = erro.message;
+        feedback.hidden = false;
+      } finally {
+        salvar.disabled = false;
+      }
+    });
   }
   // Fechar o diálogo invalida uma resposta que ainda esteja a caminho.
   $('contract-dialog').addEventListener('close', () => {

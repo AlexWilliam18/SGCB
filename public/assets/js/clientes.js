@@ -24,11 +24,14 @@
     situacao: url.get('situacao') || '',
     uf: url.get('uf') || '',
     cidade: url.get('cidade') || '',
+    // Ordem alfabética: só 'az' ou 'za' (vazio = ordem padrão da tela).
+    ordem: ['az', 'za'].includes(url.get('ordem')) ? url.get('ordem') : '',
     page: Math.max(1, Number(url.get('page')) || 1),
     pages: 1,
   };
   $('client-search').value = state.q;
   $('client-status').value = state.situacao;
+  $('client-order').value = state.ordem;
   function documentNumber(value) {
     const digits = String(value || '').replace(/\D/g, '');
     if (digits.length === 11) return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
@@ -206,6 +209,7 @@
     state.situacao = $('client-status').value;
     state.uf = $('client-state').value;
     state.cidade = $('client-city').value;
+    state.ordem = $('client-order').value;
     state.page = 1;
   }
   $('client-filters').addEventListener('submit', event => {
@@ -221,7 +225,7 @@
       loadClients();
     }, 350);
   });
-  ['client-status', 'client-state', 'client-city'].forEach(id =>
+  ['client-status', 'client-state', 'client-city', 'client-order'].forEach(id =>
     $(id).addEventListener('change', () => {
       clearTimeout(debounce);
       if (id === 'client-state') $('client-city').value = '';
@@ -232,7 +236,7 @@
   $('clear-filters').addEventListener('click', () => {
     clearTimeout(debounce);
     $('client-filters').reset();
-    Object.assign(state, { q: '', situacao: '', uf: '', cidade: '', page: 1 });
+    Object.assign(state, { q: '', situacao: '', uf: '', cidade: '', ordem: '', page: 1 });
     loadClients();
     $('client-search').focus();
   });

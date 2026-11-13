@@ -22,6 +22,8 @@
     q: url.get('q') || '',
     cargo: url.get('cargo') || '',
     situacao: url.get('situacao') || '',
+    // Ordem alfabética: só 'az' ou 'za' (vazio = ordem padrão da tela).
+    ordem: ['az', 'za'].includes(url.get('ordem')) ? url.get('ordem') : '',
     page: Math.max(1, Number(url.get('page')) || 1),
     pages: 1,
   };
@@ -62,7 +64,7 @@
       });
       $('user-role').value = state.cargo;
     } catch (_) {
-      // Sem a lista de cargos, o filtro continua com Administrador e Operador.
+      // Sem a lista de cargos, o filtro continua com Dono e Operador.
     }
   }
 
@@ -230,11 +232,13 @@
     state.q = $('user-search').value.trim();
     state.cargo = $('user-role').value;
     state.situacao = $('user-status').value;
+    state.ordem = $('user-order').value;
     state.page = 1;
   }
   $('user-search').value = state.q;
   $('user-role').value = state.cargo;
   $('user-status').value = state.situacao;
+  $('user-order').value = state.ordem;
 
   // Enter na pesquisa.
   $('user-filters').addEventListener('submit', event => {
@@ -252,7 +256,7 @@
     }, 350);
   });
   // Selects de perfil e status pesquisam na hora.
-  ['user-role', 'user-status'].forEach(id =>
+  ['user-role', 'user-status', 'user-order'].forEach(id =>
     $(id).addEventListener('change', () => {
       clearTimeout(debounce);
       readFilters();
@@ -263,7 +267,7 @@
   $('clear-user-filters').addEventListener('click', () => {
     clearTimeout(debounce);
     $('user-filters').reset();
-    Object.assign(state, { q: '', cargo: '', situacao: '', page: 1 });
+    Object.assign(state, { q: '', cargo: '', situacao: '', ordem: '', page: 1 });
     loadUsers();
     $('user-search').focus();
   });
@@ -340,7 +344,7 @@
       else {
         const aviso = document.createElement('p');
         aviso.className = 'user-admin-note';
-        aviso.textContent = 'Administrador: por segurança, não pode ser inativado.';
+        aviso.textContent = 'Dono: por segurança, não pode ser inativado.';
         container.append(aviso);
       }
       SGCBAcoes.barra(container, acoes);

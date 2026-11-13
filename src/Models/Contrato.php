@@ -7,7 +7,9 @@
  *   gerarContrato()     → ATIVO: reserva os contêineres, numera, grava os snapshots e gera as parcelas;
  *   iniciarLocacao()    → entrega: as reservas viram EM_USO e os contêineres ficam LOCADA;
  *   finalizarContrato() → devolução: contêineres voltam para DISPONIVEL;
- *   cancelarContrato()  → libera as reservas e cancela as parcelas sem pagamento.
+ *   cancelarContrato()  → libera as reservas e cancela as parcelas sem pagamento;
+ *   editarContrato()    → correção limitada (números, observações, entrega, responsável, vencimentos em aberto),
+ *                         guardando antes a versão anterior completa em contrato_versoes.
  *
  * Valor de cada item = valor da periodicidade × quantidade × número de períodos − desconto + outros.
  * Número de períodos (prazo determinado) = dias de locação ÷ dias da periodicidade, mínimo 1.
@@ -291,6 +293,128 @@ final class Contrato extends Modelo
         });
     }
 
+    /**
+     * Edição limitada do contrato (RASCUNHO ou ATIVO). Só muda o que não mexe em valores nem em estoque:
+     *   numero_contrato / numero_locacao (sem repetir outro contrato; ativo precisa ter número do contrato),
+     *   observacoes, entrega_origem + entrega { ... } (mesmas regras do cadastro),
+     *   responsavel { nome, cpf } (vazio = sem responsável) e
+     *   vencimentos [{ parcela_id, vencimento }] (só parcelas sem pagamento e não canceladas).
+     * motivo é obrigatório e fica registrado na versão guardada.
+     *
+     * Antes de gravar, uma cópia completa do contrato como estava (buscarContrato) vai para
+     * contrato_versoes: a versão 1 é sempre o original.
+     *
+     * @return array contrato atualizado (buscarContrato).
+     */
+    public static function editarContrato(int $id, array $dados, int $usuarioId): array
+    {
+        self::transacao(static function (PDO $pdo) use ($id, $dados, $usuarioId): void {
+            $contrato = self::bloquear($id, ['RASCUNHO', 'ATIVO']);
+            // Cópia de como o contrato está agora (vira a versão guardada). A lista de versões fica de fora.
+            $antes = self::buscarContrato($id);
+            unset($antes['versoes']);
+
+            $erros       = [];
+            $motivo      = self::campoTexto($dados, 'motivo', 500, $erros, true);
+            $observacoes = self::campoTexto($dados, 'observacoes', 65535, $erros);
+            $origem      = self::campoOpcao($dados, 'entrega_origem', ['CLIENTE', 'OUTRO'], $erros) ?? 'CLIENTE';
+            // "Endereço do cliente" copia o endereço do cadastro de hoje, como no cadastro do contrato.
+            $cliente     = Cliente::buscarCliente((int) $contrato['cliente_id']);
+            $entrega     = self::validarEntrega($origem, $dados['entrega'] ?? null, $cliente, $erros);
+            $responsavel = self::validarResponsavel($dados['responsavel'] ?? null, $erros);
+            $vencimentos = self::validarVencimentos($id, $dados['vencimentos'] ?? [], $erros);
+            [$numeroContrato, $numeroLocacao] = self::validarNumeros($id, $contrato, $dados, $erros);
+            self::lancarSeErros($erros);
+
+            // Responsável pela assinatura: fica dentro do snapshot do cliente (representante_legal / cpf_representante).
+            $snapshot = $contrato['dados_cliente_snapshot'] !== null ? (array) json_decode($contrato['dados_cliente_snapshot'], true) : [];
+            if ($responsavel !== null) {
+                $snapshot = array_merge($snapshot, $responsavel);
+            } elseif ($contrato['status'] === 'RASCUNHO') {
+                // No rascunho o snapshot só guarda o responsável digitado; sem ele, vale o do cadastro ao gerar.
+                unset($snapshot['representante_legal'], $snapshot['cpf_representante']);
+            } else {
+                $snapshot['representante_legal'] = null;
+                $snapshot['cpf_representante']  = null;
+            }
+
+            $pdo->prepare(
+                'UPDATE contratos SET numero_contrato = :numero, numero_locacao = :locacao, observacoes = :obs,
+                        dados_cliente_snapshot = :snapshot WHERE id = :id'
+            )->execute([
+                'numero' => $numeroContrato, 'locacao' => $numeroLocacao, 'obs' => $observacoes,
+                'snapshot' => $snapshot ? self::json($snapshot) : null, 'id' => $id,
+            ]);
+
+            // Local de entrega (um por contrato): atualiza ou cria, se o contrato antigo não tiver.
+            if ($antes['entrega'] !== null) {
+                $pdo->prepare(
+                    'UPDATE contrato_enderecos_entrega
+                        SET endereco_do_cliente = :do_cliente, cep = :cep, rua = :rua, numero = :numero, bairro = :bairro,
+                            cidade = :cidade, uf = :uf, complemento = :complemento, referencia = :referencia
+                      WHERE contrato_id = :contrato'
+                )->execute([
+                    'contrato' => $id, 'do_cliente' => $entrega['endereco_do_cliente'], 'cep' => $entrega['cep'], 'rua' => $entrega['rua'],
+                    'numero' => $entrega['numero'], 'bairro' => $entrega['bairro'], 'cidade' => $entrega['cidade'], 'uf' => $entrega['uf'],
+                    'complemento' => $entrega['complemento'], 'referencia' => $entrega['referencia'],
+                ]);
+            } else {
+                self::gravarEntrega($id, $entrega);
+            }
+
+            $muda = $pdo->prepare('UPDATE parcelas SET vencimento = :vencimento WHERE id = :id AND contrato_id = :contrato');
+            foreach ($vencimentos as $parcelaId => $vencimento) {
+                $muda->execute(['vencimento' => $vencimento, 'id' => $parcelaId, 'contrato' => $id]);
+            }
+
+            // O que mudou de fato (comparando antes e depois). Sem mudança, nada é gravado.
+            $depois     = self::buscarContrato($id);
+            $alteracoes = self::camposAlterados($antes, $depois);
+            if (!$alteracoes) {
+                throw new ErroValidacao('Nenhuma alteração foi feita no contrato.', [], 422);
+            }
+
+            // Guarda a versão anterior: 1 = original, depois 2, 3...
+            $ultima = $pdo->prepare('SELECT COALESCE(MAX(versao), 0) FROM contrato_versoes WHERE contrato_id = :id');
+            $ultima->execute(['id' => $id]);
+            $versao = (int) $ultima->fetchColumn() + 1;
+            $pdo->prepare(
+                'INSERT INTO contrato_versoes (contrato_id, versao, dados, motivo, alteracoes, alterado_por, alterado_em)
+                 VALUES (:contrato, :versao, :dados, :motivo, :alteracoes, :usuario, :agora)'
+            )->execute([
+                'contrato' => $id, 'versao' => $versao, 'dados' => self::json($antes), 'motivo' => $motivo,
+                'alteracoes' => implode(', ', $alteracoes), 'usuario' => $usuarioId, 'agora' => self::agora(),
+            ]);
+
+            self::auditar($usuarioId, 'contratos', $id, 'EDITAR', ['versao_guardada' => $versao, 'motivo' => $motivo, 'alteracoes' => $alteracoes]);
+        });
+
+        return self::buscarContrato($id);
+    }
+
+    /**
+     * Uma versão guardada do contrato (a cópia completa de como ele estava) e quem a substituiu.
+     *
+     * @return array{versao: int, motivo: string, alteracoes: ?string, alterado_por: ?string, alterado_em: string, dados: array}|null
+     */
+    public static function buscarVersao(int $id, int $versao): ?array
+    {
+        $consulta = self::pdo()->prepare(
+            'SELECT v.versao, v.motivo, v.alteracoes, v.alterado_em, v.dados, u.nome AS alterado_por
+               FROM contrato_versoes v LEFT JOIN usuarios u ON u.id = v.alterado_por
+              WHERE v.contrato_id = :id AND v.versao = :versao'
+        );
+        $consulta->execute(['id' => $id, 'versao' => $versao]);
+        $linha = $consulta->fetch();
+        if (!$linha) {
+            return null;
+        }
+        $linha['versao'] = (int) $linha['versao'];
+        $linha['dados']  = json_decode($linha['dados'], true);
+
+        return $linha;
+    }
+
     /** Contrato completo: dados, itens com valores, contêineres reservados e parcelas com status. */
     public static function buscarContrato(int $id): ?array
     {
@@ -343,6 +467,19 @@ final class Contrato extends Modelo
         $unidades->execute(['id' => $id]);
         $contrato['unidades'] = $unidades->fetchAll();
 
+        // Versões guardadas (só o resumo; a cópia completa vem de buscarVersao). A atual é a última + 1.
+        $versoes = self::pdo()->prepare(
+            'SELECT v.versao, v.motivo, v.alteracoes, v.alterado_em, u.nome AS alterado_por
+               FROM contrato_versoes v LEFT JOIN usuarios u ON u.id = v.alterado_por
+              WHERE v.contrato_id = :id ORDER BY v.versao'
+        );
+        $versoes->execute(['id' => $id]);
+        $contrato['versoes'] = array_map(static function (array $v): array {
+            $v['versao'] = (int) $v['versao'];
+            return $v;
+        }, $versoes->fetchAll());
+        $contrato['versao_atual'] = count($contrato['versoes']) + 1;
+
         return $contrato;
     }
 
@@ -386,7 +523,8 @@ final class Contrato extends Modelo
                + COALESCE(c.frete_deslocamento, 0) + COALESCE(c.outros_valores, 0) AS valor_total',
             'FROM contratos c JOIN pessoas p ON p.id = c.cliente_id WHERE ' . implode(' AND ', $where),
             $params,
-            'c.criado_em DESC, c.id DESC',
+            // Padrão: mais recentes primeiro; com o filtro "Ordem", pelo nome do cliente.
+            self::ordemAlfabetica($filtros, 'p.nome_razao_social', 'c.criado_em DESC, c.id DESC', 'c.id'),
             (int) ($filtros['page'] ?? 1)
         );
         $resultado['items'] = array_map(static function (array $c): array {
@@ -761,6 +899,114 @@ final class Contrato extends Modelo
         }
 
         return $contrato;
+    }
+
+    /**
+     * Novos vencimentos da edição: [{ parcela_id, vencimento }] → [parcela_id => 'AAAA-MM-DD'].
+     * Só parcelas deste contrato, não canceladas e sem pagamento (parcela paga não muda de data).
+     * Erros voltam como "vencimentos.ID".
+     */
+    private static function validarVencimentos(int $contratoId, mixed $lista, array &$erros): array
+    {
+        $lista = is_array($lista) ? $lista : [];
+        if (!$lista) {
+            return [];
+        }
+        $consulta = self::pdo()->prepare(
+            'SELECT pa.id, pa.cancelada,
+                    EXISTS (SELECT 1 FROM pagamentos pg WHERE pg.parcela_id = pa.id AND pg.estornado_em IS NULL) AS tem_pagamento
+               FROM parcelas pa WHERE pa.contrato_id = :id FOR UPDATE'
+        );
+        $consulta->execute(['id' => $contratoId]);
+        $parcelas = array_column($consulta->fetchAll(), null, 'id');
+
+        $novos = [];
+        foreach ($lista as $item) {
+            $item      = is_array($item) ? $item : [];
+            $parcelaId = (int) ($item['parcela_id'] ?? 0);
+            $chave     = 'vencimentos.' . $parcelaId;
+            $parcela   = $parcelas[$parcelaId] ?? null;
+            if ($parcela === null) {
+                $erros[$chave] = 'Parcela não encontrada neste contrato.';
+                continue;
+            }
+            if ($parcela['cancelada'] || $parcela['tem_pagamento']) {
+                $erros[$chave] = 'Só parcelas em aberto e sem pagamento podem mudar de vencimento.';
+                continue;
+            }
+            $tmp  = [];
+            $data = self::campoData($item, 'vencimento', $tmp, true);
+            if ($data === null) {
+                $erros[$chave] = 'Informe uma data de vencimento válida.';
+                continue;
+            }
+            $novos[$parcelaId] = $data;
+        }
+
+        return $novos;
+    }
+
+    /**
+     * Números do contrato e da locação na edição. Campo não enviado = mantém o atual.
+     * Não podem repetir o de outro contrato; contrato ATIVO não pode ficar sem número do contrato
+     * (no rascunho, vazio = numeração automática ao gerar).
+     *
+     * @return array{0: ?string, 1: ?string} [numero_contrato, numero_locacao]
+     */
+    private static function validarNumeros(int $id, array $contrato, array $dados, array &$erros): array
+    {
+        $numeros = [];
+        foreach (['numero_contrato', 'numero_locacao'] as $campo) {
+            if (!array_key_exists($campo, $dados)) {
+                $numeros[] = $contrato[$campo];
+                continue;
+            }
+            $numero = self::campoTexto($dados, $campo, 50, $erros);
+            if ($numero !== null) {
+                // Mesmo número em outro contrato não pode (as colunas são UNIQUE).
+                $existe = self::pdo()->prepare("SELECT 1 FROM contratos WHERE $campo = :n AND id <> :id");
+                $existe->execute(['n' => $numero, 'id' => $id]);
+                if ($existe->fetchColumn() !== false) {
+                    $erros[$campo] = 'Número já usado em outro contrato.';
+                }
+            }
+            $numeros[] = $numero;
+        }
+        if ($contrato['status'] === 'ATIVO' && $numeros[0] === null && !isset($erros['numero_contrato'])) {
+            $erros['numero_contrato'] = 'Informe o número do contrato.';
+        }
+
+        return $numeros;
+    }
+
+    /** Nomes dos grupos de dados que mudaram entre duas leituras do contrato (buscarContrato). */
+    private static function camposAlterados(array $antes, array $depois): array
+    {
+        $alterados = [];
+        if ((string) $antes['numero_contrato'] !== (string) $depois['numero_contrato']) {
+            $alterados[] = 'Número do contrato';
+        }
+        if ((string) $antes['numero_locacao'] !== (string) $depois['numero_locacao']) {
+            $alterados[] = 'Número da locação';
+        }
+        if ((string) $antes['observacoes'] !== (string) $depois['observacoes']) {
+            $alterados[] = 'Observações';
+        }
+        if ($antes['entrega'] != $depois['entrega']) {
+            $alterados[] = 'Local de entrega';
+        }
+        $responsavel = static fn (array $c): array => [
+            $c['dados_cliente_snapshot']['representante_legal'] ?? null,
+            $c['dados_cliente_snapshot']['cpf_representante'] ?? null,
+        ];
+        if ($responsavel($antes) !== $responsavel($depois)) {
+            $alterados[] = 'Responsável pela assinatura';
+        }
+        if (array_column($antes['parcelas'], 'vencimento', 'id') !== array_column($depois['parcelas'], 'vencimento', 'id')) {
+            $alterados[] = 'Vencimentos';
+        }
+
+        return $alterados;
     }
 
     /** Grava o local de entrega do contrato (um por contrato: contrato_id é UNIQUE). */

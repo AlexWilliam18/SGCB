@@ -64,7 +64,7 @@ final class Cliente extends Modelo
             'p.id, p.nome_razao_social AS nome, p.cpf_cnpj, p.telefone, e.cidade, e.uf, p.criado_em, p.ativo',
             'FROM pessoas p LEFT JOIN enderecos_pessoa e ON e.pessoa_id = p.id WHERE ' . implode(' AND ', $where),
             $params,
-            'p.nome_razao_social, p.id',
+            self::ordemAlfabetica($filtros, 'p.nome_razao_social', 'p.nome_razao_social, p.id', 'p.id'),
             (int) ($filtros['page'] ?? 1)
         );
 
@@ -375,8 +375,11 @@ final class Cliente extends Modelo
         $erros = [];
 
         $documento = self::somenteDigitos($dados['cpf_cnpj'] ?? '');
-        if (!self::validarCpfCnpj($documento)) {
-            $erros['cpf_cnpj'] = 'CPF/CNPJ inválido. Confira os números informados.';
+        // Mensagem conforme o problema: tamanho errado, CPF inválido ou CNPJ inválido.
+        if (strlen($documento) !== 11 && strlen($documento) !== 14) {
+            $erros['cpf_cnpj'] = 'Informe os 11 dígitos do CPF ou os 14 do CNPJ.';
+        } elseif (!self::validarCpfCnpj($documento)) {
+            $erros['cpf_cnpj'] = (strlen($documento) === 11 ? 'CPF' : 'CNPJ') . ' inválido. Confira os números informados.';
         }
 
         $campos = [
@@ -399,11 +402,11 @@ final class Cliente extends Modelo
             'permite_ultrapassar_limite' => self::campoBool($dados, 'permite_ultrapassar_limite'),
         ];
 
-        if ($campos['email'] !== '' && !filter_var($campos['email'], FILTER_VALIDATE_EMAIL)) {
-            $erros['email'] = 'Informe um e-mail válido.';
+        if ($campos['email'] !== '' && !self::validarEmail($campos['email'])) {
+            $erros['email'] = 'E-mail inválido. Use o formato nome@empresa.com.br.';
         }
-        if (!preg_match('/^\d{8,15}$/', $campos['telefone'])) {
-            $erros['telefone'] = 'Informe um telefone válido, incluindo o DDD.';
+        if (!self::validarTelefone($campos['telefone'])) {
+            $erros['telefone'] = 'Telefone inválido. Use DDD + número: (12) 3456-7890 ou (12) 98765-4321.';
         }
         if ($campos['data_nascimento'] !== null && $campos['data_nascimento'] > self::hoje()) {
             $erros['data_nascimento'] = 'Informe uma data válida, até o dia de hoje.';

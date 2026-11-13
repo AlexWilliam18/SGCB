@@ -17,7 +17,7 @@ $editando = $idEdicao > 0;
 
 $titulo       = $editando ? 'Editar usuário' : 'Novo usuário';
 $css          = ['dashboard.css', 'cadastro-usuario.css'];
-$js           = ['painel.js', 'descartar.js', 'cadastro-usuario.js'];
+$js           = ['painel.js', 'descartar.js', 'validacao.js', 'cadastro-usuario.js'];
 $fontesExtras = ['Inter:wght@400;700'];   // usada nos campos do formulário
 $classeBody   = 'user-create-page';        // ajustes de layout do cadastro-usuario.css
 $paginaAtual  = 'usuarios';                // o cadastro pertence ao módulo Usuários no menu
@@ -49,7 +49,7 @@ require __DIR__ . '/../../../includes/head.php';
               <div class="user-field user-email"><label for="email">E-mail *</label><input id="email" name="email" type="email" placeholder="nome@casabarretto.com.br" maxlength="254" autocomplete="email" required><p class="user-error" id="error-email" hidden></p></div>
             </div>
             <div class="user-form-grid user-contact-grid">
-              <div class="user-field"><label for="telefone">Telefone</label><input id="telefone" name="telefone" type="tel" placeholder="(00) 00000-0000" maxlength="25" autocomplete="tel"><p class="user-error" id="error-telefone" hidden></p></div>
+              <div class="user-field"><label for="telefone">Telefone</label><input id="telefone" name="telefone" type="tel" placeholder="(00) 00000-0000" maxlength="15" inputmode="numeric" autocomplete="tel"><p class="user-error" id="error-telefone" hidden></p></div>
               <div class="user-field user-state"><label for="status"><?= $editando ? 'Status *' : 'Status inicial *' ?></label><div class="user-select"><select id="status" name="status" required><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select><img class="icone icone--seta" src="<?= $icones ?>seta-baixo.svg" alt="" width="10" height="6"></div><p class="user-error" id="error-status" hidden></p><p class="user-help" id="status-admin-help" hidden>O administrador não pode ser desativado.</p></div>
             </div>
           </section>
@@ -68,7 +68,7 @@ require __DIR__ . '/../../../includes/head.php';
             <h3 id="user-role-title">Perfil de acesso</h3>
             <fieldset class="user-role-options"><legend class="sr-only">Escolha o perfil de acesso</legend>
               <label class="user-role-card" for="perfil-operador"><span class="user-role-title"><input id="perfil-operador" type="radio" name="perfil" data-cargo="OPERADOR" value="" checked required><strong>Operador</strong></span><span class="user-role-description">Acesso às rotinas de clientes, produtos e locações.</span></label>
-              <label class="user-role-card user-admin-card" for="perfil-administrador"><span class="user-role-title"><input id="perfil-administrador" type="radio" name="perfil" data-cargo="ADMIN" value="" required><strong>Administrador</strong></span><span class="user-role-description">Acesso completo, incluindo financeiro e gestão de usuários.</span></label>
+              <label class="user-role-card user-admin-card" for="perfil-administrador"><span class="user-role-title"><input id="perfil-administrador" type="radio" name="perfil" data-cargo="ADMIN" value="" required><strong>Dono</strong></span><span class="user-role-description">Acesso completo, incluindo financeiro e gestão de usuários.</span></label>
             </fieldset>
             <p class="user-error" id="error-cargo_id" hidden></p>
             <p class="user-help" id="role-help">O perfil Operador não permite cadastrar usuários ou alterar permissões.</p>

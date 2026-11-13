@@ -188,13 +188,10 @@
     return Number(text).toFixed(2);
   }
 
-  // Ao sair de um campo de valor, mostra no formato de moeda (ex.: R$ 1.000,00).
+  // Campos de valor formatam a cada número digitado: 5 → R$ 0,05 … 150000 → R$ 1.500,00 (validacao.js).
+  // vazioPermitido: campo obrigatório que ficou vazio continua vazio, para o Salvar acusar "Preencha".
   form.querySelectorAll('[data-money]').forEach(input =>
-    input.addEventListener('blur', () => {
-      const value = decimal(input.value);
-      if (value !== null)
-        input.value = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value));
-    })
+    window.Validacao.ligarMoeda(input, { comReais: true, vazioPermitido: true })
   );
 
   // Qualquer alteração marca o formulário como "sujo"; o contador da descrição é atualizado.

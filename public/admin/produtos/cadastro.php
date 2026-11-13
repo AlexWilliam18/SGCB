@@ -10,7 +10,7 @@ Autenticacao::exigirLogin();
 
 $titulo       = 'Novo produto';
 $css          = ['dashboard.css', 'cadastro-produto.css'];
-$js           = ['painel.js', 'descartar.js', 'cadastro-produto.js'];
+$js           = ['painel.js', 'descartar.js', 'validacao.js', 'cadastro-produto.js'];
 $fontesExtras = ['Inter:wght@400;600;700'];   // usada nos campos do formulário
 $classeBody   = 'product-form-page';           // ajustes de layout do cadastro-produto.css
 $paginaAtual  = 'produtos';                    // o cadastro pertence ao módulo Produtos no menu
@@ -41,14 +41,14 @@ require __DIR__ . '/../../../includes/head.php';
           <!-- 2. Informações de compra: os fornecedores vêm da API (cadastros do tipo fornecedor em Clientes) -->
           <section class="form-section purchase-section" aria-labelledby="purchase-title"><h3 id="purchase-title">Informações de compra</h3><div class="purchase-grid">
             <div class="field field-fornecedor_id"><label for="fornecedor_id">Fornecedor dos contêineres *</label><div class="select-control"><select id="fornecedor_id" name="fornecedor_id" required><option value="">Selecione o fornecedor</option></select><img class="icone icone--seta" src="<?= $icones ?>seta-baixo.svg" alt="" width="10" height="6"></div><p class="field-error" id="error-fornecedor_id" hidden></p></div>
-            <div class="field field-valor_total_bem"><label for="valor_total_bem">Valor total do bem *</label><input id="valor_total_bem" name="valor_total_bem" type="text" placeholder="R$ 0,00" required inputmode="decimal" maxlength="24" data-money><p class="field-error" id="error-valor_total_bem" hidden></p></div>
+            <div class="field field-valor_total_bem"><label for="valor_total_bem">Valor total do bem *</label><input id="valor_total_bem" name="valor_total_bem" type="text" placeholder="R$ 0,00" required inputmode="numeric" maxlength="24" data-money><p class="field-error" id="error-valor_total_bem" hidden></p></div>
           </div></section>
           <!-- 3. Valores de locação por período (campos data-money são formatados em R$ pelo JS) -->
           <section class="form-section rental-section" aria-labelledby="rental-title"><h3 id="rental-title">Valores de locação</h3><p class="section-hint">Defina os valores conforme o período de cobrança.</p><div class="rental-grid">
-            <div class="field field-diaria"><label for="diaria">Valor da diária *</label><input id="diaria" name="diaria" type="text" placeholder="R$ 0,00" required inputmode="decimal" maxlength="24" data-money><p class="field-error" id="error-diaria" hidden></p></div>
-            <div class="field field-semanal"><label for="semanal">Valor semanal *</label><input id="semanal" name="semanal" type="text" placeholder="R$ 0,00" required inputmode="decimal" maxlength="24" data-money><p class="field-error" id="error-semanal" hidden></p></div>
-            <div class="field field-quinzenal"><label for="quinzenal">Valor quinzenal *</label><input id="quinzenal" name="quinzenal" type="text" placeholder="R$ 0,00" required inputmode="decimal" maxlength="24" data-money><p class="field-error" id="error-quinzenal" hidden></p></div>
-            <div class="field field-mensal"><label for="mensal">Valor mensal *</label><input id="mensal" name="mensal" type="text" placeholder="R$ 0,00" required inputmode="decimal" maxlength="24" data-money><p class="field-error" id="error-mensal" hidden></p></div>
+            <div class="field field-diaria"><label for="diaria">Valor da diária *</label><input id="diaria" name="diaria" type="text" placeholder="R$ 0,00" required inputmode="numeric" maxlength="24" data-money><p class="field-error" id="error-diaria" hidden></p></div>
+            <div class="field field-semanal"><label for="semanal">Valor semanal *</label><input id="semanal" name="semanal" type="text" placeholder="R$ 0,00" required inputmode="numeric" maxlength="24" data-money><p class="field-error" id="error-semanal" hidden></p></div>
+            <div class="field field-quinzenal"><label for="quinzenal">Valor quinzenal *</label><input id="quinzenal" name="quinzenal" type="text" placeholder="R$ 0,00" required inputmode="numeric" maxlength="24" data-money><p class="field-error" id="error-quinzenal" hidden></p></div>
+            <div class="field field-mensal"><label for="mensal">Valor mensal *</label><input id="mensal" name="mensal" type="text" placeholder="R$ 0,00" required inputmode="numeric" maxlength="24" data-money><p class="field-error" id="error-mensal" hidden></p></div>
           </div><div class="price-example"><p><strong>Exemplo:</strong> Diária R$ 200 • Semanal R$ 1.000 • Quinzenal R$ 1.800 • Mensal R$ 3.000</p><p>Os valores maiores de período podem ser promocionais e não precisam ser apenas a multiplicação da diária.</p></div></section>
           <!-- 4. Estoque e limites: a quantidade inicial gera as unidades físicas no back-end -->
           <section class="form-section stock-section" aria-labelledby="stock-title"><h3 id="stock-title">Estoque e limites</h3><div class="stock-grid">

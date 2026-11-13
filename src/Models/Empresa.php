@@ -66,7 +66,8 @@ final class Empresa extends Modelo
         $campos['telefone'] = self::somenteDigitos($campos['telefone']) ?: null;
         $campos['uf']       = strtoupper(trim((string) ($dados['uf'] ?? ''))) ?: null;
 
-        if ($campos['cnpj'] !== null && !Cliente::validarCpfCnpj($campos['cnpj'])) {
+        // strlen 14: validarCpfCnpj também aceitaria um CPF, e aqui só vale CNPJ.
+        if ($campos['cnpj'] !== null && (strlen($campos['cnpj']) !== 14 || !Cliente::validarCpfCnpj($campos['cnpj']))) {
             $erros['cnpj'] = 'CNPJ inválido.';
         }
         if ($campos['cep'] !== null && strlen($campos['cep']) !== 8) {
@@ -75,8 +76,11 @@ final class Empresa extends Modelo
         if ($campos['uf'] !== null && !preg_match('/^[A-Z]{2}$/', $campos['uf'])) {
             $erros['uf'] = 'Informe a UF com 2 letras.';
         }
-        if ($campos['email'] !== null && !filter_var($campos['email'], FILTER_VALIDATE_EMAIL)) {
-            $erros['email'] = 'Informe um e-mail válido.';
+        if ($campos['email'] !== null && !self::validarEmail($campos['email'])) {
+            $erros['email'] = 'E-mail inválido. Use o formato nome@empresa.com.br.';
+        }
+        if ($campos['telefone'] !== null && !self::validarTelefone($campos['telefone'])) {
+            $erros['telefone'] = 'Telefone inválido. Use DDD + número: (12) 3456-7890 ou (12) 98765-4321.';
         }
         self::lancarSeErros($erros);
 
