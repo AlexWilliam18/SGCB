@@ -12,19 +12,22 @@ final class Dashboard extends Modelo
     /**
      * Tudo o que o dashboard.js espera de /api/dashboard.
      *
-     * Sem valores financeiros: faturamento fica só na API do financeiro (restrita ao administrador).
+     * Faturamento fica só na API do financeiro. O único valor em reais aqui é o total de cada
+     * locação recente, e ele só vem preenchido quando $comValores = true (quem pode consultar o
+     * Financeiro); para os demais, "value" vem null e a tela mostra "—".
      *
      * @return array{metrics: array, rental_counts: array,
-     *               top_products: array, top_clients: array, recent_contracts: array}
+     *               top_products: array, top_clients: array, recent_contracts: array, shows_values: bool}
      */
-    public static function resumo(): array
+    public static function resumo(bool $comValores = false): array
     {
         return [
             'metrics'          => self::indicadores(),
             'rental_counts'    => self::locacoesPorMes(),
             'top_products'     => self::produtosMaisLocados(),
             'top_clients'      => self::clientesQueMaisLocam(),
-            'recent_contracts' => self::ultimasLocacoes(),
+            'recent_contracts' => self::ultimasLocacoes(15, $comValores),
+            'shows_values'     => $comValores,
         ];
     }
 
@@ -99,7 +102,7 @@ final class Dashboard extends Modelo
      * Status da tela: ATIVO que ainda não começou aparece como RESERVADO.
      * O id é usado no dashboard.js para abrir a prévia em admin/locacoes/index.php?ver=ID.
      */
-    public static function ultimasLocacoes(int $limite = 15): array
+    public static function ultimasLocacoes(int $limite = 15, bool $comValores = false): array
     {
         $limite   = max(1, min($limite, 100));
         $consulta = self::pdo()->prepare(
@@ -114,7 +117,7 @@ final class Dashboard extends Modelo
         $consulta->execute();
         $hoje = self::hoje();
 
-        return array_map(static function (array $c) use ($hoje): array {
+        return array_map(static function (array $c) use ($hoje, $comValores): array {
             $status = $c['status'] === 'ATIVO' && $c['data_inicio'] > $hoje ? 'RESERVADO' : $c['status'];
 
             return [
@@ -124,7 +127,7 @@ final class Dashboard extends Modelo
                 'start'   => $c['data_inicio'],
                 'end'     => $c['data_fim'],
                 'days'    => $c['data_fim'] !== null ? Contrato::diasLocacao($c['data_inicio'], $c['data_fim']) : null,
-                'value'   => (float) $c['valor'],
+                'value'   => $comValores ? (float) $c['valor'] : null, // dado financeiro: só com permissão
                 'status'  => $status,
             ];
         }, $consulta->fetchAll());

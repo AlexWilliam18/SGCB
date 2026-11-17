@@ -9,6 +9,12 @@
   const $ = id => document.getElementById(id);
   // Caminho das imagens, vindo do data-img-url do <main>.
   const imgUrl = $('finance-main').dataset.imgUrl;
+  // Permissões do usuário (data-pode-* do financeiro/index.php): esconde os botões que a API recusaria.
+  const pode = {
+    registrar: $('finance-main').dataset.podeRegistrar === '1',
+    editar: $('finance-main').dataset.podeEditar === '1',
+    estornar: $('finance-main').dataset.podeEstornar === '1',
+  };
   const url = new URLSearchParams(location.search);
   const state = {
     q: url.get('q') || '',
@@ -494,7 +500,8 @@
               );
               form.querySelector('[name=valor]').focus();
             });
-            entry.append(fix, reverse);
+            // Corrigir também começa com um estorno: os dois exigem a permissão de estornar.
+            if (pode.estornar) entry.append(fix, reverse);
           }
           section.append(entry);
         });
@@ -506,7 +513,7 @@
         showDetail(identifier);
       }
       const rota = 'financeiro/parcelas/' + encodeURIComponent(identifier) + '/';
-      if (item.status !== 'CANCELADA' && item.saldo > 0) {
+      if (pode.registrar && item.status !== 'CANCELADA' && item.saldo > 0) {
         SGCBAcoes.formulario(
           box,
           'Registrar pagamento',
@@ -529,7 +536,7 @@
           }
         );
       }
-      if (item.status !== 'CANCELADA' && !item.valor_recebido)
+      if (pode.editar && item.status !== 'CANCELADA' && !item.valor_recebido)
         SGCBAcoes.barra(box, [
           {
             texto: 'Cancelar parcela',

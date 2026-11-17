@@ -449,3 +449,27 @@
         flex-wrap: wrap
     }
 }
+
+/* Etapas do contrato na prévia (gerar, registrar entrega, finalizar, cancelar) */
+.contract-lifecycle {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-2)
+}
+
+.contract-lifecycle h4 {
+    margin: 0;
+    font-size: 13px
+}
+
+.contract-lifecycle .detail-actions {
+    margin-top: 8px;
+    justify-content: flex-start
+}
+
+/* Linha "Última alteração" da prévia, em destaque discreto */
+.contract-line.contract-altered {
+    font-weight: 600
+}

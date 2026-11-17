@@ -9,8 +9,12 @@ final class DashboardController
 {
     public static function resumo(): array
     {
-        Api::usuario();
+        $usuario = Api::usuario();
 
-        return Dashboard::resumo();
+        // O valor das locações é dado financeiro: só vai para quem pode consultar o Financeiro
+        // (achado A02). Os demais veem a tabela com "—" na coluna Valor.
+        $veValores = Usuario::temPermissao($usuario['id'], 'financeiro', 'visualizar');
+
+        return Dashboard::resumo($veValores);
     }
 }

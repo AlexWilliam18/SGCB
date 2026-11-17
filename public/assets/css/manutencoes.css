@@ -270,6 +270,12 @@
     color: var(--muted)
 }
 
+/* Agendada com a data prevista vencida (não é status do banco; vem de "atrasada" na API) */
+.maintenance-badge.atrasada {
+    background: var(--danger-soft);
+    color: var(--danger)
+}
+
 /* Prioridades (classe "priority-" + valor) */
 .priority-urgente {
     color: var(--danger);

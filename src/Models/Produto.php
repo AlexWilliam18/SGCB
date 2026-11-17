@@ -11,6 +11,9 @@ final class Produto extends Modelo
 {
     public const PERIODICIDADES = ['DIARIA', 'SEMANAL', 'QUINZENAL', 'MENSAL'];
 
+    /** Máximo de unidades que entram ou saem em um único "Ajustar estoque" (igual ao cadastro inicial). */
+    public const LIMITE_AJUSTE_ESTOQUE = 1000;
+
     /** Campo do formulário (cadastro-produto) → periodicidade gravada em precos_produto. */
     private const CAMPOS_PRECO = [
         'diaria'    => 'DIARIA',
@@ -226,7 +229,7 @@ final class Produto extends Modelo
         }
 
         $erros  = [];
-        $campos = self::validarDados($dados, $erros, (int) $atual['categoria_id']);
+        $campos = self::validarDados($dados, $erros, (int) $atual['categoria_id'], (int) $atual['fornecedor_id']);
         $precos = self::validarPrecos($dados, $erros, false);
         if ($campos['maximo_estoque'] && $atual['total'] - $atual['inativa'] > $campos['maximo_estoque']) {
             $erros['maximo_estoque'] = 'O produto já tem mais unidades ativas que esse máximo.';
@@ -250,15 +253,29 @@ final class Produto extends Modelo
      */
     public static function atualizarQuantidade(int $produtoId, int $quantidade, int $usuarioId): int
     {
-        $produto = self::buscarProduto($produtoId);
-        if ($produto === null) {
-            throw new ErroValidacao('Produto não encontrado.', [], 404);
-        }
         if ($quantidade === 0) {
             return 0;
         }
+        // Mesmo teto do cadastro (quantidade inicial de 1 a 1000): evita criar milhares de unidades por engano.
+        if (abs($quantidade) > self::LIMITE_AJUSTE_ESTOQUE) {
+            throw new ErroValidacao(
+                'Ajuste no máximo ' . self::LIMITE_AJUSTE_ESTOQUE . ' unidades por vez.',
+                ['quantidade' => 'Quantidade acima do limite por ajuste.']
+            );
+        }
 
-        return self::transacao(static function (PDO $pdo) use ($produto, $quantidade, $usuarioId): int {
+        return self::transacao(static function (PDO $pdo) use ($produtoId, $quantidade, $usuarioId): int {
+            // Trava o produto e as unidades ANTES de contar: dois ajustes ao mesmo tempo não passam
+            // juntos do máximo de estoque, e uma reserva não entra no meio da retirada.
+            $trava = $pdo->prepare('SELECT id FROM produtos WHERE id = :id FOR UPDATE');
+            $trava->execute(['id' => $produtoId]);
+            if ($trava->fetchColumn() === false) {
+                throw new ErroValidacao('Produto não encontrado.', [], 404);
+            }
+            UnidadeFisica::bloquearProduto($produtoId);
+            $produto = self::buscarProduto($produtoId); // contagem já protegida pela trava
+            $antes   = $produto['total'] - $produto['inativa'];
+
             if ($quantidade > 0) {
                 $ativas = $produto['total'] - $produto['inativa'];
                 if ($produto['maximo_estoque'] && $ativas + $quantidade > $produto['maximo_estoque']) {
@@ -267,8 +284,7 @@ final class Produto extends Modelo
                 $afetadas = UnidadeFisica::gerarUnidades($produto['id'], $produto['codigo'], $quantidade);
             } else {
                 // Só sai do estoque o que está no pátio e sem nenhuma reserva pela frente.
-                UnidadeFisica::bloquearProduto($produto['id']);
-                $livres = UnidadeFisica::livresNoPeriodo($produto['id'], self::agora(), UnidadeFisica::FIM_INDETERMINADO);
+                $livres =UnidadeFisica::livresNoPeriodo($produto['id'], self::agora(), UnidadeFisica::FIM_INDETERMINADO);
                 $livres = array_values(array_filter($livres, static function (int $id) use ($pdo): bool {
                     $c = $pdo->prepare("SELECT estado_operacional = 'DISPONIVEL' FROM unidades_fisicas WHERE id = :id");
                     $c->execute(['id' => $id]);
@@ -283,7 +299,10 @@ final class Produto extends Modelo
                 $afetadas = count($livres);
             }
 
-            self::auditar($usuarioId, 'produtos', $produto['id'], 'ALTERAR_ESTOQUE', ['quantidade' => $quantidade]);
+            // Auditoria com o antes e o depois das unidades ativas (rastreia quem mexeu no estoque).
+            self::auditar($usuarioId, 'produtos', $produto['id'], 'ALTERAR_ESTOQUE', [
+                'quantidade' => $quantidade, 'ativas_antes' => $antes, 'ativas_depois' => $antes + ($quantidade > 0 ? $afetadas : -$afetadas),
+            ]);
 
             return $afetadas;
         });
@@ -349,8 +368,10 @@ final class Produto extends Modelo
      * Campos da tabela produtos, validados.
      * $categoriaAtual: na edição, a categoria que o produto já tem continua aceita mesmo se estiver inativa
      * (o produto segue exibindo a categoria); trocar para outra só vale para uma categoria ativa.
+     * $fornecedorAtual: mesma regra para o fornecedor (achado A06: um vínculo inativo travava a edição
+     * de descrição e preços).
      */
-    private static function validarDados(array $dados, array &$erros, ?int $categoriaAtual = null): array
+    private static function validarDados(array $dados, array &$erros, ?int $categoriaAtual = null, ?int $fornecedorAtual = null): array
     {
         $campos = [
             'categoria_id'    => self::campoInteiro($dados, 'categoria_id', $erros, true, 1),
@@ -386,7 +407,7 @@ final class Produto extends Modelo
                 $erros['categoria_id'] = 'Selecione uma categoria ativa.';
             }
         }
-        if ($campos['fornecedor_id'] !== null) {
+        if ($campos['fornecedor_id'] !== null && $campos['fornecedor_id'] !== $fornecedorAtual) {
             $consulta = self::pdo()->prepare("SELECT 1 FROM pessoas WHERE id = :id AND ativo = 1 AND tipo_cadastro IN ('FORNECEDOR', 'AMBOS')");
             $consulta->execute(['id' => $campos['fornecedor_id']]);
             if ($consulta->fetchColumn() === false) {

@@ -13,6 +13,9 @@ final class Usuario extends Modelo
     /** Cargo que tem acesso total, sem precisar de permissões cadastradas. */
     public const CARGO_ADMIN = 'ADMIN'; // cargo com acesso geral (pode tudo, inclusive excluir)
 
+    /** Tamanho máximo da senha em bytes UTF-8 (o bcrypt ignora o que passa de 72 bytes). */
+    public const LIMITE_BYTES_SENHA = 72;
+
     /** Validade do link de recuperação de senha. */
     private const HORAS_RECUPERACAO = 1;
 
@@ -382,14 +385,21 @@ final class Usuario extends Modelo
 
     // -------------------------------------------------------------------------
 
-    /** Regra da senha: 8+ caracteres, com pelo menos uma letra e um número. null = senha válida. */
+    /**
+     * Regra da senha: 8+ caracteres, com pelo menos uma letra e um número. null = senha válida.
+     *
+     * O bcrypt só usa os primeiros 72 BYTES da senha; o que passar disso é ignorado sem aviso.
+     * Em UTF-8 uma letra acentuada ocupa 2 bytes, então o limite é conferido com strlen (bytes)
+     * e não com mb_strlen (caracteres). Antes, "ã" × 40 passava e senhas diferentes depois do
+     * 72º byte autenticavam como iguais (achado A09).
+     */
     public static function erroSenha(string $senha): ?string
     {
         if (mb_strlen($senha) < 8 || !preg_match('/[A-Za-z]/', $senha) || !preg_match('/\d/', $senha)) {
             return 'Use pelo menos 8 caracteres, com letras e números.';
         }
-        if (mb_strlen($senha) > 72) {
-            return 'Use no máximo 72 caracteres.'; // limite do bcrypt
+        if (strlen($senha) > self::LIMITE_BYTES_SENHA) {
+            return 'Use no máximo 72 caracteres (letras acentuadas contam como 2).';
         }
 
         return null;

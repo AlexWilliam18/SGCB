@@ -20,13 +20,22 @@ $usuario     = Autenticacao::usuario();
  */
 $itensMenu = [
     'visao-geral' => ['rotulo' => 'Visão Geral',          'destino' => 'admin/dashboard.php',       'icone' => ['visao-geral.svg', 18, 18]],
+    // A listagem mostra só clientes (CLIENTE e AMBOS); fornecedores são cadastrados pela mesma tela.
     'clientes'    => ['rotulo' => 'Clientes',             'destino' => 'admin/clientes/index.php',    'icone' => ['clientes.svg', 18, 18]],
     'produtos'    => ['rotulo' => 'Produtos',             'destino' => 'admin/produtos/index.php',    'icone' => ['produtos.svg', 18, 18]],
     'locacoes'    => ['rotulo' => 'Contratos de Locação', 'destino' => 'admin/locacoes/index.php',    'icone' => ['contratos.svg', 18, 18]],
     'manutencoes' => ['rotulo' => 'Manutenções',          'destino' => 'admin/manutencoes/index.php', 'icone' => ['manutencoes.png', 22, 21]],
-    'financeiro'  => ['rotulo' => 'Financeiro',           'destino' => 'admin/financeiro/index.php',  'icone' => ['financeiro.svg', 30, 19]],
-    'usuarios'    => ['rotulo' => 'Usuários',             'destino' => 'admin/usuarios/index.php',    'icone' => ['usuarios.svg', 18, 18]],
+    'financeiro'  => ['rotulo' => 'Financeiro',           'destino' => 'admin/financeiro/index.php',  'icone' => ['financeiro.svg', 30, 19], 'permissao' => 'financeiro'],
+    'usuarios'    => ['rotulo' => 'Usuários',             'destino' => 'admin/usuarios/index.php',    'icone' => ['usuarios.svg', 18, 18], 'permissao' => 'usuarios'],
 ];
+
+// Itens com 'permissao' só aparecem para quem pode "visualizar" aquele módulo
+// (a API confere de novo; aqui é só para não mostrar um link que daria "sem permissão").
+$itensMenu = array_filter(
+    $itensMenu,
+    static fn (array $item): bool => !isset($item['permissao'])
+        || Usuario::temPermissao((int) $usuario['id'], $item['permissao'], 'visualizar')
+);
 
 // Caminhos já escapados para os atributos.
 $iconesNav = htmlspecialchars(BASE_URL . 'assets/img/nav/');

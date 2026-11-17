@@ -1,7 +1,8 @@
 -- =============================================================================
 -- SGCB - Seed 002: dados básicos para os módulos de contrato e financeiro funcionarem.
 --   - condições de pagamento padrão (o cadastro de cliente exige uma);
---   - empresa (locadora) com as preferências de contrato padrão (numeração CT-000001).
+--   - empresa (locadora) com as preferências de contrato padrão (numeração CT-000001);
+--   - matriz de permissões: módulos, ações e o que o cargo Operador pode fazer.
 --
 -- Rode depois do 001_usuario_admin.sql. Pode ser executado de novo sem duplicar nada.
 -- A empresa é criada só com o nome: complete CNPJ, endereço e contato depois.
@@ -36,3 +37,71 @@ SELECT e.id, TRUE, 'CT-', 1, 'LOC-', 1, 'DATA_INICIO', 7, 'CORRIDOS', 'BRL', 2, 
  WHERE NOT EXISTS (SELECT 1 FROM preferencias_contrato p WHERE p.empresa_id = e.id)
  ORDER BY e.id
  LIMIT 1;
+
+
+-- =============================================================================
+-- Matriz de permissões (módulos, ações e o que o cargo Operador pode fazer).
+-- O Dono (cargo ADMIN) pode tudo e não depende desta lista (Usuario::temPermissao).
+-- Os códigos são os mesmos usados nos controllers: Api::permitir('modulo', 'acao').
+-- Exceções por usuário (conceder/negar) ficam em usuario_permissoes.
+-- =============================================================================
+
+-- Cargo Operador (código UNIQUE: se já existir, não duplica).
+INSERT INTO cargos (codigo, nome, nivel, descricao, ativo)
+VALUES ('OPERADOR', 'Operador', 10, 'Cadastros e acompanhamento das locações', TRUE)
+ON DUPLICATE KEY UPDATE id = id;
+
+-- Módulos. exclusivo_adm = TRUE: só o Dono acessa, mesmo com permissão no cargo.
+INSERT INTO modulos (codigo, nome, exclusivo_adm)
+VALUES ('clientes',      'Clientes e fornecedores', FALSE),
+       ('produtos',      'Produtos e estoque',      FALSE),
+       ('contratos',     'Contratos e locações',    FALSE),
+       ('manutencoes',   'Manutenções',             FALSE),
+       ('financeiro',    'Financeiro',              FALSE),
+       ('usuarios',      'Usuários e acessos',      TRUE),
+       ('configuracoes', 'Configurações',           TRUE)
+ON DUPLICATE KEY UPDATE nome = VALUES(nome), exclusivo_adm = VALUES(exclusivo_adm);
+
+-- Ações de cada módulo. A tabela não tem chave única (modulo + ação), então o
+-- NOT EXISTS evita duplicar quando o script roda de novo.
+INSERT INTO permissoes (modulo_id, acao, descricao)
+SELECT m.id, a.acao, a.descricao
+  FROM (
+        SELECT 'clientes' AS modulo, 'visualizar' AS acao, 'Consultar clientes e fornecedores' AS descricao
+        UNION ALL SELECT 'clientes',      'cadastrar',  'Cadastrar clientes e fornecedores'
+        UNION ALL SELECT 'clientes',      'editar',     'Editar, ativar e inativar cadastros'
+        UNION ALL SELECT 'produtos',      'visualizar', 'Consultar produtos e estoque'
+        UNION ALL SELECT 'produtos',      'cadastrar',  'Cadastrar produtos e categorias'
+        UNION ALL SELECT 'produtos',      'editar',     'Editar produtos, categorias e ajustar estoque'
+        UNION ALL SELECT 'contratos',     'visualizar', 'Consultar contratos'
+        UNION ALL SELECT 'contratos',     'cadastrar',  'Criar e gerar contratos'
+        UNION ALL SELECT 'contratos',     'editar',     'Editar, iniciar e finalizar locações'
+        UNION ALL SELECT 'contratos',     'cancelar',   'Cancelar contratos'
+        UNION ALL SELECT 'manutencoes',   'visualizar', 'Consultar manutenções'
+        UNION ALL SELECT 'manutencoes',   'cadastrar',  'Agendar manutenções'
+        UNION ALL SELECT 'manutencoes',   'editar',     'Iniciar, concluir e cancelar manutenções'
+        UNION ALL SELECT 'financeiro',    'visualizar', 'Consultar parcelas, recibos e valores'
+        UNION ALL SELECT 'financeiro',    'cadastrar',  'Registrar pagamentos'
+        UNION ALL SELECT 'financeiro',    'editar',     'Ajustar e cancelar parcelas'
+        UNION ALL SELECT 'financeiro',    'estornar',   'Estornar e corrigir pagamentos'
+        UNION ALL SELECT 'usuarios',      'visualizar', 'Consultar usuários'
+        UNION ALL SELECT 'usuarios',      'cadastrar',  'Cadastrar usuários'
+        UNION ALL SELECT 'usuarios',      'editar',     'Editar usuários e permissões'
+        UNION ALL SELECT 'configuracoes', 'visualizar', 'Consultar dados da empresa'
+        UNION ALL SELECT 'configuracoes', 'editar',     'Alterar dados da empresa e preferências'
+       ) a
+  JOIN modulos m ON m.codigo = a.modulo
+ WHERE NOT EXISTS (SELECT 1 FROM permissoes p WHERE p.modulo_id = m.id AND p.acao = a.acao);
+
+-- O que o Operador pode fazer: rotinas de clientes, produtos, contratos e manutenções.
+-- Financeiro: só consulta (registrar, ajustar e estornar pagamentos ficam com o Dono).
+-- Cancelar contrato também fica com o Dono, porque cancela as parcelas em aberto.
+INSERT INTO cargo_permissoes (cargo_id, permissao_id)
+SELECT c.id, p.id
+  FROM cargos c
+  JOIN permissoes p
+  JOIN modulos m ON m.id = p.modulo_id
+ WHERE c.codigo = 'OPERADOR'
+   AND (   (m.codigo IN ('clientes', 'produtos', 'contratos', 'manutencoes') AND p.acao IN ('visualizar', 'cadastrar', 'editar'))
+        OR (m.codigo = 'financeiro' AND p.acao = 'visualizar'))
+ON DUPLICATE KEY UPDATE cargo_id = cargo_id;
