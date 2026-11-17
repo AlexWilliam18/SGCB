@@ -52,7 +52,7 @@
     grid-template-columns: minmax(0, 1fr) 205px 205px 160px auto;
     align-items: center;
     gap: 18px;
-    padding: 20px 40px 20px 20px
+    padding: 20px
 }
 
 .contracts-filters .search-field {
@@ -131,6 +131,12 @@
 
 .contracts-filters .clear-filters {
     white-space: nowrap
+}
+
+/* Ordem ocupa a coluna inteira do grid (o clientes.css fixa 130px, o que deixava
+   um vão até o "Limpar" e cortava o texto "Mais recentes") */
+.contracts-filters .order-filter {
+    width: 100%
 }
 
 /* ==========================================================================
