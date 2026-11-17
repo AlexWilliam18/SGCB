@@ -441,6 +441,19 @@ final class Contrato extends Modelo
             $contrato[$campo] = $contrato[$campo] !== null ? json_decode($contrato[$campo], true) : null;
         }
 
+        // Contrato já emitido (não é mais rascunho) mostra o cliente como estava na emissão:
+        // renomear o cliente ou corrigir o documento depois não muda o contrato (achado A03).
+        // O cadastro de hoje continua disponível em cliente_atual / cpf_cnpj_atual.
+        // No rascunho o snapshot pode ter só o responsável pela assinatura; ali vale o cadastro atual.
+        $contrato['emitido']        = $contrato['status'] !== 'RASCUNHO';
+        $contrato['cliente_atual']  = $contrato['cliente'];
+        $contrato['cpf_cnpj_atual'] = $contrato['cpf_cnpj'];
+        $snapshotCliente            = $contrato['dados_cliente_snapshot'] ?? [];
+        if ($contrato['emitido'] && !empty($snapshotCliente['nome'])) {
+            $contrato['cliente']  = $snapshotCliente['nome'];
+            $contrato['cpf_cnpj'] = $snapshotCliente['cpf_cnpj'] ?? $contrato['cpf_cnpj'];
+        }
+
         // Local de entrega do contrato (contrato_enderecos_entrega), usado na prévia e na impressão.
         $entrega = self::pdo()->prepare(
             'SELECT endereco_do_cliente, cep, rua, numero, bairro, cidade, uf, complemento, referencia
@@ -453,7 +466,8 @@ final class Contrato extends Modelo
         }
 
         $itens                 = self::listarItens($id);
-        $contrato['itens']     = array_map([self::class, 'itemParaTela'], $itens);
+        $emitido               = $contrato['emitido'];
+        $contrato['itens']     = array_map(static fn (array $i): array => self::itemParaTela($i, $emitido), $itens);
         $contrato['valor_total'] = (float) (self::totalCentavos($contrato, $itens) / 100);
         $contrato['parcelas']  = Parcela::listarPorContrato($id);
 
@@ -479,6 +493,12 @@ final class Contrato extends Modelo
             return $v;
         }, $versoes->fetchAll());
         $contrato['versao_atual'] = count($contrato['versoes']) + 1;
+
+        // Data da última alteração (pedido de 16/11/2026: "datar quando o contrato for alterado").
+        // Cada edição guarda uma versão com a data e o usuário; a mais recente é a última alteração.
+        $ultima                  = $contrato['versoes'] ? $contrato['versoes'][array_key_last($contrato['versoes'])] : null;
+        $contrato['alterado_em']  = $ultima['alterado_em'] ?? null;
+        $contrato['alterado_por'] = $ultima['alterado_por'] ?? null;
 
         return $contrato;
     }
@@ -1060,12 +1080,17 @@ final class Contrato extends Modelo
             + self::centavos($contrato['frete_deslocamento']) + self::centavos($contrato['outros_valores']);
     }
 
-    private static function itemParaTela(array $i): array
+    /**
+     * Item no formato da tela. $emitido = true: o nome do produto vem da descrição gravada na emissão
+     * (descricao_snapshot), e não do cadastro de hoje; o nome atual fica em produto_atual.
+     */
+    private static function itemParaTela(array $i, bool $emitido = false): array
     {
         return [
             'id'              => isset($i['id']) ? (int) $i['id'] : null,
             'produto_id'      => (int) $i['produto_id'],
-            'produto'         => $i['produto'] ?? null,
+            'produto'         => $emitido ? $i['descricao_snapshot'] : ($i['produto'] ?? null),
+            'produto_atual'   => $i['produto'] ?? null,
             'descricao'       => $i['descricao_snapshot'],
             'quantidade'      => (int) $i['quantidade'],
             'periodicidade'   => $i['periodicidade'],

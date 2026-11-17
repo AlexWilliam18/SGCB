@@ -95,7 +95,8 @@
         item.produto,
         item.codigo,
         item.localidade || '—',
-        badge(item.status, statusLabels),
+        // Agendada com a data prevista vencida aparece como "Atrasada" (a API manda atrasada = true).
+        item.atrasada ? badge('ATRASADA', { ATRASADA: 'Atrasada' }) : badge(item.status, statusLabels),
         badge(item.prioridade, priorityLabels, 'priority-'),
         dateLabel(item.ultima_vistoria_em),
       ].forEach(value => {
@@ -185,6 +186,11 @@
       renderRows(data.items);
       renderPages();
       metricKeys.forEach(key => ($('metric-' + key).textContent = new Intl.NumberFormat('pt-BR').format(data.metrics[key])));
+      // Card "Agendadas": conta só os próximos 30 dias; as vencidas aparecem à parte na legenda
+      // (o filtro Status → "Atrasada" lista essas manutenções).
+      const atrasadas = Number(data.metrics.atrasadas) || 0;
+      $('caption-agendadas').textContent =
+        'nos próximos 30 dias' + (atrasadas ? ` • ${atrasadas} atrasada${atrasadas === 1 ? '' : 's'}` : '');
       // Localidades do filtro; mantém a escolhida mesmo se ela não vier mais na lista.
       const locations = $('maintenance-location');
       locations.replaceChildren(new Option('Todos', ''));

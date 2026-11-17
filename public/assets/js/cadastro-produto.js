@@ -54,6 +54,8 @@
   // Seleciona o valor no select; se a opção não existir (fornecedor inativo), cria a opção.
   // Categoria inativa já vem na lista desabilitada: a do próprio produto é liberada para continuar
   // selecionada (e ser enviada no salvar); as outras inativas seguem sem poder ser escolhidas.
+  // Categoria e fornecedor que o produto em edição já tem ({ value, label }), mesmo que inativos.
+  const vinculoAtual = {};
   function selectValue(id, value, label) {
     if (!value) return;
     const select = $(id);
@@ -73,6 +75,9 @@
     $('codigo').value = product.codigo || '';
     $('descricao').value = product.descricao || '';
     $('description-count').textContent = $('descricao').value.length + '/500';
+    // Guarda o vínculo atual: se as opções forem recarregadas ("Tentar novamente"), ele é mantido.
+    vinculoAtual.categoria_id = { value: product.categoria_id, label: product.categoria };
+    vinculoAtual.fornecedor_id = { value: product.fornecedor_id, label: product.fornecedor };
     selectValue('categoria_id', product.categoria_id, product.categoria);
     selectValue('fornecedor_id', product.fornecedor_id, product.fornecedor);
     $('valor_total_bem').value = money(product.valor_total_bem);
@@ -98,8 +103,11 @@
       option.disabled = item.ativo === false;
       select.append(option);
     });
+    const atual = vinculoAtual[id];
     if (previous && [...select.options].some(option => option.value === previous && !option.disabled)) select.value = previous;
-    else if (id === 'categoria_id' && !dirty) {
+    // Edição: a categoria/fornecedor atual continua selecionável mesmo inativo (o servidor aceita mantê-lo).
+    else if (atual && (!previous || previous === String(atual.value))) selectValue(id, atual.value, atual.label);
+    else if (id === 'categoria_id' && !dirty && !editId) {
       const container = items.find(item => item.ativo !== false && item.nome.toLocaleLowerCase('pt-BR') === 'contêiner');
       if (container) select.value = String(container.id);
     }
@@ -130,11 +138,16 @@
       fill('categoria_id', data.categorias, 'Selecione a categoria');
       fill('fornecedor_id', data.fornecedores, 'Selecione o fornecedor');
       const activeCategories = data.categorias.filter(category => category.ativo !== false).length;
-      ready = Boolean(data.responsavel_configurado && activeCategories && data.fornecedores.length);
+      // Cadastro novo precisa de categoria e fornecedor ativos para escolher. Na edição não: o produto
+      // já tem os seus e o servidor aceita mantê-los mesmo inativos (achado A06), então o Salvar
+      // não pode ficar travado só porque não sobrou outra categoria/fornecedor ativo.
+      const temOpcoes = editId || (activeCategories && data.fornecedores.length);
+      ready = Boolean(data.responsavel_configurado && temOpcoes);
       if (!data.responsavel_configurado)
         notice('Configure um usuário responsável ativo no servidor para salvar produtos.', true);
-      else if (!activeCategories) notice('Cadastre uma categoria ativa na tela de Produtos para continuar.', true);
-      else if (!data.fornecedores.length) notice('Cadastre um fornecedor ativo em Clientes para continuar.', true);
+      else if (!editId && !activeCategories) notice('Cadastre uma categoria ativa na tela de Produtos para continuar.', true);
+      else if (!editId && !data.fornecedores.length)
+        notice('Cadastre um fornecedor ativo em Clientes e fornecedores para continuar.', true);
       else $('form-notice').hidden = true;
       // Edição: com as opções prontas, carrega o produto (uma vez só).
       if (editId && !loaded) await loadRecord();

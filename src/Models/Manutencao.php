@@ -54,6 +54,10 @@ final class Manutencao extends Modelo
         if (in_array($status, ['AGENDADA', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA'], true)) {
             $where[]          = 'm.status = :status';
             $params['status'] = $status;
+        } elseif ($status === 'ATRASADA') {
+            // Não é um status do banco: agendada com a data prevista já passada (lista de ação da tela).
+            $where[]            = "m.status = 'AGENDADA' AND m.data_prevista < :hoje_atraso";
+            $params['hoje_atraso'] = self::hoje() . ' 00:00:00';
         }
         $localidade = trim((string) ($filtros['localidade'] ?? ''));
         if ($localidade !== '') {
@@ -94,14 +98,24 @@ final class Manutencao extends Modelo
     /** Indicadores dos cards (globais, sem os filtros da lista). */
     public static function indicadores(): array
     {
+        // "agendadas" = previstas de hoje até 30 dias (o que o card promete); "atrasadas" = agendadas
+        // com a data prevista já passada, contadas à parte para virar uma lista de ação.
+        $hoje     = self::hoje();
         $consulta = self::pdo()->prepare(
             "SELECT COALESCE(SUM(status = 'EM_ANDAMENTO'), 0) AS em_manutencao,
-                    COALESCE(SUM(status = 'AGENDADA'), 0) AS agendadas,
+                    COALESCE(SUM(status = 'AGENDADA' AND data_prevista >= :hoje1 AND data_prevista < :limite), 0) AS agendadas,
+                    COALESCE(SUM(status = 'AGENDADA' AND data_prevista < :hoje2), 0) AS atrasadas,
                     COALESCE(SUM(prioridade = 'URGENTE' AND status IN ('AGENDADA', 'EM_ANDAMENTO')), 0) AS urgentes,
                     COALESCE(SUM(status = 'CONCLUIDA' AND concluida_em >= :mes1 AND concluida_em < :mes2), 0) AS concluidas
                FROM manutencoes"
         );
-        $consulta->execute(['mes1' => date('Y-m-01 00:00:00'), 'mes2' => date('Y-m-01 00:00:00', strtotime('first day of next month'))]);
+        $consulta->execute([
+            'hoje1'  => $hoje . ' 00:00:00',
+            'hoje2'  => $hoje . ' 00:00:00',
+            'limite' => date('Y-m-d 00:00:00', strtotime($hoje . ' +31 days')),
+            'mes1'   => date('Y-m-01 00:00:00'),
+            'mes2'   => date('Y-m-01 00:00:00', strtotime('first day of next month')),
+        ]);
 
         return array_map('intval', $consulta->fetch());
     }
@@ -216,18 +230,51 @@ final class Manutencao extends Modelo
         });
     }
 
-    /** Começa o serviço: status EM_ANDAMENTO e o contêiner passa para MANUTENCAO. */
+    /**
+     * Começa o serviço: status EM_ANDAMENTO e o contêiner passa para MANUTENCAO.
+     *
+     * Ao iniciar, a agenda da manutenção passa a bloquear o contêiner por prazo indeterminado.
+     * Por isso o início é RECUSADO quando o contêiner tem locação ou reserva de agora em diante
+     * (decisão de 16/11/2026 sobre o achado A04): o serviço fica para depois da devolução ou
+     * vai para outro contêiner. Contêiner INATIVO (fora do estoque) também é recusado.
+     */
     public static function iniciarManutencao(int $id, int $usuarioId): void
     {
         self::transacao(static function (PDO $pdo) use ($id, $usuarioId): void {
             $m = self::bloquear($id, ['AGENDADA']);
 
             $unidade = UnidadeFisica::buscar((int) $m['unidade_id']);
+            // Trava os contêineres do produto (SELECT ... FOR UPDATE), o mesmo bloqueio usado ao gerar
+            // contrato: assim uma reserva não entra entre a conferência abaixo e o início do serviço.
+            UnidadeFisica::bloquearProduto($unidade['produto_id']);
+
             if ($unidade['estado_operacional'] === 'LOCADA') {
                 throw new ErroValidacao('O contêiner está locado. Finalize a locação antes de iniciar a manutenção.', [], 409);
             }
+            if ($unidade['estado_operacional'] === 'INATIVA') {
+                throw new ErroValidacao('O contêiner está inativo (fora do estoque). Reative-o antes de iniciar a manutenção.', [], 409);
+            }
 
             $agora = self::agora();
+
+            // Locação ou reserva de agora em diante = conflito com o bloqueio indeterminado da manutenção.
+            $conflito = $pdo->prepare(
+                "SELECT c.numero_contrato, c.id AS contrato_id, a.inicio
+                   FROM agenda_unidades a
+                   JOIN contrato_itens i ON i.id = a.contrato_item_id
+                   JOIN contratos c ON c.id = i.contrato_id
+                  WHERE a.unidade_id = :unidade AND a.status IN ('RESERVADA', 'EM_USO') AND a.fim > :agora
+                  ORDER BY a.inicio LIMIT 1"
+            );
+            $conflito->execute(['unidade' => $m['unidade_id'], 'agora' => $agora]);
+            $reserva = $conflito->fetch();
+            if ($reserva) {
+                $contrato = $reserva['numero_contrato'] ?: 'Rascunho #' . $reserva['contrato_id'];
+                throw new ErroValidacao(sprintf(
+                    'O contêiner %s está reservado para o contrato %s a partir de %s. A manutenção em andamento bloquearia essa locação: faça o serviço depois da devolução ou agende-o em outro contêiner.',
+                    $unidade['codigo'], $contrato, date('d/m/Y', strtotime($reserva['inicio']))
+                ), [], 409);
+            }
             $pdo->prepare("UPDATE manutencoes SET status = 'EM_ANDAMENTO', iniciada_em = :agora WHERE id = :id")
                 ->execute(['agora' => $agora, 'id' => $id]);
             $pdo->prepare("UPDATE unidades_fisicas SET estado_operacional = 'MANUTENCAO' WHERE id = :id")
@@ -337,6 +384,9 @@ final class Manutencao extends Modelo
         $m['id']                     = (int) $m['id'];
         $m['unidade_id']             = (int) $m['unidade_id'];
         $m['responsavel_usuario_id'] = $m['responsavel_usuario_id'] !== null ? (int) $m['responsavel_usuario_id'] : null;
+        // Agendada com data prevista anterior a hoje: a tela marca como atrasada.
+        $m['atrasada']               = $m['status'] === 'AGENDADA' && $m['data_prevista'] !== null
+                                       && substr((string) $m['data_prevista'], 0, 10) < self::hoje();
         $m['status']                 = self::STATUS_TELA[$m['status']] ?? $m['status'];
         $m['custo']                  = $m['custo'] !== null ? (float) $m['custo'] : null;
 

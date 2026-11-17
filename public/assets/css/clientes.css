@@ -77,8 +77,10 @@
     min-height: 124px;
     margin-top: 20px;
     display: flex;
+    /* Todos os filtros numa linha só; abaixo de 1450 px a regra de telas médias deixa quebrar */
+    flex-wrap: nowrap;
     align-items: center;
-    gap: 18px;
+    gap: 12px;
     padding: 20px;
     background: var(--surface);
     border: 1px solid var(--line);
@@ -91,8 +93,8 @@
     display: flex;
     align-items: center;
     gap: 18px;
-    flex: 0 1 450px;
-    min-width: 180px
+    flex: 1 1 180px;
+    min-width: 150px
 }
 
 .search-field>img {
@@ -106,7 +108,7 @@
     height: 44px;
     border: 1px solid var(--line);
     border-radius: 12px;
-    padding: 0 14px 0 40px;
+    padding: 0 14px;
     background: var(--surface);
     color: var(--ink);
     font: inherit;
@@ -120,23 +122,26 @@
     opacity: 1
 }
 
-/* Seleções (situação, estado, cidade): referência para a seta desenhada */
+/* Seleções (situação, estado, cidade): referência para a seta desenhada.
+   Cada uma tem largura fixa (abaixo) e só encolhe se faltar espaço; quem
+   estica para completar a linha é a pesquisa. */
 .select-field {
     position: relative;
-    flex-shrink: 0
+    flex: 0 1 auto;
+    min-width: 0
 }
 
 /* Largura de cada seleção */
 .status-filter {
-    width: 130px
+    width: 105px
 }
 
 .state-filter {
-    width: 205px
+    width: 150px
 }
 
 .city-filter {
-    width: 203px
+    width: 150px
 }
 
 /* Seleção sem a seta padrão do navegador (a seta é uma imagem) */
@@ -607,11 +612,44 @@ select:focus-visible {
 
 /* Seleção "Ordem" (A → Z / Z → A) do cartão de filtros */
 .order-filter {
-    width: 130px
+    /* Tamanho fixo: só mostra "A → Z" / "Z → A", não precisa esticar */
+    flex: 0 0 95px;
+    width: 95px
 }
 
 @media(max-width:1450px) {
     .order-filter {
-        flex: 1 1 120px
+        flex: 0 0 95px
+    }
+}
+
+/* Filtro "Tipo de cadastro" (cliente, fornecedor ou os dois) */
+.type-filter {
+    width: 145px
+}
+
+.type-filter select {
+    padding-left: 13px;
+    padding-right: 25px
+}
+
+.type-filter>img {
+    right: 10px
+}
+
+/* Etiqueta do tipo ao lado do nome (Fornecedor / Cliente e fornecedor) */
+.type-badge {
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: var(--info-soft);
+    color: var(--info);
+    font-size: 10px;
+    font-weight: 600
+}
+
+@media (max-width: 1450px) {
+    .type-filter {
+        flex: 1 1 150px
     }
 }

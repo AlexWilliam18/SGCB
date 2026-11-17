@@ -6,6 +6,8 @@
  * responder, o BrasilAPI (https://brasilapi.com.br). Os dois são gratuitos e não pedem chave.
  * Preenche rua, bairro, cidade e estado; o número e o complemento continuam com a pessoa.
  * Se a consulta falhar, nada é bloqueado: o endereço pode ser digitado normalmente.
+ * Respostas atrasadas (o CEP mudou no meio) são descartadas, o que foi digitado durante a busca
+ * é mantido e, ao trocar para um CEP geral (sem rua), rua e bairro do CEP anterior são limpos.
  */
 window.BuscaCep = (() => {
   const TEMPO_LIMITE = 6000; // ms; depois disso desiste e deixa a pessoa digitar
@@ -77,6 +79,9 @@ window.BuscaCep = (() => {
       status.dataset.tipo = tipo; // '' | 'carregando' | 'ok' | 'erro' (cor no CSS)
     };
 
+    // Campos que a consulta pode preencher (o número e o complemento são sempre da pessoa).
+    const DEPENDENTES = ['rua', 'bairro', 'cidade', 'uf'];
+
     async function buscar() {
       const numero = digitos(cep.value);
       if (numero.length !== 8 || numero === consultado || cep.disabled) return;
@@ -84,23 +89,39 @@ window.BuscaCep = (() => {
       falhou = false;
       emAndamento?.abort();
       const controle = (emAndamento = new AbortController());
+      // Foto dos campos no início da consulta: se a pessoa digitar algo enquanto espera,
+      // a resposta não passa por cima do que ela digitou (achado A05).
+      const antes = Object.fromEntries(DEPENDENTES.map(k => [k, campos[k]?.value ?? '']));
       avisar('Buscando endereço…', 'carregando');
       cep.setAttribute('aria-busy', 'true');
       try {
         const endereco = await consultar(numero, controle.signal);
-        if (controle.signal.aborted) return;
+        // Resposta antiga: o CEP mudou (ou a consulta foi cancelada) enquanto ela chegava → descarta.
+        if (controle.signal.aborted || digitos(cep.value) !== numero) return;
         if (!endereco) {
           avisar('CEP não encontrado. Confira o número ou preencha o endereço.', 'erro');
           return;
         }
-        // CEP geral de cidade pequena vem sem rua e bairro: só a cidade e o estado são preenchidos.
-        preencher(campos.cidade, endereco.cidade);
-        preencher(campos.uf, endereco.uf);
-        if (endereco.rua) preencher(campos.rua, endereco.rua);
-        if (endereco.bairro) preencher(campos.bairro, endereco.bairro);
-        // Endereço completo: sem aviso (o cursor já vai para o Número). CEP só da cidade: pede rua e bairro.
-        avisar(endereco.rua ? '' : 'CEP da cidade: informe a rua e o bairro.', endereco.rua ? '' : 'ok');
-        (endereco.rua ? campos.numero : campos.rua)?.focus();
+        // Preenche cada campo com a resposta. CEP geral de cidade pequena vem sem rua e bairro:
+        // nesse caso rua e bairro de um CEP anterior são LIMPOS, para o formulário não juntar
+        // partes de endereços diferentes. Campo editado durante a espera fica como a pessoa deixou.
+        const digitadosNaEspera = [];
+        DEPENDENTES.forEach(k => {
+          if (!campos[k]) return;
+          if (campos[k].value !== antes[k]) {
+            digitadosNaEspera.push(k);
+            return;
+          }
+          preencher(campos[k], endereco[k] || '');
+        });
+        if (digitadosNaEspera.length) {
+          avisar('Endereço do CEP encontrado. Os campos que você digitou durante a busca foram mantidos; confira.', 'ok');
+        } else {
+          // Endereço completo: sem aviso (o cursor vai para o Número). CEP só da cidade: pede rua e bairro.
+          avisar(endereco.rua ? '' : 'CEP da cidade: informe a rua e o bairro.', endereco.rua ? '' : 'ok');
+          // Só move o cursor se a pessoa não estava digitando em outro campo durante a busca.
+          (endereco.rua ? campos.numero : campos.rua)?.focus();
+        }
       } catch {
         if (controle.signal.aborted) return;
         consultado = ''; // permite tentar de novo saindo e voltando ao campo

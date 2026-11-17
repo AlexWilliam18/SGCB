@@ -133,7 +133,8 @@
         localDate(contract.start),
         localDate(contract.end),
         contract.days ?? '—',
-        money.format(contract.value),
+        // Valor só vem para quem pode consultar o Financeiro; para os demais a API manda null.
+        contract.value === null || contract.value === undefined ? '—' : money.format(contract.value),
         labels[contract.status] || contract.status,
       ].forEach((value, index) => {
         const td = document.createElement('td');
@@ -149,10 +150,13 @@
           const badge = document.createElement('span');
           badge.className = 'status status-' + String(contract.status).toLowerCase();
           badge.textContent = value;
+          // "Reservado" é um contrato ATIVO que ainda não começou: explica a diferença para a listagem.
+          if (contract.status === 'RESERVADO')
+            badge.title = 'Contrato ativo que começa em ' + localDate(contract.start) + '. Os contêineres já estão reservados.';
           td.append(badge);
         } else {
           td.textContent = value;
-          td.title = String(value);
+          td.title = index === 5 && value === '—' ? 'Valor visível para quem tem acesso ao Financeiro.' : String(value);
         }
         tr.append(td);
       });

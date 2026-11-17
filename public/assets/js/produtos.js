@@ -19,6 +19,8 @@
     page: Math.max(1, Number(url.get('page')) || 1),
     pages: 1,
   };
+  // Máximo de unidades por "Ajustar estoque" (mesmo valor de Produto::LIMITE_AJUSTE_ESTOQUE no PHP).
+  const LIMITE_AJUSTE = 1000;
   // Valores em reais; sem preço cadastrado mostra "—".
   const money = value =>
     value === null || value === undefined
@@ -271,7 +273,7 @@
         ['Total de unidades', product.total],
         ['Disponíveis', product.disponivel],
         ['Alugadas', product.alugado],
-        ['Reservadas', product.reservado],
+        ['Com reserva futura', product.reservado],
         ['Em manutenção', product.manutencao],
         ['Unidades inativas', product.inativa],
       ];
@@ -301,24 +303,48 @@
       }
       const p = document.createElement('p');
       p.className = 'product-stock-note';
+      // Texto alinhado à fórmula real (relatório de testes, "Disponível e reservado"): Disponível é o
+      // estado de hoje; uma unidade com reserva futura segue no pátio e conta nos dois números.
       p.textContent =
-        'Estoque calculado pelas unidades físicas e pela agenda atual. Reservas, manutenção e unidades inativas não entram em Disponível.';
+        'Disponíveis = contêineres no pátio hoje. Uma unidade com reserva futura continua em Disponíveis até a entrega e também aparece em "Com reserva futura". Para saber se há contêiner livre em um período, use as datas no novo contrato.';
       container.append(p);
       // Ações do produto (acoes.js). Depois de gravar, recarrega a lista e reabre os dados atualizados.
       const atualizar = () => {
         loadProducts();
         showProduct(id);
       };
-      SGCBAcoes.formulario(
+      // Ajuste de estoque: + cria contêineres novos (códigos CÓDIGO-001, -002…); − tira do estoque
+      // (ficam INATIVOS, com histórico) só unidades disponíveis e sem reserva. Confere e confirma antes de gravar.
+      const ajuste = SGCBAcoes.formulario(
         container,
         'Ajustar estoque',
         [{ nome: 'quantidade', rotulo: 'Unidades (+ entram, − saem)', tipo: 'number', placeholder: 'Ex.: 2 ou -1', obrigatorio: true }],
         'Aplicar',
         async dados => {
-          await SGCBAcoes.executar('produtos/' + encodeURIComponent(id) + '/estoque', { quantidade: dados.quantidade });
+          const texto = String(dados.quantidade).trim();
+          if (!/^[+-]?\d+$/.test(texto)) throw Error('Informe um número inteiro, sem vírgula. Ex.: 2 para incluir ou -1 para retirar.');
+          const quantidade = Number(texto);
+          if (!quantidade) throw Error('Informe quantas unidades entram (positivo) ou saem (negativo).');
+          if (Math.abs(quantidade) > LIMITE_AJUSTE) throw Error(`Ajuste no máximo ${LIMITE_AJUSTE} unidades por vez.`);
+          const n = Math.abs(quantidade);
+          const plural = n === 1 ? 'contêiner' : 'contêineres';
+          const pergunta =
+            quantidade > 0
+              ? `Incluir ${n} ${plural} novo(s) em ${product.nome}? Eles entram como disponíveis, com códigos ${product.codigo}-NNN.`
+              : `Retirar ${n} ${plural} de ${product.nome} do estoque? Saem só unidades disponíveis e sem reserva; elas ficam inativas e o histórico é mantido.`;
+          if (!confirm(pergunta)) return;
+          await SGCBAcoes.executar('produtos/' + encodeURIComponent(id) + '/estoque', { quantidade });
           atualizar();
         }
       );
+      const campoQuantidade = ajuste.querySelector('[name=quantidade]');
+      campoQuantidade.step = '1';
+      campoQuantidade.min = String(-LIMITE_AJUSTE);
+      campoQuantidade.max = String(LIMITE_AJUSTE);
+      const ajuda = document.createElement('p');
+      ajuda.className = 'product-stock-note';
+      ajuda.textContent = `Ativas hoje: ${product.total - product.inativa}${product.maximo_estoque ? ` de no máximo ${product.maximo_estoque}` : ''}. Retirar só é possível com unidades disponíveis e sem reserva.`;
+      ajuste.querySelector('h3').after(ajuda);
       SGCBAcoes.barra(container, [
         {
           texto: product.ativo ? 'Inativar' : 'Reativar',

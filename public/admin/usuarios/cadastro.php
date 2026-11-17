@@ -60,8 +60,8 @@ require __DIR__ . '/../../../includes/head.php';
               <div class="user-field"><label for="senha">Senha inicial *</label><input id="senha" name="senha" type="password" placeholder="Digite uma senha" minlength="8" maxlength="72" autocomplete="new-password" aria-describedby="password-help" required><p class="user-error" id="error-senha" hidden></p></div>
               <div class="user-field user-confirm"><label for="confirmar-senha">Confirmar senha *</label><input id="confirmar-senha" name="confirmar_senha" type="password" placeholder="Repita a senha" minlength="8" maxlength="72" autocomplete="new-password" required><p class="user-error" id="error-confirmar-senha" hidden></p></div>
             </div>
-            <p class="user-help" id="password-help">Use ao menos 8 caracteres, com letras e números.</p>
-            <label class="user-first-access" for="alterar-senha"><input id="alterar-senha" name="alterar_senha" type="checkbox" checked><span>Solicitar alteração de senha no primeiro acesso</span></label>
+            <p class="user-help" id="password-help">Use de 8 a 72 caracteres, com letras e números. Letras acentuadas contam como 2 caracteres nesse limite.</p>
+            <label class="user-first-access" for="alterar-senha"><input id="alterar-senha" name="alterar_senha" type="checkbox" aria-describedby="first-access-help" checked><span>Marcar como senha provisória</span></label><p class="user-help" id="first-access-help">Combine com o usuário a troca da senha. Por enquanto o sistema só registra a marcação e não obriga a troca no primeiro acesso.</p>
           </section>
           <!-- 3. Perfil de acesso: data-cargo é o código do cargo; o value (id) vem da API -->
           <section class="user-create-section" aria-labelledby="user-role-title">

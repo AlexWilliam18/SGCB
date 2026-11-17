@@ -99,8 +99,36 @@ try {
         confere(false, 'dados inválidos recusados');
     } catch (ErroValidacao $e) {
         $campos = $e->getCampos();
-        confere(isset($campos['cpf_cnpj'], $campos['email'], $campos['endereco.cep'], $campos['endereco.rua']), 'erros por campo no formato da tela (cpf_cnpj, email, endereco.cep...)');
+        // E-mail é opcional desde 16/11/2026: vazio não gera erro; o telefone continua obrigatório.
+        confere(isset($campos['cpf_cnpj'], $campos['telefone'], $campos['endereco.cep'], $campos['endereco.rua']) && !isset($campos['email']),
+            'erros por campo no formato da tela (cpf_cnpj, telefone, endereco.cep...), sem exigir e-mail');
     }
+    esperaErro(fn () => Cliente::cadastrarCliente(['tipo_cadastro' => 'CLIENTE', 'nome_razao_social' => 'Y', 'cpf_cnpj' => '111.444.777-35',
+        'email' => 'sem-arroba', 'telefone' => '12999998888', 'condicao_pagamento_id' => $condicao, 'endereco' => $endereco], $admin), 422,
+        'e-mail preenchido em formato inválido continua recusado');
+    $semEmail = Cliente::cadastrarCliente(['tipo_cadastro' => 'CLIENTE', 'nome_razao_social' => 'Cliente sem e-mail', 'cpf_cnpj' => '111.444.777-35',
+        'email' => '', 'telefone' => '12999998888', 'condicao_pagamento_id' => $condicao, 'endereco' => $endereco], $admin);
+    confere(Cliente::buscarCliente($semEmail['id'])['email'] === null, 'cliente sem e-mail cadastrado (gravado como NULL)');
+
+    // A01: campos que a tela não envia (RG, IE, representante e CPF dele) não podem ser apagados na edição.
+    Conexao::obter()->prepare(
+        "UPDATE pessoas SET rg = '12.345.678-9', inscricao_estadual = '123456789', representante_legal = 'Maria Legal',
+                cpf_representante = '52998224725' WHERE id = :id"
+    )->execute(['id' => $semEmail['id']]);
+    Cliente::atualizarDados($semEmail['id'], [ // mesmo formato do cadastro-cliente.js: sem as quatro chaves
+        'tipo_cadastro' => 'CLIENTE', 'nome_razao_social' => 'Cliente sem e-mail', 'nome_fantasia' => '', 'cpf_cnpj' => '111.444.777-35',
+        'email' => '', 'telefone' => '(12) 3456-7890', 'data_nascimento' => '', 'profissao' => '', 'nacionalidade' => '',
+        'condicao_pagamento_id' => $condicao, 'limite_credito' => '0', 'endereco' => $endereco,
+    ], $admin);
+    $preservado = Cliente::buscarCliente($semEmail['id']);
+    confere($preservado['telefone'] === '1234567890' && $preservado['rg'] === '12.345.678-9' && $preservado['inscricao_estadual'] === '123456789'
+        && $preservado['representante_legal'] === 'Maria Legal' && $preservado['cpf_representante'] === '52998224725',
+        'A01: alterar só o telefone mantém RG, IE, representante e CPF do representante');
+    Cliente::atualizarDados($semEmail['id'], [ // chave enviada vazia = limpar de propósito
+        'tipo_cadastro' => 'CLIENTE', 'nome_razao_social' => 'Cliente sem e-mail', 'cpf_cnpj' => '111.444.777-35', 'rg' => '',
+        'telefone' => '(12) 3456-7890', 'condicao_pagamento_id' => $condicao, 'endereco' => $endereco,
+    ], $admin);
+    confere(Cliente::buscarCliente($semEmail['id'])['rg'] === null, 'A01: enviar o campo vazio limpa de propósito');
 
     $detalhe = Cliente::buscarCliente($cliente['id']);
     confere($detalhe['email'] === 'joao@email.com' && $detalhe['cpf_cnpj'] === '52998224725', 'e-mail em minúsculas e CPF só com números');
@@ -118,6 +146,8 @@ try {
     $lista = Cliente::listarClientes(['q' => '529.982', 'situacao' => 'ativos']);
     confere($lista['total'] === 1 && $lista['items'][0]['cidade'] === 'São José dos Campos', 'listagem busca por CPF formatado e traz a cidade principal');
     confere(in_array('São José dos Campos', $lista['cities'], true), 'lista de cidades para o filtro');
+    confere(Cliente::listarClientes(['q' => 'Fornecedora', 'tipo' => 'CLIENTE'])['total'] === 0, 'filtro tipo CLIENTE não traz fornecedor exclusivo');
+    confere(Cliente::listarClientes(['q' => 'Fornecedora', 'tipo' => 'FORNECEDOR'])['total'] === 0, 'filtro tipo FORNECEDOR é ignorado: fornecedor não aparece');
     confere(Cliente::listarClientes(['q' => 'Fornecedora'])['total'] === 0, 'fornecedor exclusivo não aparece na listagem de clientes');
     confere(in_array($fornecedor['id'], array_column(Cliente::listarFornecedores(), 'id'), true), 'fornecedor aparece em listarFornecedores');
 
@@ -181,6 +211,35 @@ try {
     $segundo = Contrato::criarContrato(array_merge($dadosContrato, ['itens' => [['produto_id' => $produto['id'], 'quantidade' => 2]]]), $admin);
     esperaErro(fn () => Contrato::gerarContrato($segundo, $admin), 409, 'segundo contrato sem estoque no período');
 
+    // A03: renomear cliente e produto depois da emissão não muda a prévia do contrato emitido.
+    $pdo->prepare("UPDATE pessoas SET nome_razao_social = 'Nome Novo do Cliente' WHERE id = :id")->execute(['id' => $cliente['id']]);
+    $pdo->prepare("UPDATE produtos SET nome = 'Nome Novo do Produto' WHERE id = :id")->execute(['id' => $produto['id']]);
+    $emitido = Contrato::buscarContrato($contratoId);
+    confere($emitido['cliente'] === 'João da Silva' && $emitido['cliente_atual'] === 'Nome Novo do Cliente',
+        'A03: contrato emitido mostra o cliente da emissão (o atual fica em cliente_atual)');
+    confere(str_contains((string) $emitido['itens'][0]['produto'], 'Container 20 pés Teste'), 'A03: item do contrato emitido usa a descrição gravada na emissão');
+    $pdo->prepare("UPDATE pessoas SET nome_razao_social = 'João da Silva' WHERE id = :id")->execute(['id' => $cliente['id']]);
+    $pdo->prepare("UPDATE produtos SET nome = 'Container 20 pés Teste' WHERE id = :id")->execute(['id' => $produto['id']]);
+
+    // A04: manutenção de 1 dia num contêiner livre hoje, mas reservado daqui a 15 dias, não pode ser iniciada.
+    $em15 = date('Y-m-d', strtotime('+15 days'));
+    $em16 = date('Y-m-d', strtotime('+16 days'));
+    $reservaFutura = Contrato::criarContrato(array_merge($dadosContrato, [
+        'cliente_id' => $semEmail['id'], 'data_inicio' => $em15, 'data_fim' => $em16, 'itens' => [['produto_id' => $produto['id'], 'quantidade' => 1]],
+    ]), $admin);
+    // Reserva justamente o contêiner que está livre hoje (os outros dois estão no contrato acima).
+    $livreHoje = UnidadeFisica::livresNoPeriodo($produto['id'], $hoje . ' 00:00:00', $em10 . ' 00:00:00')[0];
+    $reservada = Contrato::gerarContrato($reservaFutura, $admin, [0 => [$livreHoje]]);
+    $unidadeReservada = (int) $reservada['unidades'][0]['unidade_id'];
+    $manutencaoConflito = Manutencao::cadastrarManutencao([
+        'unidade_id' => $unidadeReservada, 'tipo' => 'Vistoria', 'prioridade' => 'BAIXA', 'data_prevista' => $hoje,
+        'responsavel_usuario_id' => $admin,
+    ], $admin);
+    esperaErro(fn () => Manutencao::iniciarManutencao($manutencaoConflito, $admin), 409, 'A04: iniciar manutenção com reserva futura é recusado');
+    confere(UnidadeFisica::buscar($unidadeReservada)['estado_operacional'] === 'DISPONIVEL', 'A04: o contêiner continua disponível depois da recusa');
+    Manutencao::cancelarManutencao($manutencaoConflito, $admin);
+    Contrato::cancelarContrato($reservaFutura, 'Teste A04', $admin);
+
     // ------------------------------------------------------------------
     secao('Pagamentos e financeiro');
     $parcela1 = $gerado['parcelas'][0]['id'];
@@ -216,7 +275,7 @@ try {
     $financeiro = Parcela::listarParcelas(['q' => '52998224725']);
     confere($financeiro['total'] === 2, 'financeiro lista as 2 parcelas do cliente');
     $metricas = $financeiro['metrics'];
-    confere(is_int($metricas['em_aberto']) && is_int($metricas['prestes_vencer']) && $metricas['faturamento_mes'] >= 1025.0, 'indicadores no formato do financeiro.js');
+    confere(is_int($metricas['em_aberto']) && is_int($metricas['prestes_vencer']) && $metricas['faturamento'] >= 1025.0, 'indicadores no formato do financeiro.js');
     confere(Parcela::listarParcelas(['status' => 'PAGA', 'q' => '52998224725'])['total'] === 1, 'filtro por status PAGA');
     confere(Parcela::listarParcelas(['prioridade' => 'MEDIA', 'q' => '52998224725'])['total'] === 1, 'filtro por prioridade (2ª parcela vence em 30 dias = MEDIA)');
 
@@ -255,6 +314,21 @@ try {
     confere(Produto::atualizarQuantidade($produto['id'], 2, $admin) === 2, 'estoque +2 (5 unidades)');
     confere(Produto::atualizarQuantidade($produto['id'], -1, $admin) === 1, 'estoque −1 (inativa uma disponível)');
     esperaErro(fn () => Produto::atualizarQuantidade($produto['id'], -10, $admin), 409, 'retirar mais do que há livre');
+    esperaErro(fn () => Produto::atualizarQuantidade($produto['id'], 1001, $admin), 422, 'ajuste acima de 1000 unidades por vez é recusado');
+    esperaErro(fn () => Produto::atualizarQuantidade($produto['id'], 7, $admin), 422, 'ajuste que passa do máximo de estoque (4 ativas + 7 > 10) é recusado');
+
+    // A06: fornecedor e categoria do produto inativados depois; editar descrição/preço continua possível.
+    $pdo->prepare('UPDATE pessoas SET ativo = 0 WHERE id = :id')->execute(['id' => $fornecedor['id']]);
+    $pdo->prepare('UPDATE categorias SET ativo = 0 WHERE id = :id')->execute(['id' => $categoria['id']]);
+    $atualProduto = Produto::buscarProduto($produto['id']);
+    Produto::atualizarProduto($produto['id'], [
+        'categoria_id' => $atualProduto['categoria_id'], 'fornecedor_id' => $atualProduto['fornecedor_id'], 'codigo' => $atualProduto['codigo'],
+        'nome' => $atualProduto['nome'], 'descricao' => 'Descrição revisada', 'valor_total_bem' => '35000.00', 'diaria' => '110.00',
+        'limite_inicial' => '1', 'limite_maximo' => '5', 'maximo_estoque' => '10',
+    ], $admin);
+    confere(Produto::buscarProduto($produto['id'])['descricao'] === 'Descrição revisada', 'A06: produto com categoria e fornecedor inativos continua editável');
+    $pdo->prepare('UPDATE pessoas SET ativo = 1 WHERE id = :id')->execute(['id' => $fornecedor['id']]);
+    $pdo->prepare('UPDATE categorias SET ativo = 1 WHERE id = :id')->execute(['id' => $categoria['id']]);
 
     // ------------------------------------------------------------------
     secao('Dashboard');
@@ -278,6 +352,31 @@ try {
     // ------------------------------------------------------------------
     secao('Usuário, senha e sessões');
     confere(Usuario::temPermissao($admin, 'qualquer', 'coisa'), 'cargo ADMIN tem todas as permissões');
+
+    // A02: matriz do seed 002 — Operador consulta o financeiro, mas não registra nem estorna;
+    // usuários e configurações são exclusivos do Dono. Uma exceção individual pode negar a consulta.
+    $cargoOperador = (int) $pdo->query("SELECT id FROM cargos WHERE codigo = 'OPERADOR'")->fetchColumn();
+    if ($cargoOperador && (int) $pdo->query('SELECT COUNT(*) FROM permissoes')->fetchColumn() > 0) {
+        $operador = Usuario::cadastrarUsuario([
+            'nome' => 'Operador Teste', 'email' => 'operador.teste@x.com', 'cargo_id' => $cargoOperador, 'senha' => 'Operador123',
+        ], $admin);
+        confere(Usuario::temPermissao($operador, 'financeiro', 'visualizar'), 'A02: Operador consulta o financeiro');
+        confere(!Usuario::temPermissao($operador, 'financeiro', 'cadastrar') && !Usuario::temPermissao($operador, 'financeiro', 'estornar'),
+            'A02: Operador não registra nem estorna pagamentos');
+        confere(!Usuario::temPermissao($operador, 'usuarios', 'visualizar'), 'A02: Operador não acessa usuários (exclusivo do Dono)');
+        $verFin = (int) $pdo->query("SELECT p.id FROM permissoes p JOIN modulos m ON m.id = p.modulo_id WHERE m.codigo = 'financeiro' AND p.acao = 'visualizar'")->fetchColumn();
+        Usuario::definirPermissao($operador, $verFin, false, $admin);
+        confere(!Usuario::temPermissao($operador, 'financeiro', 'visualizar'), 'A02: exceção individual nega a consulta ao financeiro');
+        $semValores = Dashboard::resumo(false);
+        confere(($semValores['recent_contracts'][0]['value'] ?? null) === null && $semValores['shows_values'] === false,
+            'A02: dashboard sem permissão não traz o valor das locações');
+    } else {
+        echo "  (pulado) matriz de permissões: rode o seed 002 para testar o perfil Operador" . PHP_EOL;
+    }
+
+    // A09: o limite da senha é de 72 BYTES (bcrypt). 40 "ã" = 40 caracteres, mas 80 bytes.
+    confere(Usuario::erroSenha(str_repeat('ã', 40) . 'a1') !== null, 'A09: senha acentuada acima de 72 bytes é recusada');
+    confere(Usuario::erroSenha(str_repeat('a', 70) . '1') === null, 'A09: senha de 71 bytes continua aceita');
     esperaErro(fn () => Usuario::alterarSenha($admin, 'senha-errada', 'NovaSenha123'), 422, 'troca de senha com a atual errada');
     esperaErro(fn () => Usuario::alterarStatus($admin, false, $admin), 422, 'desativar o próprio usuário');
     confere(Usuario::gerarRecuperacaoSenha('naoexiste@x.com') === null, 'recuperação para e-mail inexistente devolve null');
