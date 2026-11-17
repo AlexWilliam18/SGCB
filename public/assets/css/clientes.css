@@ -77,10 +77,8 @@
     min-height: 124px;
     margin-top: 20px;
     display: flex;
-    /* Todos os filtros numa linha só; abaixo de 1450 px a regra de telas médias deixa quebrar */
-    flex-wrap: nowrap;
     align-items: center;
-    gap: 12px;
+    gap: 18px;
     padding: 20px;
     background: var(--surface);
     border: 1px solid var(--line);
@@ -93,8 +91,8 @@
     display: flex;
     align-items: center;
     gap: 18px;
-    flex: 1 1 180px;
-    min-width: 150px
+    flex: 0 1 450px;
+    min-width: 180px
 }
 
 .search-field>img {
@@ -122,13 +120,10 @@
     opacity: 1
 }
 
-/* Seleções (situação, estado, cidade): referência para a seta desenhada.
-   Cada uma tem largura fixa (abaixo) e só encolhe se faltar espaço; quem
-   estica para completar a linha é a pesquisa. */
+/* Seleções (situação, estado, cidade): referência para a seta desenhada */
 .select-field {
     position: relative;
-    flex: 0 1 auto;
-    min-width: 0
+    flex-shrink: 0
 }
 
 /* Largura de cada seleção */
@@ -612,14 +607,12 @@ select:focus-visible {
 
 /* Seleção "Ordem" (A → Z / Z → A) do cartão de filtros */
 .order-filter {
-    /* Tamanho fixo: só mostra "A → Z" / "Z → A", não precisa esticar */
-    flex: 0 0 95px;
-    width: 95px
+    width: 130px
 }
 
 @media(max-width:1450px) {
     .order-filter {
-        flex: 0 0 95px
+        flex: 1 1 120px
     }
 }
 
@@ -651,5 +644,30 @@ select:focus-visible {
 @media (max-width: 1450px) {
     .type-filter {
         flex: 1 1 150px
+    }
+}
+
+/* Só na tela de Clientes (#client-filters): em telas largas, todos os filtros e o
+   botão "Limpar" ficam numa linha só. As seleções têm largura fixa e só encolhem
+   se faltar espaço; quem estica para completar a linha é a pesquisa.
+   (Contratos e Produtos usam as mesmas classes, por isso a regra fica presa ao id.) */
+@media (min-width: 1451px) {
+    #client-filters {
+        flex-wrap: nowrap;
+        gap: 12px
+    }
+
+    #client-filters .search-field {
+        flex: 1 1 180px;
+        min-width: 150px
+    }
+
+    #client-filters .select-field {
+        flex: 0 1 auto;
+        min-width: 0
+    }
+
+    #client-filters .order-filter {
+        width: 95px
     }
 }
