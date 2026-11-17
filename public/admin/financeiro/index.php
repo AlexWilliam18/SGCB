@@ -1,7 +1,7 @@
 <?php
 /**
  * Gerenciamento financeiro: indicadores, pesquisa, filtros, paginação e detalhes das parcelas.
- * Por enquanto só front-end: sem /api/financeiro, a tabela mostra o aviso de erro.
+ * Os dados vêm de /api/financeiro, que exige a permissão "visualizar" do módulo financeiro.
  */
 
 require __DIR__ . '/../../../src/bootstrap.php';
@@ -19,13 +19,20 @@ $paginaAtual = 'financeiro';
 // Caminho das imagens já escapado; também vai para o JS via data-*.
 $img = htmlspecialchars(BASE_URL . 'assets/img/');
 
+// O que o usuário pode fazer aqui (matriz de permissões). O financeiro.js só mostra os botões
+// permitidos; a API confere de novo em cada gravação. Sem "visualizar", a listagem mostra o aviso da API.
+$idUsuario  = (int) Autenticacao::usuario()['id'];
+$podeFin    = static fn (string $acao): string => Usuario::temPermissao($idUsuario, 'financeiro', $acao) ? '1' : '0';
+$permissoes = 'data-pode-registrar="' . $podeFin('cadastrar') . '" data-pode-editar="' . $podeFin('editar')
+            . '" data-pode-estornar="' . $podeFin('estornar') . '"';
+
 require __DIR__ . '/../../../includes/head.php';
 ?>
   <a class="skip-link" href="#finance-main">Ir para o financeiro</a>
 <?php require __DIR__ . '/../../../includes/nav.php'; ?>
   <div class="workspace">
     <header class="page-header"><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-sidebar" aria-label="Abrir menu"><span></span><span></span><span></span></button><div class="page-heading"><h1>Gerenciamento de Finanças</h1><p>Consulte, filtre e gerencie as finanças</p></div><div class="date-pill"><img src="<?= $icones ?>calendario.svg" alt="" width="13" height="13"><time id="today"></time></div></header>
-    <main class="maintenance-main finance-main" id="finance-main" data-img-url="<?= $img ?>" tabindex="-1" aria-busy="true">
+    <main class="maintenance-main finance-main" id="finance-main" data-img-url="<?= $img ?>" <?= $permissoes ?> tabindex="-1" aria-busy="true">
       <div class="page-intro"><h2>Financeiro</h2></div>
       <!-- Indicadores gerais (preenchidos pelo financeiro.js com data.metrics da API; não mudam com os filtros) -->
       <section class="stats-grid" aria-label="Indicadores financeiros gerais">

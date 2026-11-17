@@ -201,11 +201,14 @@
     // Telefone é opcional aqui; se preenchido, precisa ser válido.
     if ($('telefone').value.trim() && !V.telefone($('telefone').value)) errors.telefone = PHONE_MSG;
     if (!['ativo', 'inativo'].includes($('status').value)) errors.status = 'Selecione o status.';
-    // Senha: 8 a 72 caracteres (limite do bcrypt), com letras e números. Na edição a senha não muda.
+    // Senha: 8+ caracteres, com letras e números, e no máximo 72 BYTES em UTF-8 (o bcrypt ignora o resto;
+    // letra acentuada ocupa 2 bytes). Mesma regra do Usuario::erroSenha no PHP. Na edição a senha não muda.
     const password = $('senha').value;
+    const passwordBytes = new TextEncoder().encode(password).length;
     if (!editId) {
-      if (password.length < 8 || password.length > 72 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password))
+      if ([...password].length < 8 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password))
         errors.senha = 'Use de 8 a 72 caracteres, com letras e números.';
+      else if (passwordBytes > 72) errors.senha = 'Use no máximo 72 caracteres (letras acentuadas contam como 2).';
       if (!$('confirmar-senha').value || password !== $('confirmar-senha').value)
         errors['confirmar-senha'] = 'As senhas devem ser iguais.';
     }

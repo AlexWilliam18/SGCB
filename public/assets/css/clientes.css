@@ -615,3 +615,34 @@ select:focus-visible {
         flex: 1 1 120px
     }
 }
+
+/* Filtro "Tipo de cadastro" (cliente, fornecedor ou os dois) */
+.type-filter {
+    width: 170px
+}
+
+.type-filter select {
+    padding-left: 13px;
+    padding-right: 25px
+}
+
+.type-filter>img {
+    right: 10px
+}
+
+/* Etiqueta do tipo ao lado do nome (Fornecedor / Cliente e fornecedor) */
+.type-badge {
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: var(--info-soft);
+    color: var(--info);
+    font-size: 10px;
+    font-weight: 600
+}
+
+@media (max-width: 1450px) {
+    .type-filter {
+        flex: 1 1 150px
+    }
+}

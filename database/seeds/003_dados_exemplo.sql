@@ -2,8 +2,8 @@
 -- SGCB - Seed 003: dados de EXEMPLO para ver as telas funcionando
 -- (dashboard, clientes, produtos, manutenções e financeiro com informações).
 --
--- Insere: 2 usuários operadores, 4 categorias, 2 fornecedores, 8 clientes, 5 produtos
--- (19 contêineres), 12 contratos (ativos, reservado, finalizados, cancelado e rascunho),
+-- Insere: 2 usuários operadores, 1 categoria, 2 fornecedores, 8 clientes, 3 produtos
+-- (contêineres de 2,00 m, 2,50 m e 3,00 m; 19 unidades), 12 contratos (ativos, reservado, finalizados, cancelado e rascunho),
 -- parcelas e pagamentos em várias formas e 5 manutenções.
 --
 -- As datas são relativas ao dia em que o script roda (CURDATE()): sempre haverá contratos
@@ -15,7 +15,7 @@
 -- (condições de pagamento e empresa) é aplicado aqui se ainda não existir.
 --
 -- Rode UMA vez, em um banco sem os dados de exemplo (se rodar de novo, para no primeiro
--- registro repetido e nada é gravado). Para recomeçar, apague o banco sgcb e rode tudo de novo.
+-- registro repetido, o usuário de exemplo, e nada é gravado). Para recomeçar, apague o banco sgcb e rode tudo de novo.
 -- Usuários de exemplo: carla.mendes@casabarretto.exemplo.com.br e
 -- rafael.souza@casabarretto.exemplo.com.br, senha Exemplo123.
 --
@@ -34,17 +34,16 @@ SET @admin = (SELECT id FROM usuarios WHERE email = 'admin@casabarretto.local');
 
 
 -- =============================================================================
--- 1. CATEGORIAS (primeiro bloco: se os exemplos já existirem, o script para aqui)
+-- 1. CATEGORIA
+-- Uma categoria só ("Contêiner"): os produtos se diferenciam pelo tamanho (2,00 m, 2,50 m e 3,00 m).
+-- É o nome que o cadastro de produto já deixa pré-selecionado. Se ela já existir, é reaproveitada.
 -- =============================================================================
 
-INSERT INTO categorias (nome, ativo)
-VALUES ('Container Escritório', TRUE), ('Container Almoxarifado', TRUE), ('Container Sanitário', TRUE), ('Container Refrigerado', TRUE);
+INSERT INTO categorias (nome, ativo) VALUES ('Contêiner', TRUE)
+ON DUPLICATE KEY UPDATE id = id;
 
--- Ids buscados pelo nome (funciona no phpMyAdmin e no terminal).
-SET @cat_esc = (SELECT id FROM categorias WHERE nome = 'Container Escritório');
-SET @cat_alm = (SELECT id FROM categorias WHERE nome = 'Container Almoxarifado');
-SET @cat_san = (SELECT id FROM categorias WHERE nome = 'Container Sanitário');
-SET @cat_ref = (SELECT id FROM categorias WHERE nome = 'Container Refrigerado');
+-- Id buscado pelo nome (funciona no phpMyAdmin e no terminal).
+SET @cat_cont = (SELECT id FROM categorias WHERE nome = 'Contêiner');
 
 
 -- =============================================================================
@@ -202,60 +201,50 @@ VALUES (@cli_carlos, '12327000', 'Av. Brasil', '1800', 'Jardim Paraíba', 'Jacar
 
 -- =============================================================================
 -- 5. PRODUTOS, PREÇOS E CONTÊINERES (unidades físicas)
+-- Padrão de tamanhos da empresa: contêineres de 2,00 m, 2,50 m e 3,00 m.
 -- O estado de cada contêiner já é o final, depois dos contratos e manutenções abaixo.
 -- =============================================================================
 
 INSERT INTO produtos (categoria_id, fornecedor_id, criado_por, codigo, nome, descricao, valor_total_bem, limite_inicial, limite_maximo, maximo_estoque, ativo, criado_em)
-VALUES (@cat_esc, @forn_mcb, @admin, 'C20-ESC', 'Contêiner Escritório 20 pés',
-        'Contêiner Escritório 20 pés com instalação elétrica, iluminação e porta com fechadura.', 38000, 1, 10, 16, TRUE, @hoje - INTERVAL 300 DAY);
-SET @esc20 = LAST_INSERT_ID();
-INSERT INTO precos_produto (produto_id, periodicidade, valor) VALUES (@esc20, 'DIARIA', 120), (@esc20, 'SEMANAL', 700), (@esc20, 'QUINZENAL', 1300), (@esc20, 'MENSAL', 2400);
+VALUES (@cat_cont, @forn_mcb, @admin, 'CB-200', 'Contêiner 2,00 m',
+        'Contêiner de 2,00 m com instalação elétrica, iluminação e porta com fechadura.', 24000, 1, 10, 14, TRUE, @hoje - INTERVAL 300 DAY);
+SET @c200 = LAST_INSERT_ID();
+INSERT INTO precos_produto (produto_id, periodicidade, valor) VALUES (@c200, 'DIARIA', 80), (@c200, 'SEMANAL', 450), (@c200, 'QUINZENAL', 850), (@c200, 'MENSAL', 1600);
 
 INSERT INTO produtos (categoria_id, fornecedor_id, criado_por, codigo, nome, descricao, valor_total_bem, limite_inicial, limite_maximo, maximo_estoque, ativo, criado_em)
-VALUES (@cat_esc, @forn_mcb, @admin, 'C10-ESC', 'Contêiner Escritório 10 pés',
-        'Contêiner Escritório 10 pés com instalação elétrica, iluminação e porta com fechadura.', 24000, 1, 8, 14, TRUE, @hoje - INTERVAL 300 DAY);
-SET @esc10 = LAST_INSERT_ID();
-INSERT INTO precos_produto (produto_id, periodicidade, valor) VALUES (@esc10, 'DIARIA', 80), (@esc10, 'SEMANAL', 450), (@esc10, 'QUINZENAL', 850), (@esc10, 'MENSAL', 1600);
+VALUES (@cat_cont, @forn_mcb, @admin, 'CB-250', 'Contêiner 2,50 m',
+        'Contêiner de 2,50 m com instalação elétrica, iluminação e porta com fechadura.', 38000, 1, 10, 16, TRUE, @hoje - INTERVAL 300 DAY);
+SET @c250 = LAST_INSERT_ID();
+INSERT INTO precos_produto (produto_id, periodicidade, valor) VALUES (@c250, 'DIARIA', 120), (@c250, 'SEMANAL', 700), (@c250, 'QUINZENAL', 1300), (@c250, 'MENSAL', 2400);
 
 INSERT INTO produtos (categoria_id, fornecedor_id, criado_por, codigo, nome, descricao, valor_total_bem, limite_inicial, limite_maximo, maximo_estoque, ativo, criado_em)
-VALUES (@cat_alm, @forn_mcb, @admin, 'C40-ALM', 'Contêiner Almoxarifado 40 pés',
-        'Contêiner Almoxarifado 40 pés com instalação elétrica, iluminação e porta com fechadura.', 52000, 1, 8, 14, TRUE, @hoje - INTERVAL 300 DAY);
-SET @alm40 = LAST_INSERT_ID();
-INSERT INTO precos_produto (produto_id, periodicidade, valor) VALUES (@alm40, 'DIARIA', 150), (@alm40, 'SEMANAL', 900), (@alm40, 'QUINZENAL', 1700), (@alm40, 'MENSAL', 3200);
+VALUES (@cat_cont, @forn_mcb, @admin, 'CB-300', 'Contêiner 3,00 m',
+        'Contêiner de 3,00 m com instalação elétrica, iluminação e porta com fechadura.', 52000, 1, 8, 14, TRUE, @hoje - INTERVAL 300 DAY);
+SET @c300 = LAST_INSERT_ID();
+INSERT INTO precos_produto (produto_id, periodicidade, valor) VALUES (@c300, 'DIARIA', 150), (@c300, 'SEMANAL', 900), (@c300, 'QUINZENAL', 1700), (@c300, 'MENSAL', 3200);
 
-INSERT INTO produtos (categoria_id, fornecedor_id, criado_por, codigo, nome, descricao, valor_total_bem, limite_inicial, limite_maximo, maximo_estoque, ativo, criado_em)
-VALUES (@cat_san, @forn_mcb, @admin, 'C20-SAN', 'Contêiner Sanitário 20 pés',
-        'Contêiner Sanitário 20 pés com instalação elétrica, iluminação e porta com fechadura.', 30000, 1, 7, 13, TRUE, @hoje - INTERVAL 300 DAY);
-SET @san20 = LAST_INSERT_ID();
-INSERT INTO precos_produto (produto_id, periodicidade, valor) VALUES (@san20, 'DIARIA', 90), (@san20, 'SEMANAL', 550), (@san20, 'QUINZENAL', 1000), (@san20, 'MENSAL', 1900);
-
-INSERT INTO produtos (categoria_id, fornecedor_id, criado_por, codigo, nome, descricao, valor_total_bem, limite_inicial, limite_maximo, maximo_estoque, ativo, criado_em)
-VALUES (@cat_ref, @forn_frio, @admin, 'C40-REF', 'Contêiner Refrigerado 40 pés',
-        'Contêiner Refrigerado 40 pés com instalação elétrica, iluminação e porta com fechadura.', 120000, 1, 6, 12, TRUE, @hoje - INTERVAL 300 DAY);
-SET @ref40 = LAST_INSERT_ID();
-INSERT INTO precos_produto (produto_id, periodicidade, valor) VALUES (@ref40, 'DIARIA', 300), (@ref40, 'SEMANAL', 1900), (@ref40, 'QUINZENAL', 3600), (@ref40, 'MENSAL', 6800);
-
--- 19 contêineres. LOCADA = em contrato em andamento; MANUTENCAO = manutenção em andamento.
+-- 19 contêineres (7 de 2,00 m, 6 de 2,50 m e 6 de 3,00 m).
+-- LOCADA = em contrato em andamento; MANUTENCAO = manutenção em andamento.
 INSERT INTO unidades_fisicas (produto_id, codigo, estado_operacional, localidade, ultima_vistoria_em, criado_em) VALUES
-  (@esc20, 'C20-ESC-001', 'LOCADA',     'Obra Residencial Aquarius - São José dos Campos', NULL, @hoje - INTERVAL 300 DAY),
-  (@esc20, 'C20-ESC-002', 'LOCADA',     'Obra Residencial Aquarius - São José dos Campos', NULL, @hoje - INTERVAL 300 DAY),
-  (@esc20, 'C20-ESC-003', 'LOCADA',     'Taubaté',                                         NULL, @hoje - INTERVAL 300 DAY),
-  (@esc20, 'C20-ESC-004', 'MANUTENCAO', 'Pátio Jacareí',                                   NULL, @hoje - INTERVAL 300 DAY),
-  (@esc20, 'C20-ESC-005', 'DISPONIVEL', 'Pátio Jacareí',                                   NULL, @hoje - INTERVAL 300 DAY),
-  (@esc20, 'C20-ESC-006', 'DISPONIVEL', 'Pátio Jacareí',                                   NULL, @hoje - INTERVAL 300 DAY),
-  (@esc10, 'C10-ESC-001', 'LOCADA',     'São José dos Campos',                             NULL, @hoje - INTERVAL 300 DAY),
-  (@esc10, 'C10-ESC-002', 'DISPONIVEL', 'Pátio Jacareí',                                   NOW(), @hoje - INTERVAL 300 DAY),
-  (@esc10, 'C10-ESC-003', 'DISPONIVEL', 'Pátio Jacareí',                                   NULL, @hoje - INTERVAL 300 DAY),
-  (@esc10, 'C10-ESC-004', 'DISPONIVEL', 'Pátio Jacareí',                                   NULL, @hoje - INTERVAL 300 DAY),
-  (@alm40, 'C40-ALM-001', 'LOCADA',     'Pedreira Serra Azul - Jacareí',                   NULL, @hoje - INTERVAL 300 DAY),
-  (@alm40, 'C40-ALM-002', 'LOCADA',     'Pedreira Serra Azul - Jacareí',                   NULL, @hoje - INTERVAL 300 DAY),
-  (@alm40, 'C40-ALM-003', 'DISPONIVEL', 'Pátio São José dos Campos',                       NULL, @hoje - INTERVAL 300 DAY),
-  (@alm40, 'C40-ALM-004', 'DISPONIVEL', 'Pátio São José dos Campos',                       NULL, @hoje - INTERVAL 300 DAY),
-  (@san20, 'C20-SAN-001', 'LOCADA',     'Obra Residencial Aquarius - São José dos Campos', NULL, @hoje - INTERVAL 300 DAY),
-  (@san20, 'C20-SAN-002', 'LOCADA',     'Taubaté',                                         NULL, @hoje - INTERVAL 300 DAY),
-  (@san20, 'C20-SAN-003', 'DISPONIVEL', 'Pátio São José dos Campos',                       NULL, @hoje - INTERVAL 300 DAY),
-  (@ref40, 'C40-REF-001', 'DISPONIVEL', 'Pátio Jacareí',                                   NOW(), @hoje - INTERVAL 300 DAY),
-  (@ref40, 'C40-REF-002', 'DISPONIVEL', 'Pátio Jacareí',                                   NULL, @hoje - INTERVAL 300 DAY);
+  (@c200, 'CB-200-001', 'LOCADA',     'São José dos Campos',                             NULL, @hoje - INTERVAL 300 DAY),
+  (@c200, 'CB-200-002', 'DISPONIVEL', 'Pátio Jacareí',                                   NOW(), @hoje - INTERVAL 300 DAY),
+  (@c200, 'CB-200-003', 'DISPONIVEL', 'Pátio Jacareí',                                   NULL, @hoje - INTERVAL 300 DAY),
+  (@c200, 'CB-200-004', 'DISPONIVEL', 'Pátio Jacareí',                                   NULL, @hoje - INTERVAL 300 DAY),
+  (@c200, 'CB-200-005', 'LOCADA',     'Obra Residencial Aquarius - São José dos Campos', NULL, @hoje - INTERVAL 300 DAY),
+  (@c200, 'CB-200-006', 'LOCADA',     'Taubaté',                                         NULL, @hoje - INTERVAL 300 DAY),
+  (@c200, 'CB-200-007', 'DISPONIVEL', 'Pátio São José dos Campos',                       NULL, @hoje - INTERVAL 300 DAY),
+  (@c250, 'CB-250-001', 'LOCADA',     'Obra Residencial Aquarius - São José dos Campos', NULL, @hoje - INTERVAL 300 DAY),
+  (@c250, 'CB-250-002', 'LOCADA',     'Obra Residencial Aquarius - São José dos Campos', NULL, @hoje - INTERVAL 300 DAY),
+  (@c250, 'CB-250-003', 'LOCADA',     'Taubaté',                                         NULL, @hoje - INTERVAL 300 DAY),
+  (@c250, 'CB-250-004', 'MANUTENCAO', 'Pátio Jacareí',                                   NULL, @hoje - INTERVAL 300 DAY),
+  (@c250, 'CB-250-005', 'DISPONIVEL', 'Pátio Jacareí',                                   NULL, @hoje - INTERVAL 300 DAY),
+  (@c250, 'CB-250-006', 'DISPONIVEL', 'Pátio Jacareí',                                   NULL, @hoje - INTERVAL 300 DAY),
+  (@c300, 'CB-300-001', 'LOCADA',     'Pedreira Serra Azul - Jacareí',                   NULL, @hoje - INTERVAL 300 DAY),
+  (@c300, 'CB-300-002', 'LOCADA',     'Pedreira Serra Azul - Jacareí',                   NULL, @hoje - INTERVAL 300 DAY),
+  (@c300, 'CB-300-003', 'DISPONIVEL', 'Pátio São José dos Campos',                       NULL, @hoje - INTERVAL 300 DAY),
+  (@c300, 'CB-300-004', 'DISPONIVEL', 'Pátio São José dos Campos',                       NULL, @hoje - INTERVAL 300 DAY),
+  (@c300, 'CB-300-005', 'DISPONIVEL', 'Pátio Jacareí',                                   NOW(), @hoje - INTERVAL 300 DAY),
+  (@c300, 'CB-300-006', 'DISPONIVEL', 'Pátio Jacareí',                                   NULL, @hoje - INTERVAL 300 DAY);
 
 
 -- =============================================================================
@@ -265,7 +254,7 @@ INSERT INTO unidades_fisicas (produto_id, codigo, estado_operacional, localidade
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------
--- Contrato 1 — FINALIZADO (8 meses atrás). Mineração: 2 almoxarifados por 1 mês.
+-- Contrato 1 — FINALIZADO (8 meses atrás). Mineração: 2 contêineres de 3,00 m por 1 mês.
 -- 3.200 × 2 × 1 mês = 6.400,00 à vista, pago por boleto.
 -- ---------------------------------------------------------------------------
 INSERT INTO contratos (empresa_id, cliente_id, condicao_pagamento_id, criado_por, numero_locacao, numero_contrato, data_emissao, prazo,
@@ -277,18 +266,18 @@ VALUES (@emp, @cli_mineracao, @vista, @admin, 'LOC-000001', 'CT-000001', @hoje -
         @snap_empresa, TIMESTAMP(@hoje - INTERVAL 240 DAY, '09:00:00'), TIMESTAMP(@hoje - INTERVAL 210 DAY, '17:00:00'));
 SET @c = LAST_INSERT_ID();
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
-VALUES (@c, @alm40, 'C40-ALM - Contêiner Almoxarifado 40 pés', 52000, 2, 'MENSAL', 1, 3200, 0, 0, 6400);
+VALUES (@c, @c300, 'CB-300 - Contêiner 3,00 m', 52000, 2, 'MENSAL', 1, 3200, 0, 0, 6400);
 SET @i = LAST_INSERT_ID();
 INSERT INTO agenda_unidades (unidade_id, produto_id, contrato_item_id, criado_por, inicio, fim, status, devolvida_em) VALUES
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C40-ALM-001'), @alm40, @i, @admin, TIMESTAMP(@hoje - INTERVAL 240 DAY), TIMESTAMP(@hoje - INTERVAL 209 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 210 DAY, '17:00:00')),
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C40-ALM-002'), @alm40, @i, @admin, TIMESTAMP(@hoje - INTERVAL 240 DAY), TIMESTAMP(@hoje - INTERVAL 209 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 210 DAY, '17:00:00'));
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-300-001'), @c300, @i, @admin, TIMESTAMP(@hoje - INTERVAL 240 DAY), TIMESTAMP(@hoje - INTERVAL 209 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 210 DAY, '17:00:00')),
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-300-002'), @c300, @i, @admin, TIMESTAMP(@hoje - INTERVAL 240 DAY), TIMESTAMP(@hoje - INTERVAL 209 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 210 DAY, '17:00:00'));
 INSERT INTO parcelas (contrato_id, numero, competencia, vencimento, valor_original, acrescimo, desconto, cancelada)
 VALUES (@c, 1, DATE_FORMAT(@hoje - INTERVAL 240 DAY, '%Y-%m-01'), @hoje - INTERVAL 240 DAY, 6400, 0, 0, FALSE);
 INSERT INTO pagamentos (parcela_id, registrado_por, valor, pago_em, forma, criado_em)
 VALUES (LAST_INSERT_ID(), @admin, 6400, TIMESTAMP(@hoje - INTERVAL 238 DAY, '10:30:00'), 'BOLETO', TIMESTAMP(@hoje - INTERVAL 238 DAY, '10:30:00'));
 
 -- ---------------------------------------------------------------------------
--- Contrato 2 — FINALIZADO. Carlos: 3 escritórios 10 pés por 15 diárias + frete.
+-- Contrato 2 — FINALIZADO. Carlos: 3 contêineres de 2,00 m por 15 diárias + frete.
 -- 80 × 3 × 15 = 3.600,00 + 200,00 de frete = 3.800,00 à vista, cartão de débito.
 -- ---------------------------------------------------------------------------
 INSERT INTO contratos (empresa_id, cliente_id, condicao_pagamento_id, criado_por, numero_locacao, numero_contrato, data_emissao, prazo,
@@ -300,19 +289,19 @@ VALUES (@emp, @cli_carlos, @vista, @admin, 'LOC-000002', 'CT-000002', @hoje - IN
         @snap_empresa, TIMESTAMP(@hoje - INTERVAL 200 DAY, '09:00:00'), TIMESTAMP(@hoje - INTERVAL 185 DAY, '17:00:00'));
 SET @c = LAST_INSERT_ID();
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
-VALUES (@c, @esc10, 'C10-ESC - Contêiner Escritório 10 pés', 24000, 3, 'DIARIA', 15, 80, 0, 0, 3600);
+VALUES (@c, @c200, 'CB-200 - Contêiner 2,00 m', 24000, 3, 'DIARIA', 15, 80, 0, 0, 3600);
 SET @i = LAST_INSERT_ID();
 INSERT INTO agenda_unidades (unidade_id, produto_id, contrato_item_id, criado_por, inicio, fim, status, devolvida_em) VALUES
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C10-ESC-001'), @esc10, @i, @admin, TIMESTAMP(@hoje - INTERVAL 200 DAY), TIMESTAMP(@hoje - INTERVAL 184 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 185 DAY, '17:00:00')),
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C10-ESC-002'), @esc10, @i, @admin, TIMESTAMP(@hoje - INTERVAL 200 DAY), TIMESTAMP(@hoje - INTERVAL 184 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 185 DAY, '17:00:00')),
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C10-ESC-003'), @esc10, @i, @admin, TIMESTAMP(@hoje - INTERVAL 200 DAY), TIMESTAMP(@hoje - INTERVAL 184 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 185 DAY, '17:00:00'));
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-200-001'), @c200, @i, @admin, TIMESTAMP(@hoje - INTERVAL 200 DAY), TIMESTAMP(@hoje - INTERVAL 184 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 185 DAY, '17:00:00')),
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-200-002'), @c200, @i, @admin, TIMESTAMP(@hoje - INTERVAL 200 DAY), TIMESTAMP(@hoje - INTERVAL 184 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 185 DAY, '17:00:00')),
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-200-003'), @c200, @i, @admin, TIMESTAMP(@hoje - INTERVAL 200 DAY), TIMESTAMP(@hoje - INTERVAL 184 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 185 DAY, '17:00:00'));
 INSERT INTO parcelas (contrato_id, numero, competencia, vencimento, valor_original, acrescimo, desconto, cancelada)
 VALUES (@c, 1, DATE_FORMAT(@hoje - INTERVAL 200 DAY, '%Y-%m-01'), @hoje - INTERVAL 200 DAY, 3800, 0, 0, FALSE);
 INSERT INTO pagamentos (parcela_id, registrado_por, valor, pago_em, forma, criado_em)
 VALUES (LAST_INSERT_ID(), @admin, 3800, TIMESTAMP(@hoje - INTERVAL 199 DAY, '10:30:00'), 'CARTAO_DEBITO', TIMESTAMP(@hoje - INTERVAL 199 DAY, '10:30:00'));
 
 -- ---------------------------------------------------------------------------
--- Contrato 3 — FINALIZADO. Construtora Vale: 2 escritórios 20 pés por 1 mês.
+-- Contrato 3 — FINALIZADO. Construtora Vale: 2 contêineres de 2,50 m por 1 mês.
 -- 2.400 × 2 × 1 = 4.800,00 à vista, Pix.
 -- ---------------------------------------------------------------------------
 INSERT INTO contratos (empresa_id, cliente_id, condicao_pagamento_id, criado_por, numero_locacao, numero_contrato, data_emissao, prazo,
@@ -324,18 +313,18 @@ VALUES (@emp, @cli_vale, @vista, @admin, 'LOC-000003', 'CT-000003', @hoje - INTE
         @snap_empresa, TIMESTAMP(@hoje - INTERVAL 150 DAY, '09:00:00'), TIMESTAMP(@hoje - INTERVAL 120 DAY, '17:00:00'));
 SET @c = LAST_INSERT_ID();
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
-VALUES (@c, @esc20, 'C20-ESC - Contêiner Escritório 20 pés', 38000, 2, 'MENSAL', 1, 2400, 0, 0, 4800);
+VALUES (@c, @c250, 'CB-250 - Contêiner 2,50 m', 38000, 2, 'MENSAL', 1, 2400, 0, 0, 4800);
 SET @i = LAST_INSERT_ID();
 INSERT INTO agenda_unidades (unidade_id, produto_id, contrato_item_id, criado_por, inicio, fim, status, devolvida_em) VALUES
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C20-ESC-001'), @esc20, @i, @admin, TIMESTAMP(@hoje - INTERVAL 150 DAY), TIMESTAMP(@hoje - INTERVAL 119 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 120 DAY, '17:00:00')),
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C20-ESC-002'), @esc20, @i, @admin, TIMESTAMP(@hoje - INTERVAL 150 DAY), TIMESTAMP(@hoje - INTERVAL 119 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 120 DAY, '17:00:00'));
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-250-001'), @c250, @i, @admin, TIMESTAMP(@hoje - INTERVAL 150 DAY), TIMESTAMP(@hoje - INTERVAL 119 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 120 DAY, '17:00:00')),
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-250-002'), @c250, @i, @admin, TIMESTAMP(@hoje - INTERVAL 150 DAY), TIMESTAMP(@hoje - INTERVAL 119 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 120 DAY, '17:00:00'));
 INSERT INTO parcelas (contrato_id, numero, competencia, vencimento, valor_original, acrescimo, desconto, cancelada)
 VALUES (@c, 1, DATE_FORMAT(@hoje - INTERVAL 150 DAY, '%Y-%m-01'), @hoje - INTERVAL 150 DAY, 4800, 0, 0, FALSE);
 INSERT INTO pagamentos (parcela_id, registrado_por, valor, pago_em, forma, criado_em)
 VALUES (LAST_INSERT_ID(), @admin, 4800, TIMESTAMP(@hoje - INTERVAL 149 DAY, '10:30:00'), 'PIX', TIMESTAMP(@hoje - INTERVAL 149 DAY, '10:30:00'));
 
 -- ---------------------------------------------------------------------------
--- Contrato 4 — FINALIZADO. Litoral Eventos: 1 almoxarifado semanal por 30 dias.
+-- Contrato 4 — FINALIZADO. Litoral Eventos: 1 contêiner de 3,00 m semanal por 30 dias.
 -- 30 dias ÷ 7 = 4,2857 semanas × 900 = 3.857,13 em 2x (1.928,56 + 1.928,57): cartão de crédito e dinheiro.
 -- ---------------------------------------------------------------------------
 INSERT INTO contratos (empresa_id, cliente_id, condicao_pagamento_id, criado_por, numero_locacao, numero_contrato, data_emissao, prazo,
@@ -347,10 +336,10 @@ VALUES (@emp, @cli_eventos, @x2, @admin, 'LOC-000004', 'CT-000004', @hoje - INTE
         @snap_empresa, TIMESTAMP(@hoje - INTERVAL 110 DAY, '09:00:00'), TIMESTAMP(@hoje - INTERVAL 80 DAY, '17:00:00'));
 SET @c = LAST_INSERT_ID();
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
-VALUES (@c, @alm40, 'C40-ALM - Contêiner Almoxarifado 40 pés', 52000, 1, 'SEMANAL', 4.2857, 900, 0, 0, 3857.13);
+VALUES (@c, @c300, 'CB-300 - Contêiner 3,00 m', 52000, 1, 'SEMANAL', 4.2857, 900, 0, 0, 3857.13);
 SET @i = LAST_INSERT_ID();
 INSERT INTO agenda_unidades (unidade_id, produto_id, contrato_item_id, criado_por, inicio, fim, status, devolvida_em) VALUES
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C40-ALM-001'), @alm40, @i, @admin, TIMESTAMP(@hoje - INTERVAL 110 DAY), TIMESTAMP(@hoje - INTERVAL 79 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 80 DAY, '17:00:00'));
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-300-001'), @c300, @i, @admin, TIMESTAMP(@hoje - INTERVAL 110 DAY), TIMESTAMP(@hoje - INTERVAL 79 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 80 DAY, '17:00:00'));
 INSERT INTO parcelas (contrato_id, numero, competencia, vencimento, valor_original, acrescimo, desconto, cancelada)
 VALUES (@c, 1, DATE_FORMAT(@hoje - INTERVAL 80 DAY, '%Y-%m-01'), @hoje - INTERVAL 80 DAY, 1928.56, 0, 0, FALSE);
 INSERT INTO pagamentos (parcela_id, registrado_por, valor, pago_em, forma, criado_em)
@@ -361,8 +350,8 @@ INSERT INTO pagamentos (parcela_id, registrado_por, valor, pago_em, forma, criad
 VALUES (LAST_INSERT_ID(), @admin, 1928.57, TIMESTAMP(@hoje - INTERVAL 50 DAY, '10:30:00'), 'DINHEIRO', TIMESTAMP(@hoje - INTERVAL 50 DAY, '10:30:00'));
 
 -- ---------------------------------------------------------------------------
--- Contrato 5 — FINALIZADO. Litoral Eventos: 2 sanitários por 20 diárias + frete.
--- 90 × 2 × 20 = 3.600,00 + 300,00 = 3.900,00 à vista, transferência.
+-- Contrato 5 — FINALIZADO. Litoral Eventos: 2 contêineres de 2,00 m por 20 diárias + frete.
+-- 80 × 2 × 20 = 3.200,00 + 300,00 = 3.500,00 à vista, transferência.
 -- ---------------------------------------------------------------------------
 INSERT INTO contratos (empresa_id, cliente_id, condicao_pagamento_id, criado_por, numero_locacao, numero_contrato, data_emissao, prazo,
                        data_inicio, data_fim, periodicidade, status, numero_parcelas, frete_deslocamento, outros_valores, caucao,
@@ -373,19 +362,19 @@ VALUES (@emp, @cli_eventos, @vista, @admin, 'LOC-000005', 'CT-000005', @hoje - I
         @snap_empresa, TIMESTAMP(@hoje - INTERVAL 75 DAY, '09:00:00'), TIMESTAMP(@hoje - INTERVAL 55 DAY, '17:00:00'));
 SET @c = LAST_INSERT_ID();
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
-VALUES (@c, @san20, 'C20-SAN - Contêiner Sanitário 20 pés', 30000, 2, 'DIARIA', 20, 90, 0, 0, 3600);
+VALUES (@c, @c200, 'CB-200 - Contêiner 2,00 m', 24000, 2, 'DIARIA', 20, 80, 0, 0, 3200);
 SET @i = LAST_INSERT_ID();
 INSERT INTO agenda_unidades (unidade_id, produto_id, contrato_item_id, criado_por, inicio, fim, status, devolvida_em) VALUES
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C20-SAN-001'), @san20, @i, @admin, TIMESTAMP(@hoje - INTERVAL 75 DAY), TIMESTAMP(@hoje - INTERVAL 54 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 55 DAY, '17:00:00')),
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C20-SAN-002'), @san20, @i, @admin, TIMESTAMP(@hoje - INTERVAL 75 DAY), TIMESTAMP(@hoje - INTERVAL 54 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 55 DAY, '17:00:00'));
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-200-005'), @c200, @i, @admin, TIMESTAMP(@hoje - INTERVAL 75 DAY), TIMESTAMP(@hoje - INTERVAL 54 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 55 DAY, '17:00:00')),
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-200-006'), @c200, @i, @admin, TIMESTAMP(@hoje - INTERVAL 75 DAY), TIMESTAMP(@hoje - INTERVAL 54 DAY), 'DEVOLVIDA', TIMESTAMP(@hoje - INTERVAL 55 DAY, '17:00:00'));
 INSERT INTO parcelas (contrato_id, numero, competencia, vencimento, valor_original, acrescimo, desconto, cancelada)
-VALUES (@c, 1, DATE_FORMAT(@hoje - INTERVAL 75 DAY, '%Y-%m-01'), @hoje - INTERVAL 75 DAY, 3900, 0, 0, FALSE);
+VALUES (@c, 1, DATE_FORMAT(@hoje - INTERVAL 75 DAY, '%Y-%m-01'), @hoje - INTERVAL 75 DAY, 3500, 0, 0, FALSE);
 INSERT INTO pagamentos (parcela_id, registrado_por, valor, pago_em, forma, criado_em)
-VALUES (LAST_INSERT_ID(), @admin, 3900, TIMESTAMP(@hoje - INTERVAL 46 DAY, '10:30:00'), 'TRANSFERENCIA', TIMESTAMP(@hoje - INTERVAL 46 DAY, '10:30:00'));
+VALUES (LAST_INSERT_ID(), @admin, 3500, TIMESTAMP(@hoje - INTERVAL 46 DAY, '10:30:00'), 'TRANSFERENCIA', TIMESTAMP(@hoje - INTERVAL 46 DAY, '10:30:00'));
 
 -- ---------------------------------------------------------------------------
--- Contrato 6 — ATIVO (em andamento, entrega na obra). Construtora Vale: 2 escritórios 20 pés
--- + 1 sanitário por 3 meses + frete. (2.400 × 2 + 1.900) × 3 = 20.100,00 + 350,00 = 20.450,00 em 3x:
+-- Contrato 6 — ATIVO (em andamento, entrega na obra). Construtora Vale: 2 contêineres de 2,50 m
+-- + 1 de 2,00 m por 3 meses + frete. (2.400 × 2 + 1.600) × 3 = 19.200,00 + 350,00 = 19.550,00 em 3x:
 -- 1ª paga (transferência), 2ª vence hoje, 3ª em 30 dias.
 -- ---------------------------------------------------------------------------
 INSERT INTO contratos (empresa_id, cliente_id, condicao_pagamento_id, criado_por, numero_locacao, numero_contrato,
@@ -401,26 +390,26 @@ SET @c = LAST_INSERT_ID();
 INSERT INTO contrato_enderecos_entrega (contrato_id, endereco_do_cliente, cep, rua, numero, bairro, cidade, uf, referencia)
 VALUES (@c, FALSE, '12245100', 'Rua Obra Residencial Aquarius', 'S/N', 'Jardim Aquarius', 'São José dos Campos', 'SP', 'Portão da obra');
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
-VALUES (@c, @esc20, 'C20-ESC - Contêiner Escritório 20 pés', 38000, 2, 'MENSAL', 3, 2400, 0, 0, 14400);
+VALUES (@c, @c250, 'CB-250 - Contêiner 2,50 m', 38000, 2, 'MENSAL', 3, 2400, 0, 0, 14400);
 SET @i = LAST_INSERT_ID();
 INSERT INTO agenda_unidades (unidade_id, produto_id, contrato_item_id, criado_por, inicio, fim, status) VALUES
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C20-ESC-001'), @esc20, @i, @admin, TIMESTAMP(@hoje - INTERVAL 60 DAY), TIMESTAMP(@hoje + INTERVAL 31 DAY), 'EM_USO'),
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C20-ESC-002'), @esc20, @i, @admin, TIMESTAMP(@hoje - INTERVAL 60 DAY), TIMESTAMP(@hoje + INTERVAL 31 DAY), 'EM_USO');
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-250-001'), @c250, @i, @admin, TIMESTAMP(@hoje - INTERVAL 60 DAY), TIMESTAMP(@hoje + INTERVAL 31 DAY), 'EM_USO'),
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-250-002'), @c250, @i, @admin, TIMESTAMP(@hoje - INTERVAL 60 DAY), TIMESTAMP(@hoje + INTERVAL 31 DAY), 'EM_USO');
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
-VALUES (@c, @san20, 'C20-SAN - Contêiner Sanitário 20 pés', 30000, 1, 'MENSAL', 3, 1900, 0, 0, 5700);
+VALUES (@c, @c200, 'CB-200 - Contêiner 2,00 m', 24000, 1, 'MENSAL', 3, 1600, 0, 0, 4800);
 SET @i = LAST_INSERT_ID();
 INSERT INTO agenda_unidades (unidade_id, produto_id, contrato_item_id, criado_por, inicio, fim, status) VALUES
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C20-SAN-001'), @san20, @i, @admin, TIMESTAMP(@hoje - INTERVAL 60 DAY), TIMESTAMP(@hoje + INTERVAL 31 DAY), 'EM_USO');
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-200-005'), @c200, @i, @admin, TIMESTAMP(@hoje - INTERVAL 60 DAY), TIMESTAMP(@hoje + INTERVAL 31 DAY), 'EM_USO');
 INSERT INTO parcelas (contrato_id, numero, competencia, vencimento, valor_original, acrescimo, desconto, cancelada)
-VALUES (@c, 1, DATE_FORMAT(@hoje - INTERVAL 30 DAY, '%Y-%m-01'), @hoje - INTERVAL 30 DAY, 6816.66, 0, 0, FALSE);
+VALUES (@c, 1, DATE_FORMAT(@hoje - INTERVAL 30 DAY, '%Y-%m-01'), @hoje - INTERVAL 30 DAY, 6516.66, 0, 0, FALSE);
 INSERT INTO pagamentos (parcela_id, registrado_por, valor, pago_em, forma, criado_em)
-VALUES (LAST_INSERT_ID(), @admin, 6816.66, TIMESTAMP(@hoje - INTERVAL 29 DAY, '10:30:00'), 'TRANSFERENCIA', TIMESTAMP(@hoje - INTERVAL 29 DAY, '10:30:00'));
+VALUES (LAST_INSERT_ID(), @admin, 6516.66, TIMESTAMP(@hoje - INTERVAL 29 DAY, '10:30:00'), 'TRANSFERENCIA', TIMESTAMP(@hoje - INTERVAL 29 DAY, '10:30:00'));
 INSERT INTO parcelas (contrato_id, numero, competencia, vencimento, valor_original, acrescimo, desconto, cancelada) VALUES
-  (@c, 2, DATE_FORMAT(@hoje, '%Y-%m-01'), @hoje, 6816.66, 0, 0, FALSE),
-  (@c, 3, DATE_FORMAT(@hoje + INTERVAL 30 DAY, '%Y-%m-01'), @hoje + INTERVAL 30 DAY, 6816.68, 0, 0, FALSE);
+  (@c, 2, DATE_FORMAT(@hoje, '%Y-%m-01'), @hoje, 6516.66, 0, 0, FALSE),
+  (@c, 3, DATE_FORMAT(@hoje + INTERVAL 30 DAY, '%Y-%m-01'), @hoje + INTERVAL 30 DAY, 6516.68, 0, 0, FALSE);
 
 -- ---------------------------------------------------------------------------
--- Contrato 7 — ATIVO com parcela EM ATRASO. João: 1 escritório 10 pés por 60 diárias.
+-- Contrato 7 — ATIVO com parcela EM ATRASO. João: 1 contêiner de 2,00 m por 60 diárias.
 -- 80 × 1 × 60 = 4.800,00 em 30 dias (venceu há 15 dias); pagou 2.000,00 por Pix.
 -- ---------------------------------------------------------------------------
 INSERT INTO contratos (empresa_id, cliente_id, condicao_pagamento_id, criado_por, numero_locacao, numero_contrato, data_emissao, prazo,
@@ -432,17 +421,17 @@ VALUES (@emp, @cli_joao, @d30, @admin, 'LOC-000007', 'CT-000007', @hoje - INTERV
         @snap_empresa, TIMESTAMP(@hoje - INTERVAL 45 DAY, '09:00:00'));
 SET @c = LAST_INSERT_ID();
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
-VALUES (@c, @esc10, 'C10-ESC - Contêiner Escritório 10 pés', 24000, 1, 'DIARIA', 60, 80, 0, 0, 4800);
+VALUES (@c, @c200, 'CB-200 - Contêiner 2,00 m', 24000, 1, 'DIARIA', 60, 80, 0, 0, 4800);
 SET @i = LAST_INSERT_ID();
 INSERT INTO agenda_unidades (unidade_id, produto_id, contrato_item_id, criado_por, inicio, fim, status) VALUES
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C10-ESC-001'), @esc10, @i, @admin, TIMESTAMP(@hoje - INTERVAL 45 DAY), TIMESTAMP(@hoje + INTERVAL 16 DAY), 'EM_USO');
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-200-001'), @c200, @i, @admin, TIMESTAMP(@hoje - INTERVAL 45 DAY), TIMESTAMP(@hoje + INTERVAL 16 DAY), 'EM_USO');
 INSERT INTO parcelas (contrato_id, numero, competencia, vencimento, valor_original, acrescimo, desconto, cancelada)
 VALUES (@c, 1, DATE_FORMAT(@hoje - INTERVAL 15 DAY, '%Y-%m-01'), @hoje - INTERVAL 15 DAY, 4800, 0, 0, FALSE);
 INSERT INTO pagamentos (parcela_id, registrado_por, valor, pago_em, forma, criado_em)
 VALUES (LAST_INSERT_ID(), @admin, 2000, TIMESTAMP(@hoje - INTERVAL 14 DAY, '10:30:00'), 'PIX', TIMESTAMP(@hoje - INTERVAL 14 DAY, '10:30:00'));
 
 -- ---------------------------------------------------------------------------
--- Contrato 8 — ATIVO por PRAZO INDETERMINADO. Mineração: 2 almoxarifados, 6 parcelas mensais.
+-- Contrato 8 — ATIVO por PRAZO INDETERMINADO. Mineração: 2 contêineres de 3,00 m, 6 parcelas mensais.
 -- 3.200 × 2 × 6 meses = 38.400,00 → 6 × 6.400,00 (a 1ª vence 30 dias após o início).
 -- ---------------------------------------------------------------------------
 INSERT INTO contratos (empresa_id, cliente_id, condicao_pagamento_id, criado_por, numero_locacao, numero_contrato, data_emissao, prazo,
@@ -454,11 +443,11 @@ VALUES (@emp, @cli_mineracao, @d30, @admin, 'LOC-000008', 'CT-000008', @hoje - I
         @snap_empresa, TIMESTAMP(@hoje - INTERVAL 20 DAY, '09:00:00'));
 SET @c = LAST_INSERT_ID();
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
-VALUES (@c, @alm40, 'C40-ALM - Contêiner Almoxarifado 40 pés', 52000, 2, 'MENSAL', 6, 3200, 0, 0, 38400);
+VALUES (@c, @c300, 'CB-300 - Contêiner 3,00 m', 52000, 2, 'MENSAL', 6, 3200, 0, 0, 38400);
 SET @i = LAST_INSERT_ID();
 INSERT INTO agenda_unidades (unidade_id, produto_id, contrato_item_id, criado_por, inicio, fim, status) VALUES
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C40-ALM-001'), @alm40, @i, @admin, TIMESTAMP(@hoje - INTERVAL 20 DAY), '9999-12-31 00:00:00', 'EM_USO'),
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C40-ALM-002'), @alm40, @i, @admin, TIMESTAMP(@hoje - INTERVAL 20 DAY), '9999-12-31 00:00:00', 'EM_USO');
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-300-001'), @c300, @i, @admin, TIMESTAMP(@hoje - INTERVAL 20 DAY), '9999-12-31 00:00:00', 'EM_USO'),
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-300-002'), @c300, @i, @admin, TIMESTAMP(@hoje - INTERVAL 20 DAY), '9999-12-31 00:00:00', 'EM_USO');
 INSERT INTO parcelas (contrato_id, numero, competencia, vencimento, valor_original, acrescimo, desconto, cancelada) VALUES
   (@c, 1, DATE_FORMAT(@hoje + INTERVAL 10 DAY, '%Y-%m-01'),  @hoje + INTERVAL 10 DAY,  6400, 0, 0, FALSE),
   (@c, 2, DATE_FORMAT(@hoje + INTERVAL 40 DAY, '%Y-%m-01'),  @hoje + INTERVAL 40 DAY,  6400, 0, 0, FALSE),
@@ -468,8 +457,8 @@ INSERT INTO parcelas (contrato_id, numero, competencia, vencimento, valor_origin
   (@c, 6, DATE_FORMAT(@hoje + INTERVAL 160 DAY, '%Y-%m-01'), @hoje + INTERVAL 160 DAY, 6400, 0, 0, FALSE);
 
 -- ---------------------------------------------------------------------------
--- Contrato 9 — ATIVO, começa hoje. Mariana: 1 sanitário + 1 escritório 20 pés por 14 diárias.
--- 90 × 14 + 120 × 14 = 2.940,00 em 2x de 1.470,00 (30 e 60 dias).
+-- Contrato 9 — ATIVO, começa hoje. Mariana: 1 contêiner de 2,00 m + 1 de 2,50 m por 14 diárias.
+-- 80 × 14 + 120 × 14 = 2.800,00 em 2x de 1.400,00 (30 e 60 dias).
 -- ---------------------------------------------------------------------------
 INSERT INTO contratos (empresa_id, cliente_id, condicao_pagamento_id, criado_por, numero_locacao, numero_contrato, data_emissao, prazo,
                        data_inicio, data_fim, periodicidade, status, numero_parcelas, frete_deslocamento, outros_valores, caucao,
@@ -480,22 +469,22 @@ VALUES (@emp, @cli_mariana, @x2, @admin, 'LOC-000009', 'CT-000009', @hoje, 'DETE
         @snap_empresa, TIMESTAMP(@hoje, '08:00:00'));
 SET @c = LAST_INSERT_ID();
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
-VALUES (@c, @san20, 'C20-SAN - Contêiner Sanitário 20 pés', 30000, 1, 'DIARIA', 14, 90, 0, 0, 1260);
+VALUES (@c, @c200, 'CB-200 - Contêiner 2,00 m', 24000, 1, 'DIARIA', 14, 80, 0, 0, 1120);
 SET @i = LAST_INSERT_ID();
 INSERT INTO agenda_unidades (unidade_id, produto_id, contrato_item_id, criado_por, inicio, fim, status) VALUES
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C20-SAN-002'), @san20, @i, @admin, TIMESTAMP(@hoje), TIMESTAMP(@hoje + INTERVAL 15 DAY), 'EM_USO');
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-200-006'), @c200, @i, @admin, TIMESTAMP(@hoje), TIMESTAMP(@hoje + INTERVAL 15 DAY), 'EM_USO');
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
-VALUES (@c, @esc20, 'C20-ESC - Contêiner Escritório 20 pés', 38000, 1, 'DIARIA', 14, 120, 0, 0, 1680);
+VALUES (@c, @c250, 'CB-250 - Contêiner 2,50 m', 38000, 1, 'DIARIA', 14, 120, 0, 0, 1680);
 SET @i = LAST_INSERT_ID();
 INSERT INTO agenda_unidades (unidade_id, produto_id, contrato_item_id, criado_por, inicio, fim, status) VALUES
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C20-ESC-003'), @esc20, @i, @admin, TIMESTAMP(@hoje), TIMESTAMP(@hoje + INTERVAL 15 DAY), 'EM_USO');
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-250-003'), @c250, @i, @admin, TIMESTAMP(@hoje), TIMESTAMP(@hoje + INTERVAL 15 DAY), 'EM_USO');
 INSERT INTO parcelas (contrato_id, numero, competencia, vencimento, valor_original, acrescimo, desconto, cancelada) VALUES
-  (@c, 1, DATE_FORMAT(@hoje + INTERVAL 30 DAY, '%Y-%m-01'), @hoje + INTERVAL 30 DAY, 1470, 0, 0, FALSE),
-  (@c, 2, DATE_FORMAT(@hoje + INTERVAL 60 DAY, '%Y-%m-01'), @hoje + INTERVAL 60 DAY, 1470, 0, 0, FALSE);
+  (@c, 1, DATE_FORMAT(@hoje + INTERVAL 30 DAY, '%Y-%m-01'), @hoje + INTERVAL 30 DAY, 1400, 0, 0, FALSE),
+  (@c, 2, DATE_FORMAT(@hoje + INTERVAL 60 DAY, '%Y-%m-01'), @hoje + INTERVAL 60 DAY, 1400, 0, 0, FALSE);
 
 -- ---------------------------------------------------------------------------
--- Contrato 10 — ATIVO, RESERVADO (começa em 7 dias). Agropecuária: 1 refrigerado quinzenal por 30 dias.
--- 3.600 × 2 quinzenas = 7.200,00 + 800,00 de frete = 8.000,00 à vista (vence no início).
+-- Contrato 10 — ATIVO, RESERVADO (começa em 7 dias). Agropecuária: 1 contêiner de 3,00 m quinzenal por 30 dias.
+-- 1.700 × 2 quinzenas = 3.400,00 + 800,00 de frete = 4.200,00 à vista (vence no início).
 -- ---------------------------------------------------------------------------
 INSERT INTO contratos (empresa_id, cliente_id, condicao_pagamento_id, criado_por, numero_locacao, numero_contrato, data_emissao, prazo,
                        data_inicio, data_fim, periodicidade, status, numero_parcelas, frete_deslocamento, outros_valores, caucao,
@@ -506,15 +495,15 @@ VALUES (@emp, @cli_agro, @vista, @admin, 'LOC-000010', 'CT-000010', @hoje, 'DETE
         @snap_empresa, TIMESTAMP(@hoje, '09:00:00'));
 SET @c = LAST_INSERT_ID();
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
-VALUES (@c, @ref40, 'C40-REF - Contêiner Refrigerado 40 pés', 120000, 1, 'QUINZENAL', 2, 3600, 0, 0, 7200);
+VALUES (@c, @c300, 'CB-300 - Contêiner 3,00 m', 52000, 1, 'QUINZENAL', 2, 1700, 0, 0, 3400);
 SET @i = LAST_INSERT_ID();
 INSERT INTO agenda_unidades (unidade_id, produto_id, contrato_item_id, criado_por, inicio, fim, status) VALUES
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C40-REF-001'), @ref40, @i, @admin, TIMESTAMP(@hoje + INTERVAL 7 DAY), TIMESTAMP(@hoje + INTERVAL 38 DAY), 'RESERVADA');
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-300-005'), @c300, @i, @admin, TIMESTAMP(@hoje + INTERVAL 7 DAY), TIMESTAMP(@hoje + INTERVAL 38 DAY), 'RESERVADA');
 INSERT INTO parcelas (contrato_id, numero, competencia, vencimento, valor_original, acrescimo, desconto, cancelada)
-VALUES (@c, 1, DATE_FORMAT(@hoje + INTERVAL 7 DAY, '%Y-%m-01'), @hoje + INTERVAL 7 DAY, 8000, 0, 0, FALSE);
+VALUES (@c, 1, DATE_FORMAT(@hoje + INTERVAL 7 DAY, '%Y-%m-01'), @hoje + INTERVAL 7 DAY, 4200, 0, 0, FALSE);
 
 -- ---------------------------------------------------------------------------
--- Contrato 11 — CANCELADO antes de começar. Carlos: 1 escritório 10 pés por 7 diárias (560,00).
+-- Contrato 11 — CANCELADO antes de começar. Carlos: 1 contêiner de 2,00 m por 7 diárias (560,00).
 -- A reserva e a parcela ficam canceladas.
 -- ---------------------------------------------------------------------------
 INSERT INTO contratos (empresa_id, cliente_id, condicao_pagamento_id, criado_por, numero_locacao, numero_contrato, data_emissao, prazo,
@@ -526,10 +515,10 @@ VALUES (@emp, @cli_carlos, @d30, @admin, 'LOC-000011', 'CT-000011', @hoje, 'DETE
         @snap_empresa, TIMESTAMP(@hoje, '10:00:00'), NOW(), 'Cliente desistiu da locação.');
 SET @c = LAST_INSERT_ID();
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
-VALUES (@c, @esc10, 'C10-ESC - Contêiner Escritório 10 pés', 24000, 1, 'DIARIA', 7, 80, 0, 0, 560);
+VALUES (@c, @c200, 'CB-200 - Contêiner 2,00 m', 24000, 1, 'DIARIA', 7, 80, 0, 0, 560);
 SET @i = LAST_INSERT_ID();
 INSERT INTO agenda_unidades (unidade_id, produto_id, contrato_item_id, criado_por, inicio, fim, status) VALUES
-  ((SELECT id FROM unidades_fisicas WHERE codigo = 'C10-ESC-002'), @esc10, @i, @admin, TIMESTAMP(@hoje + INTERVAL 3 DAY), TIMESTAMP(@hoje + INTERVAL 11 DAY), 'CANCELADA');
+  ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-200-002'), @c200, @i, @admin, TIMESTAMP(@hoje + INTERVAL 3 DAY), TIMESTAMP(@hoje + INTERVAL 11 DAY), 'CANCELADA');
 INSERT INTO parcelas (contrato_id, numero, competencia, vencimento, valor_original, acrescimo, desconto, cancelada)
 VALUES (@c, 1, DATE_FORMAT(@hoje + INTERVAL 33 DAY, '%Y-%m-01'), @hoje + INTERVAL 33 DAY, 560, 0, 0, TRUE);
 
@@ -541,7 +530,7 @@ INSERT INTO contratos (empresa_id, cliente_id, condicao_pagamento_id, criado_por
 VALUES (@emp, @cli_agro, @d30, @admin, @hoje, 'DETERMINADO', @hoje + INTERVAL 20 DAY, @hoje + INTERVAL 50 DAY,
         'MENSAL', 'RASCUNHO', 1, 0, 0, 0, NOW());
 INSERT INTO contrato_itens (contrato_id, produto_id, descricao_snapshot, valor_unitario_bem_snapshot, quantidade, periodicidade, numero_periodos, valor_unitario, desconto, outros, subtotal)
-VALUES (LAST_INSERT_ID(), @esc20, 'C20-ESC - Contêiner Escritório 20 pés', 38000, 1, 'MENSAL', 1, 2400, 0, 0, 2400);
+VALUES (LAST_INSERT_ID(), @c250, 'CB-250 - Contêiner 2,50 m', 38000, 1, 'MENSAL', 1, 2400, 0, 0, 2400);
 
 -- Local de entrega dos demais contratos: cópia do endereço cadastral do cliente
 -- (só o contrato 6 tem entrega em outro endereço, gravada acima).
@@ -564,43 +553,43 @@ UPDATE preferencias_contrato
 
 -- Em andamento: o contêiner fica em MANUTENCAO e bloqueado até a conclusão.
 INSERT INTO manutencoes (unidade_id, responsavel_usuario_id, criado_por, tipo, prioridade, status, data_prevista, iniciada_em, descricao, criado_em)
-VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'C20-ESC-004'), @carla, @admin, 'Preventiva', 'ALTA', 'EM_ANDAMENTO',
+VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-250-004'), @carla, @admin, 'Preventiva', 'ALTA', 'EM_ANDAMENTO',
         TIMESTAMP(@hoje), TIMESTAMP(@hoje, '08:00:00'), 'Revisão da parte elétrica e do ar-condicionado.', TIMESTAMP(@hoje - INTERVAL 2 DAY, '14:00:00'));
 INSERT INTO agenda_unidades (unidade_id, produto_id, manutencao_id, criado_por, inicio, fim, status)
-VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'C20-ESC-004'), @esc20, LAST_INSERT_ID(), @admin, TIMESTAMP(@hoje), '9999-12-31 00:00:00', 'MANUTENCAO');
+VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-250-004'), @c250, LAST_INSERT_ID(), @admin, TIMESTAMP(@hoje), '9999-12-31 00:00:00', 'MANUTENCAO');
 
 -- Agendada para hoje, urgente.
 INSERT INTO manutencoes (unidade_id, responsavel_usuario_id, criado_por, tipo, prioridade, status, data_prevista, descricao, criado_em)
-VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'C40-ALM-003'), @rafael, @admin, 'Corretiva', 'URGENTE', 'AGENDADA',
+VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-300-003'), @rafael, @admin, 'Corretiva', 'URGENTE', 'AGENDADA',
         TIMESTAMP(@hoje), 'Porta traseira emperrada; trocar dobradiças.', TIMESTAMP(@hoje - INTERVAL 1 DAY, '16:00:00'));
 INSERT INTO agenda_unidades (unidade_id, produto_id, manutencao_id, criado_por, inicio, fim, status)
-VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'C40-ALM-003'), @alm40, LAST_INSERT_ID(), @admin, TIMESTAMP(@hoje), TIMESTAMP(@hoje + INTERVAL 1 DAY), 'MANUTENCAO');
+VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-300-003'), @c300, LAST_INSERT_ID(), @admin, TIMESTAMP(@hoje), TIMESTAMP(@hoje + INTERVAL 1 DAY), 'MANUTENCAO');
 
 -- Agendada para daqui a 5 dias.
 INSERT INTO manutencoes (unidade_id, responsavel_usuario_id, criado_por, tipo, prioridade, status, data_prevista, descricao, criado_em)
-VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'C20-SAN-003'), @carla, @admin, 'Limpeza', 'BAIXA', 'AGENDADA',
+VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-200-007'), @carla, @admin, 'Limpeza', 'BAIXA', 'AGENDADA',
         TIMESTAMP(@hoje + INTERVAL 5 DAY), 'Higienização completa antes da próxima locação.', NOW());
 INSERT INTO agenda_unidades (unidade_id, produto_id, manutencao_id, criado_por, inicio, fim, status)
-VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'C20-SAN-003'), @san20, LAST_INSERT_ID(), @admin, TIMESTAMP(@hoje + INTERVAL 5 DAY), TIMESTAMP(@hoje + INTERVAL 6 DAY), 'MANUTENCAO');
+VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-200-007'), @c200, LAST_INSERT_ID(), @admin, TIMESTAMP(@hoje + INTERVAL 5 DAY), TIMESTAMP(@hoje + INTERVAL 6 DAY), 'MANUTENCAO');
 
 -- Concluídas neste mês (contam em "Concluídas no mês"); a agenda termina na conclusão.
 INSERT INTO manutencoes (unidade_id, responsavel_usuario_id, criado_por, tipo, prioridade, status, data_prevista, iniciada_em, concluida_em, descricao, custo, criado_em)
-VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'C10-ESC-002'), @admin, @admin, 'Vistoria', 'MEDIA', 'CONCLUIDA',
+VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-200-002'), @admin, @admin, 'Vistoria', 'MEDIA', 'CONCLUIDA',
         TIMESTAMP(@hoje), TIMESTAMP(@hoje), NOW(), 'Vistoria de devolução.', 180, TIMESTAMP(@hoje - INTERVAL 3 DAY, '11:00:00'));
 INSERT INTO agenda_unidades (unidade_id, produto_id, manutencao_id, criado_por, inicio, fim, status)
-VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'C10-ESC-002'), @esc10, LAST_INSERT_ID(), @admin, TIMESTAMP(@hoje), GREATEST(NOW(), TIMESTAMP(@hoje) + INTERVAL 1 SECOND), 'MANUTENCAO');
+VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-200-002'), @c200, LAST_INSERT_ID(), @admin, TIMESTAMP(@hoje), GREATEST(NOW(), TIMESTAMP(@hoje) + INTERVAL 1 SECOND), 'MANUTENCAO');
 
 INSERT INTO manutencoes (unidade_id, responsavel_usuario_id, criado_por, tipo, prioridade, status, data_prevista, iniciada_em, concluida_em,
                          responsavel_externo, descricao, custo, criado_em)
-VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'C40-REF-001'), @rafael, @admin, 'Pintura', 'MEDIA', 'CONCLUIDA',
+VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-300-005'), @rafael, @admin, 'Pintura', 'MEDIA', 'CONCLUIDA',
         TIMESTAMP(@hoje), TIMESTAMP(@hoje), NOW(), 'Pinturas Vale LTDA', 'Pintura externa e tratamento de ferrugem.', 950,
         TIMESTAMP(@hoje - INTERVAL 5 DAY, '09:00:00'));
 INSERT INTO agenda_unidades (unidade_id, produto_id, manutencao_id, criado_por, inicio, fim, status)
-VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'C40-REF-001'), @ref40, LAST_INSERT_ID(), @admin, TIMESTAMP(@hoje), GREATEST(NOW(), TIMESTAMP(@hoje) + INTERVAL 1 SECOND), 'MANUTENCAO');
+VALUES ((SELECT id FROM unidades_fisicas WHERE codigo = 'CB-300-005'), @c300, LAST_INSERT_ID(), @admin, TIMESTAMP(@hoje), GREATEST(NOW(), TIMESTAMP(@hoje) + INTERVAL 1 SECOND), 'MANUTENCAO');
 
 COMMIT;
 
--- Resumo (deve mostrar: 9 clientes, 5 produtos, 19 contêineres, 12 contratos, R$ 31.573,79 recebidos).
+-- Resumo (deve mostrar: 9 clientes, 3 produtos, 19 contêineres, 12 contratos, R$ 30.873,79 recebidos).
 SELECT (SELECT COUNT(*) FROM pessoas WHERE tipo_cadastro IN ('CLIENTE', 'AMBOS'))     AS clientes,
        (SELECT COUNT(*) FROM produtos)                                                 AS produtos,
        (SELECT COUNT(*) FROM unidades_fisicas)                                         AS conteineres,

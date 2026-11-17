@@ -1,9 +1,10 @@
 'use strict';
 /*
  * Listagem de Contratos de Locação: pesquisa, filtros (status e período), paginação
- * e diálogo "Prévia do contrato" (o botão de PDF ainda não tem ação: fora do MVP).
- * Na prévia: "Editar contrato" (números, observações, entrega, responsável e vencimentos, com a versão
- * anterior guardada) e histórico de versões (segunda via).
+ * e diálogo "Prévia do contrato" (o botão de PDF aparece desabilitado: geração de PDF fora do MVP).
+ * Na prévia: etapas do contrato (gerar, registrar entrega, finalizar, cancelar), "Editar contrato"
+ * (números, observações, entrega, responsável e vencimentos, com a versão anterior guardada)
+ * e histórico de versões (segunda via).
  * Os dados vêm de /api/contratos (public/api/index.php → ContratoController → Contrato).
  * O cadastro fica em cadastro.php (cadastro-contrato.js); ?ver=ID abre a prévia ao chegar.
  */
@@ -62,12 +63,25 @@
     return contrato.numero_contrato || 'Rascunho #' + contrato.id;
   }
 
-  // Etiqueta colorida de status.
-  function badge(status) {
+  // Hoje no fuso do sistema (AAAA-MM-DD), para saber se um contrato ativo já começou.
+  const hoje = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'America/Sao_Paulo',
+  }).format(new Date());
+
+  // Etiqueta colorida de status. Contrato ATIVO que ainda não começou aparece como "Reservado",
+  // igual à Visão Geral, com a explicação no title (no banco ele continua ATIVO e entra no filtro "Ativo").
+  function badge(status, dataInicio) {
     const info = STATUS[status] || { texto: status || '—', classe: '' };
     const span = document.createElement('span');
     span.className = 'contract-status ' + info.classe;
     span.textContent = info.texto;
+    if (status === 'ATIVO' && dataInicio && dataInicio > hoje) {
+      span.textContent = 'Reservado';
+      span.title = `Contrato ativo que começa em ${date(dataInicio)}. Os contêineres já estão reservados.`;
+    }
     return span;
   }
 
@@ -138,7 +152,7 @@
 
       // Status e botão "Ver".
       const statusCell = document.createElement('td');
-      statusCell.append(badge(contrato.status));
+      statusCell.append(badge(contrato.status, contrato.data_inicio));
       const actions = document.createElement('td'),
         button = document.createElement('button');
       button.type = 'button';
@@ -391,9 +405,16 @@
   function contractSheet(c, versionInfo) {
     const sheet = el('article', 'contract-sheet');
     const status = el('p', 'contract-sheet-status');
-    status.append('Status: ', badge(c.status));
+    status.append('Status: ', badge(c.status, c.data_inicio));
     sheet.append(el('p', 'contract-brand', 'CASA BARRETTO'), el('h3', '', 'CONTRATO DE LOCAÇÃO DE EQUIPAMENTOS'), status);
     previewLines(c).forEach(([label, value]) => sheet.append(el('p', 'contract-line', `${label}: ${value}`)));
+    // Datas do documento: emissão e, se o contrato já foi alterado, a data e o autor da última alteração.
+    if (c.data_emissao && c.status !== 'RASCUNHO') sheet.append(el('p', 'contract-line', `Emitido em: ${date(c.data_emissao)}`));
+    if (!versionInfo && c.alterado_em) {
+      sheet.append(
+        el('p', 'contract-line contract-altered', `Última alteração: ${dateTime(c.alterado_em)}${c.alterado_por ? ' por ' + c.alterado_por : ''}`)
+      );
+    }
 
     // Parcelas (quando o contrato já foi gerado).
     if ((c.parcelas || []).length) {
@@ -407,7 +428,9 @@
         'contract-note',
         versionInfo
           ? `Segunda via: cópia da versão ${versionInfo.versao}, guardada antes da alteração de ${dateTime(versionInfo.alterado_em)}.`
-          : 'Prévia gerada a partir dos dados cadastrados no sistema.'
+          : c.emitido
+            ? 'Cliente e equipamentos conforme os dados gravados na emissão do contrato. Alterações posteriores nos cadastros não mudam este documento.'
+            : 'Rascunho: prévia gerada a partir dos dados cadastrados hoje no sistema.'
       )
     );
     return sheet;
@@ -446,14 +469,83 @@
     container.append(contractSheet(c, null));
     if ((c.versoes || []).length) container.append(versionHistory(c));
 
-    // Ações: "Editar contrato" (só rascunho/ativo); "Imprimir / salvar PDF" é só o botão (PDF fora do MVP); "Fechar prévia".
+    // Etapas do contrato (achado A07): só aparecem as que valem para o status atual.
+    lifecycleActions(c, container);
+
+    // Ações: "Editar contrato" (só rascunho/ativo), botão de PDF sinalizado como indisponível e "Fechar prévia".
     const actions = el('div', 'detail-actions');
     if (EDITAVEIS.includes(c.status)) actions.append(actionButton('Editar contrato', 'primaria', () => renderEditForm(c)));
-    actions.append(
-      actionButton('Imprimir / salvar PDF', EDITAVEIS.includes(c.status) ? '' : 'primaria', () => {}),
-      actionButton('Fechar prévia', '', () => $('contract-dialog').close())
-    );
+    actions.append(pdfButton(), actionButton('Fechar prévia', '', () => $('contract-dialog').close()));
     container.append(actions);
+  }
+
+  // Geração de PDF está fora do MVP: o botão fica visível, mas desabilitado e com a explicação,
+  // para não parecer que o clique falhou.
+  function pdfButton() {
+    const button = actionButton('PDF (em breve)', '', () => {});
+    button.disabled = true;
+    button.title = 'A impressão/geração do contrato em PDF ainda não está disponível nesta versão do sistema.';
+    return button;
+  }
+
+  /*
+   * Botões das etapas do contrato, com confirmação e mensagem de erro (SGCBAcoes.barra, acoes.js):
+   *   RASCUNHO → "Gerar contrato" (reserva os contêineres, numera e cria as parcelas);
+   *   ATIVO com reserva aguardando entrega → "Registrar entrega" (início da locação);
+   *   ATIVO → "Finalizar (devolução)";
+   *   RASCUNHO ou ATIVO → "Cancelar contrato" (pede o motivo).
+   * Cada etapa chama a rota da API, que confere a permissão do usuário e as regras de estoque.
+   */
+  function lifecycleActions(c, container) {
+    const rota = 'contratos/' + encodeURIComponent(c.id) + '/';
+    const depois = async (acao, aviso, dados) => {
+      const atualizado = await SGCBAcoes.executar(rota + acao, dados);
+      renderContract(atualizado, aviso);
+      loadContracts();
+    };
+    const botoes = [];
+    if (c.status === 'RASCUNHO') {
+      botoes.push({
+        texto: 'Gerar contrato',
+        classe: 'primaria',
+        confirmar: 'Gerar o contrato agora? Os contêineres serão reservados, o contrato recebe número e as parcelas são criadas.',
+        acao: () => depois('gerar', 'Contrato gerado. Contêineres reservados e parcelas criadas.'),
+      });
+    }
+    const aguardandoEntrega = (c.unidades || []).some(u => u.status === 'RESERVADA');
+    if (c.status === 'ATIVO' && aguardandoEntrega) {
+      botoes.push({
+        texto: 'Registrar entrega',
+        confirmar: 'Confirmar a entrega dos contêineres reservados ao cliente? Eles passam a constar como locados.',
+        acao: () => depois('iniciar', 'Entrega registrada. Os contêineres estão locados.'),
+      });
+    }
+    if (c.status === 'ATIVO') {
+      botoes.push({
+        texto: 'Finalizar (devolução)',
+        confirmar:
+          'Finalizar o contrato? Os contêineres voltam a ficar disponíveis. Parcelas em aberto continuam no Financeiro.',
+        acao: () => depois('finalizar', 'Contrato finalizado. Contêineres liberados.'),
+      });
+    }
+    if (EDITAVEIS.includes(c.status)) {
+      botoes.push({
+        texto: 'Cancelar contrato',
+        classe: 'perigo',
+        acao: async () => {
+          const motivo = prompt('Motivo do cancelamento do contrato ' + numero(c) + ':');
+          if (motivo === null) return; // desistiu
+          if (!motivo.trim()) throw Error('Informe o motivo do cancelamento.');
+          await depois('cancelar', 'Contrato cancelado. Reservas e parcelas sem pagamento foram canceladas.', { motivo });
+        },
+      });
+    }
+    if (!botoes.length) return;
+    const box = el('section', 'contract-lifecycle');
+    box.setAttribute('aria-label', 'Etapas do contrato');
+    box.append(el('h4', '', 'Etapas do contrato'));
+    container.append(box);
+    SGCBAcoes.barra(box, botoes);
   }
 
   async function showContract(id) {
@@ -494,7 +586,7 @@
       container.append(aviso, contractSheet(v.dados, v));
       const actions = el('div', 'detail-actions');
       actions.append(
-        actionButton('Imprimir / salvar PDF', '', () => {}),
+        pdfButton(),
         actionButton('Voltar à versão atual', 'primaria', () => {
           $('contract-dialog-title').textContent = 'Prévia do contrato';
           renderContract(currentContract);

@@ -52,11 +52,11 @@ Projeto Integrador desenvolvido pela equipe **Bemfa Developers**:
 |---|---|
 | **Acesso** | Login com e-mail e senha, senhas protegidas por hash, páginas restritas a usuários logados, encerramento de sessão e controle de permissões por perfil. |
 | **Visão Geral** | Indicadores, gráficos, rankings e últimas locações. |
-| **Clientes** | Listagem com pesquisa e filtros, cadastro e edição (endereços, foto e anexos), inativar e reativar. |
-| **Produtos** | Listagem com pesquisa e filtros, cadastro e edição de produtos e categorias, preços por período, controle de estoque por contêiner. |
-| **Contratos de Locação** | Listagem com pesquisa por cliente, CPF/CNPJ ou número, filtros de status e período, paginação e prévia do contrato com opção de imprimir/salvar em PDF. Cadastro de contrato com escolha do cliente, endereço de entrega, período, contêineres livres no período, condições comerciais, resumo com o valor calculado e geração do contrato (ou rascunho). |
-| **Manutenções** | Listagem com indicadores e filtros, agendamento, início, conclusão e cancelamento. |
-| **Financeiro** | Parcelas com indicadores e filtros, registro de pagamentos (parcial ou total, em várias formas), estornos e cancelamento de parcelas. |
+| **Clientes** | Listagem de clientes (fornecedores exclusivos não aparecem) com pesquisa e filtros, cadastro de clientes e fornecedores e edição (endereço, foto pelo arquivo ou pela câmera e anexos), busca automática dos dados pelo CNPJ e do endereço pelo CEP, inativar e reativar. |
+| **Produtos** | Listagem com pesquisa e filtros, cadastro e edição de produtos e categorias, preços por período, controle de estoque por contêiner (ajuste com confirmação). Os dados de exemplo trazem os tamanhos padrão da empresa: contêineres de 2,00 m, 2,50 m e 3,00 m. |
+| **Contratos de Locação** | Listagem com pesquisa por cliente, CPF/CNPJ ou número, filtros de status e período, paginação e prévia do contrato (com os dados gravados na emissão, a data da última alteração e o histórico de versões). Na prévia: gerar o rascunho, registrar a entrega, finalizar e cancelar. Cadastro de contrato com escolha do cliente, endereço de entrega, período, contêineres livres no período, condições comerciais, resumo com o valor calculado e geração do contrato (ou rascunho). |
+| **Manutenções** | Listagem com indicadores e filtros (inclusive atrasadas), agendamento, início (recusado se o contêiner tiver reserva ou locação pela frente), conclusão e cancelamento. |
+| **Financeiro** | Parcelas com indicadores e filtros, registro de pagamentos (parcial ou total, em várias formas), estornos e cancelamento de parcelas. Consulta e gravação conferem as permissões do usuário (o Operador só consulta). |
 | **Usuários** | Listagem com indicadores e filtros, cadastro e edição, ativar e inativar. |
 | **Auditoria** | Toda alteração fica registrada (quem fez, o quê e quando). |
 
@@ -65,8 +65,10 @@ Projeto Integrador desenvolvido pela equipe **Bemfa Developers**:
 - Configurações da empresa.
 - Troca e recuperação de senha pela tela.
 - Impressão do recibo de pagamento.
+- Impressão do contrato em PDF (fora do MVP; o botão aparece desabilitado na prévia).
+- Troca obrigatória da senha provisória no primeiro acesso (hoje a opção só marca a senha como provisória).
 - Edição de manutenção já agendada.
-- Testes automatizados.
+- Testes automatizados (por enquanto há os testes manuais da pasta `tests/manual`).
 
 ---
 
@@ -103,7 +105,7 @@ Resumo do caminho que seguimos do cadastro até o encerramento de um contrato:
 | 12 | Tela de Financeiro. |
 | 13 | Back-end completo: todas as telas lendo e gravando no banco, com edição e ações. |
 | 14 | Telas de Usuários (listagem, cadastro, edição, ativar e inativar). |
-| 15 | Tela inicial de Contratos de Locação ligada ao banco, com prévia e impressão do contrato. |
+| 15 | Tela inicial de Contratos de Locação ligada ao banco, com prévia do contrato. |
 | 16 | Cadastro de contrato de locação ligado ao banco: escolha dos contêineres livres no período, valor calculado pelo sistema, prévia antes de salvar e geração do contrato com as parcelas. |
 
 ---
@@ -179,7 +181,7 @@ Abra o phpMyAdmin (`http://localhost/phpmyadmin`), vá na aba **SQL** (ou use o 
 
 1. **migrations** — cria o banco e as tabelas;
 2. **seeds 001** — cria o perfil Administrador e o usuário inicial;
-3. **seeds 002** — condições de pagamento e dados da empresa (sem ele não é possível cadastrar cliente nem gerar contrato);
+3. **seeds 002** — condições de pagamento, dados da empresa e matriz de permissões do perfil Operador (sem ele não é possível cadastrar cliente nem gerar contrato, e o Operador fica sem acesso). Pode ser executado de novo sem duplicar nada;
 4. **views**;
 5. **procedures** (selecione o banco no phpMyAdmin antes de executar);
 6. *(Opcional)* **seeds 003** — dados fictícios para ver as telas preenchidas. Rode uma vez só.

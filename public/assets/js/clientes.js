@@ -1,6 +1,6 @@
 'use strict';
 /*
- * Listagem de clientes: filtros, paginação e diálogo de detalhes.
+ * Listagem de clientes (sem fornecedores exclusivos): filtros (inclusive tipo de cadastro), paginação e diálogo de detalhes.
  * Os dados vêm de /api/clientes (atendidos por public/api/index.php → src/Controllers).
  */
 (() => {
@@ -11,15 +11,18 @@
   if (/^\d+$/.test(url.get('cadastro_salvo') || '')) {
     // editado=1 vem da edição (cadastro-cliente.js com ?id=); sem ele, é um cadastro novo.
     const editado = url.get('editado') === '1';
-    $('saved-notice').textContent =
-      url.get('tipo_cadastro') === 'FORNECEDOR'
-        ? 'Fornecedor ' + (editado ? 'atualizado' : 'cadastrado') + ' com sucesso. Esta listagem exibe clientes; fornecedores exclusivos não aparecem aqui.'
-        : editado
-          ? 'Cadastro atualizado com sucesso.'
-          : 'Cliente cadastrado com sucesso.';
+    $('saved-notice').textContent = editado
+      ? 'Cadastro atualizado com sucesso.'
+      : url.get('tipo_cadastro') === 'FORNECEDOR'
+        ? 'Fornecedor cadastrado com sucesso. Fornecedores não aparecem na listagem de clientes.'
+        : 'Cliente cadastrado com sucesso.';
     $('saved-notice').hidden = false;
   }
+  // Etiqueta ao lado do nome de quem também é fornecedor (cliente puro não leva etiqueta).
+  const TIPOS = { AMBOS: 'Cliente e fornecedor' };
   const state = {
+    // Tipo de cadastro: filtro exato (CLIENTE ou AMBOS); vazio = os dois. Fornecedor exclusivo não aparece.
+    tipo: ['CLIENTE', 'AMBOS'].includes(url.get('tipo')) ? url.get('tipo') : '',
     q: url.get('q') || '',
     situacao: url.get('situacao') || '',
     uf: url.get('uf') || '',
@@ -30,6 +33,7 @@
     pages: 1,
   };
   $('client-search').value = state.q;
+  $('client-type').value = state.tipo;
   $('client-status').value = state.situacao;
   $('client-order').value = state.ordem;
   function documentNumber(value) {
@@ -97,6 +101,12 @@
         const td = document.createElement('td');
         td.textContent = value;
         td.title = String(value);
+        if (index === 0 && TIPOS[client.tipo_cadastro]) {
+          const tipo = document.createElement('span');
+          tipo.className = 'type-badge';
+          tipo.textContent = TIPOS[client.tipo_cadastro];
+          td.append(tipo);
+        }
         if (index === 0 && !client.ativo) {
           const badge = document.createElement('span');
           badge.className = 'inactive-badge';
@@ -206,6 +216,7 @@
   }
   function readFilters() {
     state.q = $('client-search').value.trim();
+    state.tipo = $('client-type').value;
     state.situacao = $('client-status').value;
     state.uf = $('client-state').value;
     state.cidade = $('client-city').value;
@@ -225,7 +236,7 @@
       loadClients();
     }, 350);
   });
-  ['client-status', 'client-state', 'client-city', 'client-order'].forEach(id =>
+  ['client-type', 'client-status', 'client-state', 'client-city', 'client-order'].forEach(id =>
     $(id).addEventListener('change', () => {
       clearTimeout(debounce);
       if (id === 'client-state') $('client-city').value = '';
@@ -236,7 +247,7 @@
   $('clear-filters').addEventListener('click', () => {
     clearTimeout(debounce);
     $('client-filters').reset();
-    Object.assign(state, { q: '', situacao: '', uf: '', cidade: '', ordem: '', page: 1 });
+    Object.assign(state, { tipo: '', q: '', situacao: '', uf: '', cidade: '', ordem: '', page: 1 });
     loadClients();
     $('client-search').focus();
   });

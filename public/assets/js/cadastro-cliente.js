@@ -101,13 +101,31 @@
     },
     cepStatus
   );
+  // CNPJ: ao completar um CNPJ válido, busca razão social, contato e endereço na BrasilAPI (cnpj.js)
+  // e preenche só os campos vazios. O aviso aparece logo abaixo do campo CPF/CNPJ.
+  const cnpjStatus = document.createElement('small');
+  cnpjStatus.className = 'cep-status';
+  cnpjStatus.setAttribute('aria-live', 'polite');
+  $('cpf_cnpj').closest('.form-field').append(cnpjStatus);
+  window.BuscaCnpj.ligar(
+    $('cpf_cnpj'),
+    {
+      nome_razao_social: $('nome_razao_social'),
+      nome_fantasia: $('nome_fantasia'),
+      email: $('email'),
+      telefone: $('telefone'),
+      endereco: Object.fromEntries(ADDRESS_FIELDS.map(field => [field, $('endereco_' + field)])),
+    },
+    cnpjStatus,
+    { valido: V.cnpj, formatar: { telefone: V.mascaraTelefone, cep: window.BuscaCep.mascaraCep } }
+  );
   // Textos da tela no modo edição.
   if (editId) {
-    document.querySelector('.form-intro h2').textContent = 'Editar cliente';
+    document.querySelector('.form-intro h2').textContent = 'Editar cadastro';
     document.querySelector('.form-intro p').textContent =
       'Altere os dados e salve. Anexos novos são somados aos que já foram enviados.';
     $('save-client').textContent = saveLabel;
-    document.title = document.title.replace('Novo cliente', 'Editar cliente');
+    document.title = document.title.replace('Novo cadastro', 'Editar cadastro');
   }
   form.addEventListener('input', e => {
     dirty = true;
@@ -155,9 +173,8 @@
     removePhoto();
     dirty = true;
   });
-  $('photo-file').addEventListener('change', () => {
-    const file = $('photo-file').files[0];
-    if (!file) return;
+  // Usa um arquivo de imagem (escolhido no computador ou capturado pela câmera) como foto do cliente.
+  function setPhoto(file) {
     if (!/\.(jpe?g|png|webp)$/i.test(file.name) || file.size > 5 * 1024 * 1024 || !file.size) {
       $('error-foto').textContent = 'Escolha uma imagem JPG, PNG ou WEBP de até 5 MB.';
       return;
@@ -171,7 +188,93 @@
     $('choose-photo').textContent = 'Alterar foto';
     $('error-foto').textContent = '';
     dirty = true;
+  }
+  $('photo-file').addEventListener('change', () => {
+    const file = $('photo-file').files[0];
+    if (file) setPhoto(file);
   });
+
+  // ---------------------------------------------------------------------------
+  // Foto pela câmera (webcam do computador ou câmera do celular).
+  // getUserMedia só funciona em HTTPS ou em localhost; fora disso o botão nem aparece
+  // e continua valendo o "Adicionar foto" (que no celular também oferece a câmera).
+  // ---------------------------------------------------------------------------
+  const camera = {
+    dialog: $('camera-dialog'),
+    video: $('camera-video'),
+    canvas: $('camera-canvas'),
+    status: $('camera-status'),
+    stream: null,
+  };
+  if (window.isSecureContext && navigator.mediaDevices?.getUserMedia) $('open-camera').hidden = false;
+
+  // Mostra a imagem ao vivo (true) ou a foto congelada (false) e troca os botões.
+  function cameraMode(live) {
+    camera.video.hidden = !live;
+    camera.canvas.hidden = live;
+    $('camera-capture').hidden = !live;
+    $('camera-retake').hidden = live;
+    $('camera-use').hidden = live;
+  }
+  // Desliga a câmera (a luz da webcam apaga) sempre que o diálogo fecha.
+  function stopCamera() {
+    camera.stream?.getTracks().forEach(track => track.stop());
+    camera.stream = null;
+    camera.video.srcObject = null;
+  }
+  $('open-camera').addEventListener('click', async () => {
+    cameraMode(true);
+    $('camera-capture').disabled = true;
+    camera.status.textContent = 'Permita o acesso à câmera no navegador.';
+    camera.dialog.showModal();
+    try {
+      // Câmera traseira no celular quando houver; no computador, a webcam padrão.
+      camera.stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } },
+        audio: false,
+      });
+      if (!camera.dialog.open) return stopCamera(); // fechou antes de a câmera ligar
+      camera.video.srcObject = camera.stream;
+      camera.status.textContent = 'Enquadre o cliente e clique em Capturar.';
+      $('camera-capture').disabled = false;
+    } catch (erro) {
+      camera.status.textContent =
+        erro?.name === 'NotAllowedError'
+          ? 'O acesso à câmera foi negado. Libere a permissão no navegador ou use "Adicionar foto".'
+          : 'Não foi possível abrir a câmera. Confira se ela está conectada ou use "Adicionar foto".';
+    }
+  });
+  // Congela o quadro atual da câmera no canvas.
+  $('camera-capture').addEventListener('click', () => {
+    const { videoWidth: w, videoHeight: h } = camera.video;
+    if (!w || !h) return;
+    camera.canvas.width = w;
+    camera.canvas.height = h;
+    camera.canvas.getContext('2d').drawImage(camera.video, 0, 0, w, h);
+    cameraMode(false);
+    camera.status.textContent = 'Confira a foto. Se ficou boa, clique em Usar esta foto.';
+  });
+  $('camera-retake').addEventListener('click', () => {
+    cameraMode(true);
+    camera.status.textContent = 'Enquadre o cliente e clique em Capturar.';
+  });
+  // Converte a foto congelada em arquivo JPG e segue o mesmo caminho da foto escolhida no computador.
+  $('camera-use').addEventListener('click', () => {
+    camera.canvas.toBlob(
+      blob => {
+        if (!blob) {
+          camera.status.textContent = 'Não foi possível gerar a foto. Tente capturar de novo.';
+          return;
+        }
+        setPhoto(new File([blob], 'foto-camera-' + Date.now() + '.jpg', { type: 'image/jpeg' }));
+        camera.dialog.close();
+      },
+      'image/jpeg',
+      0.85
+    );
+  });
+  $('camera-cancel').addEventListener('click', () => camera.dialog.close());
+  camera.dialog.addEventListener('close', stopCamera);
   $('photo-preview').addEventListener('error', () => {
     if (photo) {
       removePhoto();
@@ -348,7 +451,8 @@
   }
   function validate(data) {
     const errors = {};
-    ['tipo_cadastro', 'nome_razao_social', 'email', 'telefone', 'condicao_pagamento_id'].forEach(k => {
+    // E-mail é opcional (só o formato é conferido abaixo, quando preenchido); telefone continua obrigatório.
+    ['tipo_cadastro', 'nome_razao_social', 'telefone', 'condicao_pagamento_id'].forEach(k => {
       if (!data[k]) errors[k] = 'Preencha este campo.';
     });
     // Formato só é conferido quando o campo foi preenchido (vazio já ficou como "Preencha este campo").

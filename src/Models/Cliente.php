@@ -16,9 +16,21 @@ final class Cliente extends Modelo
     private const CAMPOS_ENDERECO = ['rua' => 200, 'numero' => 20, 'bairro' => 100, 'cidade' => 100];
 
     /**
-     * Listagem da tela Clientes (clientes.js). Só pessoas CLIENTE ou AMBOS.
-     * Filtros: q (nome, fantasia, CPF/CNPJ, e-mail ou telefone), situacao (ativos|inativos|todos),
-     * uf, cidade (do endereço principal) e page.
+     * Campos opcionais que a edição só altera quando vêm no envio.
+     * Se a tela (ou outra integração) não mandar a chave, o valor gravado continua o mesmo;
+     * mandar a chave vazia ("") limpa o campo. Sem isso, salvar só o telefone apagava,
+     * por exemplo, o RG e o representante legal de cadastros que a tela não exibe (achado A01).
+     */
+    private const CAMPOS_PRESERVADOS_NA_EDICAO = [
+        'nome_fantasia', 'email', 'data_nascimento', 'nacionalidade', 'profissao',
+        'rg', 'inscricao_estadual', 'representante_legal', 'cpf_representante',
+    ];
+
+    /**
+     * Listagem da tela Clientes (clientes.js). Só pessoas CLIENTE ou AMBOS:
+     * fornecedores exclusivos não aparecem aqui (eles são usados no cadastro de produto).
+     * Filtros: tipo (CLIENTE|AMBOS, exato; vazio = os dois), q (nome, fantasia, CPF/CNPJ, e-mail
+     * ou telefone), situacao (ativos|inativos|todos), uf, cidade (do endereço principal) e page.
      *
      * @return array{items: array, cities: array, total: int, page: int, pages: int}
      */
@@ -26,6 +38,14 @@ final class Cliente extends Modelo
     {
         $where  = ["p.tipo_cadastro IN ('CLIENTE', 'AMBOS')"];
         $params = [];
+
+        // Tipo de cadastro: filtro exato (Clientes = só CLIENTE; "Cliente e fornecedor" = só AMBOS).
+        // FORNECEDOR não é aceito: fornecedor exclusivo nunca entra na listagem de clientes.
+        $tipo = strtoupper(trim((string) ($filtros['tipo'] ?? '')));
+        if (in_array($tipo, ['CLIENTE', 'AMBOS'], true)) {
+            $where[]        = 'p.tipo_cadastro = :tipo';
+            $params['tipo'] = $tipo;
+        }
 
         $q = trim((string) ($filtros['q'] ?? ''));
         if ($q !== '') {
@@ -61,7 +81,7 @@ final class Cliente extends Modelo
 
         // Cada pessoa tem um único endereço (pessoa_id é UNIQUE em enderecos_pessoa).
         $resultado = self::paginar(
-            'p.id, p.nome_razao_social AS nome, p.cpf_cnpj, p.telefone, e.cidade, e.uf, p.criado_em, p.ativo',
+            'p.id, p.tipo_cadastro, p.nome_razao_social AS nome, p.cpf_cnpj, p.telefone, e.cidade, e.uf, p.criado_em, p.ativo',
             'FROM pessoas p LEFT JOIN enderecos_pessoa e ON e.pessoa_id = p.id WHERE ' . implode(' AND ', $where),
             $params,
             self::ordemAlfabetica($filtros, 'p.nome_razao_social', 'p.nome_razao_social, p.id', 'p.id'),
@@ -226,6 +246,13 @@ final class Cliente extends Modelo
         [$campos, $endereco] = self::validar($dados);
         self::exigirDocumentoLivre($campos['cpf_cnpj'], $id);
 
+        // Campo opcional ausente no envio = manter o que está gravado (não entra no UPDATE).
+        foreach (self::CAMPOS_PRESERVADOS_NA_EDICAO as $campo) {
+            if (!array_key_exists($campo, $dados)) {
+                unset($campos[$campo]);
+            }
+        }
+
         try {
             self::transacao(static function (PDO $pdo) use ($id, $campos, $endereco, $usuarioId, $foto, $anexos): void {
                 if ($foto !== null && ($foto['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
@@ -388,7 +415,9 @@ final class Cliente extends Modelo
             'nome_razao_social'   => self::campoTexto($dados, 'nome_razao_social', 200, $erros, true),
             'nome_fantasia'       => self::campoTexto($dados, 'nome_fantasia', 200, $erros),
             'cpf_cnpj'            => $documento,
-            'email'               => mb_strtolower((string) self::campoTexto($dados, 'email', 254, $erros, true)),
+            // E-mail opcional (decisão de 16/11/2026): muitos clientes só têm telefone, que segue obrigatório.
+            // Vazio é gravado como NULL; preenchido, o formato é conferido logo abaixo.
+            'email'               => mb_strtolower((string) self::campoTexto($dados, 'email', 254, $erros)) ?: null,
             'telefone'            => self::somenteDigitos($dados['telefone'] ?? ''),
             'data_nascimento'     => self::campoData($dados, 'data_nascimento', $erros),
             'nacionalidade'       => self::campoTexto($dados, 'nacionalidade', 80, $erros),
@@ -402,7 +431,7 @@ final class Cliente extends Modelo
             'permite_ultrapassar_limite' => self::campoBool($dados, 'permite_ultrapassar_limite'),
         ];
 
-        if ($campos['email'] !== '' && !self::validarEmail($campos['email'])) {
+        if ($campos['email'] !== null && !self::validarEmail($campos['email'])) {
             $erros['email'] = 'E-mail inválido. Use o formato nome@empresa.com.br.';
         }
         if (!self::validarTelefone($campos['telefone'])) {
