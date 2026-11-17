@@ -44,9 +44,9 @@
 
 /* Pesquisa ocupa o espaço livre; os dois selects têm largura fixa */
 /* pesquisa | perfil | status | ordem | limpar */
-.users-filters{display:grid;grid-template-columns:minmax(0,1fr) 159px 159px 159px auto;align-items:center;gap:18px;margin-top:20px;padding:20px 40px 20px 20px;min-height:124px}
+.users-filters{display:grid;grid-template-columns:minmax(0,1fr) 159px 159px 159px auto;align-items:center;gap:18px;margin-top:20px;padding:20px;min-height:124px}
 .users-filters .search-field{min-width:0;width:100%;gap:18px}
-.users-filters .search-field input{padding-left:40px}
+.users-filters .search-field input{padding-left:14px}
 
 /* Select com rótulo visível acima ("Perfil de acesso", "Status") */
 .users-labeled-filter{position:relative;min-width:0}

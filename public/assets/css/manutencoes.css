@@ -89,7 +89,7 @@
 .maintenance-filters {
     margin-top: 20px;
     padding: 20px;
-    gap: 20px;
+    gap: 18px;
     min-height: 124px;
     flex-wrap: nowrap
 }
@@ -98,11 +98,11 @@
 .maintenance-filters .search-field {
     flex: 1 1 280px;
     min-width: 190px;
-    gap: 14px
+    gap: 18px
 }
 
 .maintenance-filters .search-field input {
-    padding-left: 40px
+    padding-left: 14px
 }
 
 /* Select com o rótulo posicionado acima da caixa */
@@ -323,7 +323,7 @@
 @media (max-width: 1400px) {
     .maintenance-filters {
         flex-wrap: wrap;
-        gap: 28px 20px;
+        gap: 28px 18px;
         padding-top: 32px;
         padding-bottom: 24px
     }
@@ -439,7 +439,7 @@
     }
 
     .maintenance-filters .search-field input {
-        padding-left: 16px
+        padding-left: 14px
     }
 
     .labeled-filter,
