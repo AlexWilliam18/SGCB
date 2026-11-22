@@ -356,6 +356,7 @@ final class Produto extends Modelo
      */
     public static function periodoAgenda(?string $dataInicio, ?string $dataFim): array
     {
+        if ($dataInicio !== null) Disponibilidade::validarPeriodo($dataInicio, $dataFim);
         $inicio = $dataInicio !== null ? $dataInicio . ' 00:00:00' : self::agora();
         $fim    = $dataFim !== null ? date('Y-m-d 00:00:00', strtotime($dataFim . ' +1 day')) : UnidadeFisica::FIM_INDETERMINADO;
 

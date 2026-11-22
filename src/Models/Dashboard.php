@@ -23,6 +23,7 @@ final class Dashboard extends Modelo
     {
         return [
             'metrics'          => self::indicadores(),
+            'inventory_by_product' => self::estoquePorProduto(),
             'rental_counts'    => self::locacoesPorMes(),
             'top_products'     => self::produtosMaisLocados(),
             'top_clients'      => self::clientesQueMaisLocam(),
@@ -55,6 +56,28 @@ final class Dashboard extends Modelo
             'available_units'   => (int) $unidades['disponiveis'],
             'rented_units'      => (int) $unidades['locadas'],
         ];
+    }
+
+    /** Estoque atual agrupado pelo produto cadastrado, sem limitar os tipos exibidos. */
+    public static function estoquePorProduto(): array
+    {
+        $linhas = self::pdo()->query(
+            "SELECT p.id, p.codigo, p.nome,
+                    SUM(u.estado_operacional = 'DISPONIVEL') AS available,
+                    SUM(u.estado_operacional = 'MANUTENCAO') AS maintenance
+               FROM produtos p JOIN unidades_fisicas u ON u.produto_id = p.id
+              WHERE u.estado_operacional IN ('DISPONIVEL', 'MANUTENCAO')
+              GROUP BY p.id, p.codigo, p.nome
+              ORDER BY p.id ASC"
+        )->fetchAll();
+
+        return array_map(static fn (array $p): array => [
+            'id' => (int) $p['id'],
+            'code' => $p['codigo'],
+            'name' => $p['nome'],
+            'available' => (int) $p['available'],
+            'maintenance' => (int) $p['maintenance'],
+        ], $linhas);
     }
 
     /** Contratos emitidos por mês: [{ month: 'AAAA-MM', value }]. */

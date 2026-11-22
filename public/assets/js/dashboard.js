@@ -13,6 +13,74 @@
   });
   const numbers = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
   const rentalLabel = value => numbers.format(value) + (value === 1 ? ' locação' : ' locações');
+  // Mesmo popover nativo do Financeiro: sobrepõe a página e fecha com Escape/clique fora.
+  const stockButtons = [...document.querySelectorAll('.stat-toggle')];
+  function positionStock(button, panel) {
+    const card = button.closest('.stat-card').getBoundingClientRect();
+    const margin = 8, gap = 6;
+    panel.style.width = Math.min(Math.max(card.width, 260), innerWidth - margin * 2) + 'px';
+    const below = innerHeight - card.bottom - gap - margin;
+    const above = card.top - gap - margin;
+    const upwards = below < Math.min(180, panel.scrollHeight) && above > below;
+    panel.style.maxHeight = Math.max(0, Math.min(300, upwards ? above : below)) + 'px';
+    panel.style.left = Math.max(margin, Math.min(card.left, innerWidth - panel.offsetWidth - margin)) + 'px';
+    panel.style.top = Math.max(margin, upwards ? card.top - gap - panel.offsetHeight : card.bottom + gap) + 'px';
+  }
+  stockButtons.forEach(button => {
+    const panel = $(button.getAttribute('aria-controls'));
+    panel.addEventListener('toggle', event => {
+      const open = event.newState === 'open';
+      button.setAttribute('aria-expanded', String(open));
+      if (open) {
+        positionStock(button, panel);
+        panel.focus({ preventScroll: true });
+      }
+    });
+  });
+  function closeStockPanels() {
+    stockButtons.forEach(button => {
+      const panel = $(button.getAttribute('aria-controls'));
+      if (panel.matches(':popover-open')) panel.hidePopover();
+    });
+  }
+  addEventListener('scroll', closeStockPanels, { passive: true });
+  addEventListener('resize', closeStockPanels);
+
+  function stockMessage(key, message) {
+    const p = document.createElement('p');
+    p.className = 'stock-empty';
+    p.textContent = message;
+    $(key + '-products').replaceChildren(p);
+  }
+
+  function renderStock(rows) {
+    ['maintenance', 'available'].forEach(key => {
+      const products = rows.filter(row => row[key] > 0);
+      if (!products.length) {
+        stockMessage(key, key === 'maintenance' ? 'Nenhum produto em manutenção.' : 'Nenhum produto disponível no momento.');
+        return;
+      }
+      const list = document.createElement('ul');
+      list.className = 'stock-list';
+      products.forEach(product => {
+        const item = document.createElement('li');
+        const description = document.createElement('span');
+        const code = document.createElement('strong');
+        code.textContent = product.code;
+        const name = document.createElement('span');
+        name.className = 'stock-name';
+        name.textContent = product.name;
+        const count = document.createElement('span');
+        count.className = 'stock-count';
+        count.textContent = 'QTD: ' + numbers.format(product[key]);
+        description.append(code, name);
+        item.append(description, count);
+        list.append(item);
+      });
+      $(key + '-products').replaceChildren(list);
+    });
+  }
+
   // Gráfico de barras dos últimos 12 meses (hoje só o de quantidade de locações).
   function renderChart(id, rows) {
     const chart = $(id),
@@ -184,7 +252,7 @@
       if (
         !data.metrics ||
         fields.some(key => !Number.isFinite(data.metrics[key])) ||
-        ['rental_counts', 'top_products', 'top_clients', 'recent_contracts'].some(
+        ['rental_counts', 'top_products', 'top_clients', 'recent_contracts', 'inventory_by_product'].some(
           key => !Array.isArray(data[key])
         )
       )
@@ -194,12 +262,14 @@
       $('active-contracts').textContent = numbers.format(data.metrics.active_contracts);
       $('available-units').textContent = numbers.format(data.metrics.available_units);
       $('rented-units').textContent = numbers.format(data.metrics.rented_units);
+      renderStock(data.inventory_by_product);
       renderChart('rentals-chart', data.rental_counts);
       renderRanking('top-products', data.top_products);
       renderRanking('top-clients', data.top_clients);
       renderContracts(data.recent_contracts);
       $('data-notice').hidden = true;
     } catch (_) {
+      ['maintenance', 'available'].forEach(key => stockMessage(key, 'Não foi possível carregar os produtos. Use Tentar novamente.'));
       ['maintenance-units', 'active-contracts', 'available-units', 'rented-units'].forEach(id => {
         $(id).textContent = '—';
       });

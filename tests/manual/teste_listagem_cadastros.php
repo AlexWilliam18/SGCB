@@ -76,22 +76,23 @@ try {
     Cliente::inativarCliente($ids['LST Épsilon Inativo'], $admin);
     confere(count($ids) === 5, '5 cadastros de teste (2 clientes, 1 fornecedor, 1 ambos, 1 inativo)');
 
-    secao('Clientes: tipo de cadastro (filtro exato) e fornecedores fora da listagem');
+    // A tela Clientes voltou a listar fornecedores (filtro "Fornecedor" no tipo de cadastro).
+    secao('Clientes: tipo de cadastro (filtro exato), fornecedores incluídos');
     $todos = Cliente::listarClientes(['q' => 'LST', 'situacao' => 'todos']);
-    confere($todos['total'] === 4 && !in_array('LST Gama Fornecedor', nomes($todos), true), 'sem filtro de tipo: os 4 clientes; o fornecedor exclusivo não aparece');
+    confere($todos['total'] === 5 && in_array('LST Gama Fornecedor', nomes($todos), true), 'sem filtro de tipo: os 5 cadastros, inclusive o fornecedor');
     confere(Cliente::listarClientes(['q' => 'LST', 'situacao' => 'todos', 'tipo' => 'CLIENTE'])['total'] === 3, 'tipo CLIENTE: só os 3 clientes puros');
-    confere(Cliente::listarClientes(['q' => 'LST', 'situacao' => 'todos', 'tipo' => 'FORNECEDOR'])['total'] === 4, 'tipo FORNECEDOR é ignorado (fornecedor não entra na listagem)');
+    confere(nomes(Cliente::listarClientes(['q' => 'LST', 'situacao' => 'todos', 'tipo' => 'FORNECEDOR'])) === ['LST Gama Fornecedor'], 'tipo FORNECEDOR: só o fornecedor');
     confere(nomes(Cliente::listarClientes(['q' => 'LST', 'tipo' => 'AMBOS'])) === ['LST Delta Ambos'], 'tipo AMBOS: só o cadastro que é os dois');
-    confere(Cliente::listarClientes(['q' => 'LST', 'situacao' => 'todos', 'tipo' => 'xyz'])['total'] === 4, 'tipo desconhecido é ignorado (lista branca)');
+    confere(Cliente::listarClientes(['q' => 'LST', 'situacao' => 'todos', 'tipo' => 'xyz'])['total'] === 5, 'tipo desconhecido é ignorado (lista branca)');
     $linhaAmbos = Cliente::listarClientes(['q' => 'LST Delta'])['items'][0] ?? [];
     confere(($linhaAmbos['tipo_cadastro'] ?? null) === 'AMBOS', 'cada linha traz o tipo de cadastro (etiqueta "Cliente e fornecedor")');
 
     secao('Clientes: situação, local e busca');
-    confere(Cliente::listarClientes(['q' => 'LST', 'situacao' => 'ativos'])['total'] === 3, 'situação ativos: 3');
+    confere(Cliente::listarClientes(['q' => 'LST', 'situacao' => 'ativos'])['total'] === 4, 'situação ativos: 4 (3 clientes + o fornecedor)');
     confere(nomes(Cliente::listarClientes(['q' => 'LST', 'situacao' => 'inativos'])) === ['LST Épsilon Inativo'], 'situação inativos: só o inativo');
-    confere(Cliente::listarClientes(['q' => 'LST', 'situacao' => 'todos', 'uf' => 'PR'])['total'] === 0, 'UF PR: nenhum (só o fornecedor de Curitiba mora lá)');
+    confere(nomes(Cliente::listarClientes(['q' => 'LST', 'situacao' => 'todos', 'uf' => 'PR'])) === ['LST Gama Fornecedor'], 'UF PR: só o fornecedor de Curitiba');
     confere(Cliente::listarClientes(['q' => 'LST', 'situacao' => 'todos', 'uf' => 'sp', 'cidade' => 'Jacareí'])['total'] === 2, 'UF (minúscula) + cidade: 2 em Jacareí');
-    confere(!in_array('PR', $todos['states'], true) && !in_array('Curitiba', Cliente::listarCidades('PR'), true), 'opções de UF e cidade não incluem endereços de fornecedores');
+    confere(in_array('PR', $todos['states'], true) && in_array('Curitiba', Cliente::listarCidades('PR'), true), 'opções de UF e cidade incluem endereços de fornecedores');
     confere(Cliente::listarClientes(['q' => '935.411'])['total'] === 1, 'busca por CPF com pontuação');
     confere(Cliente::listarClientes(['q' => '27865757'])['total'] === 1, 'busca por CNPJ só com números');
     confere(Cliente::listarClientes(['q' => '(12) 3951-4444'])['total'] === 1, 'busca por telefone formatado');

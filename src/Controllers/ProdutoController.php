@@ -13,6 +13,43 @@
 
 final class ProdutoController
 {
+    /**
+     * GET /api/produtos/disponibilidade/opcoes
+     * Produtos ativos para o campo "Produto" da consulta de disponibilidade, e a data de hoje
+     * (data mínima do campo início). Exige permissão de visualizar contratos.
+     */
+    public static function disponibilidadeOpcoes(): array
+    {
+        Api::permitir('contratos', 'visualizar', false);
+        $produtos = Conexao::obter()->query('SELECT id, codigo, nome FROM produtos WHERE ativo = 1 ORDER BY nome')->fetchAll();
+        return ['items' => $produtos, 'hoje' => date('Y-m-d')];
+    }
+
+    /**
+     * GET /api/produtos/{id}/disponibilidade?data_inicio=&data_fim=&quantidade=
+     * Previsão para o período (Disponibilidade::consultar). Não reserva nada.
+     */
+    public static function disponibilidade(int $id): array
+    {
+        Api::permitir('contratos', 'visualizar', false);
+        $q = filter_var($_GET['quantidade'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if ($q === false) throw new ErroValidacao('Informe uma quantidade inteira positiva.', [], 422);
+        return Disponibilidade::consultar($id, is_string($_GET['data_inicio'] ?? null) ? $_GET['data_inicio'] : '',
+            is_string($_GET['data_fim'] ?? null) ? $_GET['data_fim'] : '', $q);
+    }
+
+    /**
+     * GET /api/produtos/{id}/proximas-disponibilidades
+     * Linha do tempo dos detalhes do produto. Produto inativo devolve lista vazia.
+     */
+    public static function proximas(int $id): array
+    {
+        Api::permitir('produtos', 'visualizar', false);
+        $p = Api::ouNaoEncontrado(Produto::buscarProduto($id));
+        if (!$p['ativo']) return ['items' => [], 'limite_busca' => null];
+        return Disponibilidade::proximas($id);
+    }
+
     public static function listar(): array
     {
         Api::usuario();

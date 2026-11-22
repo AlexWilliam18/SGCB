@@ -1,6 +1,6 @@
 'use strict';
 /*
- * Listagem de clientes (sem fornecedores exclusivos): filtros (inclusive tipo de cadastro), paginação e diálogo de detalhes.
+ * Listagem de clientes e fornecedores: filtros (inclusive tipo de cadastro), paginação e diálogo de detalhes.
  * Os dados vêm de /api/clientes (atendidos por public/api/index.php → src/Controllers).
  */
 (() => {
@@ -14,15 +14,15 @@
     $('saved-notice').textContent = editado
       ? 'Cadastro atualizado com sucesso.'
       : url.get('tipo_cadastro') === 'FORNECEDOR'
-        ? 'Fornecedor cadastrado com sucesso. Fornecedores não aparecem na listagem de clientes.'
+        ? 'Fornecedor cadastrado com sucesso.'
         : 'Cliente cadastrado com sucesso.';
     $('saved-notice').hidden = false;
   }
-  // Etiqueta ao lado do nome de quem também é fornecedor (cliente puro não leva etiqueta).
-  const TIPOS = { AMBOS: 'Cliente e fornecedor' };
+  // Tipo de cadastro exibido abaixo do nome em todas as linhas.
+  const TIPOS = { CLIENTE: 'Cliente', FORNECEDOR: 'Fornecedor', AMBOS: 'Cliente e fornecedor' };
   const state = {
-    // Tipo de cadastro: filtro exato (CLIENTE ou AMBOS); vazio = os dois. Fornecedor exclusivo não aparece.
-    tipo: ['CLIENTE', 'AMBOS'].includes(url.get('tipo')) ? url.get('tipo') : '',
+    // Tipo de cadastro: filtro exato; vazio = todos os tipos.
+    tipo: ['CLIENTE', 'FORNECEDOR', 'AMBOS'].includes(url.get('tipo')) ? url.get('tipo') : '',
     q: url.get('q') || '',
     situacao: url.get('situacao') || '',
     uf: url.get('uf') || '',
@@ -101,17 +101,22 @@
         const td = document.createElement('td');
         td.textContent = value;
         td.title = String(value);
-        if (index === 0 && TIPOS[client.tipo_cadastro]) {
-          const tipo = document.createElement('span');
-          tipo.className = 'type-badge';
-          tipo.textContent = TIPOS[client.tipo_cadastro];
-          td.append(tipo);
-        }
-        if (index === 0 && !client.ativo) {
-          const badge = document.createElement('span');
-          badge.className = 'inactive-badge';
-          badge.textContent = 'Inativo';
-          td.append(badge);
+        if (index === 0) {
+          const metadata = document.createElement('div');
+          metadata.className = 'client-metadata';
+          if (TIPOS[client.tipo_cadastro]) {
+            const tipo = document.createElement('span');
+            tipo.className = 'type-badge';
+            tipo.textContent = TIPOS[client.tipo_cadastro];
+            metadata.append(tipo);
+          }
+          if (!client.ativo) {
+            const badge = document.createElement('span');
+            badge.className = 'inactive-badge';
+            badge.textContent = 'Inativo';
+            metadata.append(badge);
+          }
+          td.append(metadata);
         }
         tr.append(td);
       });

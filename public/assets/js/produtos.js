@@ -289,6 +289,7 @@
         dl.append(div);
       });
       container.append(dl);
+      SGCBDisponibilidade.upcoming(container, id);
       if (!product.precos?.length) {
         const p = document.createElement('p');
         p.className = 'product-stock-note';
@@ -306,7 +307,7 @@
       // Texto alinhado à fórmula real (relatório de testes, "Disponível e reservado"): Disponível é o
       // estado de hoje; uma unidade com reserva futura segue no pátio e conta nos dois números.
       p.textContent =
-        'Disponíveis = contêineres no pátio hoje. Uma unidade com reserva futura continua em Disponíveis até a entrega e também aparece em "Com reserva futura". Para saber se há contêiner livre em um período, use as datas no novo contrato.';
+        'Disponíveis = contêineres no pátio hoje. Uma unidade com reserva futura continua em Disponíveis até a entrega e também aparece em "Com reserva futura". Consulte a disponibilidade na página Contratos de Locação para conferir todo o período.';
       container.append(p);
       // Ações do produto (acoes.js). Depois de gravar, recarrega a lista e reabre os dados atualizados.
       const atualizar = () => {
