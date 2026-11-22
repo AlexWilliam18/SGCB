@@ -147,8 +147,9 @@ try {
     confere($lista['total'] === 1 && $lista['items'][0]['cidade'] === 'São José dos Campos', 'listagem busca por CPF formatado e traz a cidade principal');
     confere(in_array('São José dos Campos', $lista['cities'], true), 'lista de cidades para o filtro');
     confere(Cliente::listarClientes(['q' => 'Fornecedora', 'tipo' => 'CLIENTE'])['total'] === 0, 'filtro tipo CLIENTE não traz fornecedor exclusivo');
-    confere(Cliente::listarClientes(['q' => 'Fornecedora', 'tipo' => 'FORNECEDOR'])['total'] === 0, 'filtro tipo FORNECEDOR é ignorado: fornecedor não aparece');
-    confere(Cliente::listarClientes(['q' => 'Fornecedora'])['total'] === 0, 'fornecedor exclusivo não aparece na listagem de clientes');
+    // A tela Clientes voltou a listar fornecedores (filtro "Fornecedor").
+    confere(Cliente::listarClientes(['q' => 'Fornecedora', 'tipo' => 'FORNECEDOR'])['total'] === 1, 'filtro tipo FORNECEDOR traz o fornecedor');
+    confere(Cliente::listarClientes(['q' => 'Fornecedora'])['total'] === 1, 'fornecedor aparece na listagem sem filtro de tipo');
     confere(in_array($fornecedor['id'], array_column(Cliente::listarFornecedores(), 'id'), true), 'fornecedor aparece em listarFornecedores');
 
     // ------------------------------------------------------------------

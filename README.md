@@ -60,6 +60,11 @@ Projeto Integrador desenvolvido pela equipe **Bemfa Developers**:
 | **Usuários** | Listagem com indicadores e filtros, cadastro e edição, ativar e inativar. |
 | **Auditoria** | Toda alteração fica registrada (quem fez, o quê e quando). |
 
+Consulta de disponibilidade futura: em **Contratos de Locação → Consultar disponibilidade**,
+ao lado de **Novo contrato**. Nos produtos, **Próximas disponibilidades** leva à consulta com o produto preenchido.
+O cadastro de contrato usa o mesmo cálculo e revalida ao emitir.
+Veja [regras, configuração e testes](docs/disponibilidade-futura.md).
+
 ### Próximas etapas
 
 - Configurações da empresa.

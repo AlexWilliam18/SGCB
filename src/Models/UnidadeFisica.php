@@ -101,32 +101,16 @@ final class UnidadeFisica extends Modelo
 
     /**
      * Ids das unidades do produto livres em todo o período [inicio, fim).
-     * Livre = não está inativa nem em manutenção agora e não tem reserva, uso ou
-     * manutenção na agenda que cruze o período.
+     * Usa a regra central: agenda, estado, preparação e bloqueios vencidos.
+     * Liberações futuras são condicionadas à devolução/conclusão.
      *
      * @param string $inicio 'Y-m-d H:i:s'
      * @param string $fim    'Y-m-d H:i:s' (exclusivo)
      */
     public static function livresNoPeriodo(int $produtoId, string $inicio, string $fim, ?int $limite = null): array
     {
-        $sql = 'SELECT u.id FROM unidades_fisicas u
-                 WHERE u.produto_id = :produto
-                   AND u.estado_operacional IN (\'DISPONIVEL\', \'LOCADA\')
-                   AND NOT EXISTS (
-                       SELECT 1 FROM agenda_unidades a
-                        WHERE a.unidade_id = u.id
-                          AND a.status IN ' . self::AGENDA_OCUPA . '
-                          AND a.inicio < :fim AND a.fim > :inicio
-                   )
-                 ORDER BY u.codigo';
-        if ($limite !== null) {
-            $sql .= ' LIMIT ' . max(0, $limite);
-        }
-
-        $consulta = self::pdo()->prepare($sql);
-        $consulta->execute(['produto' => $produtoId, 'fim' => $fim, 'inicio' => $inicio]);
-
-        return array_map('intval', $consulta->fetchAll(PDO::FETCH_COLUMN));
+        $resultado = Disponibilidade::avaliar(Disponibilidade::carregar($produtoId), $inicio, $fim);
+        return $limite === null ? $resultado['ids'] : array_slice($resultado['ids'], 0, max(0, $limite));
     }
 
     /**
@@ -153,6 +137,9 @@ final class UnidadeFisica extends Modelo
      */
     public static function bloquearProduto(int $produtoId): void
     {
+        $produto = self::pdo()->prepare('SELECT id FROM produtos WHERE id = :id FOR UPDATE');
+        $produto->execute(['id' => $produtoId]);
+        $produto->fetchAll();
         $consulta = self::pdo()->prepare('SELECT id FROM unidades_fisicas WHERE produto_id = :id FOR UPDATE');
         $consulta->execute(['id' => $produtoId]);
         $consulta->fetchAll();

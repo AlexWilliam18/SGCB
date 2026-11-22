@@ -630,9 +630,22 @@ select:focus-visible {
     right: 10px
 }
 
-/* Etiqueta do tipo ao lado do nome (Fornecedor / Cliente e fornecedor) */
+/* Tipo e situação abaixo do nome, com espaço para o texto completo. */
+.client-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    margin-top: 2px;
+    white-space: normal
+}
+
+.client-metadata .inactive-badge {
+    display: inline-block
+}
+
 .type-badge {
-    margin-left: 6px;
+    display: inline-block;
     padding: 1px 6px;
     border-radius: 6px;
     background: var(--info-soft);
