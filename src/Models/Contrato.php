@@ -136,10 +136,18 @@ final class Contrato extends Modelo
 
             // 4. Reserva dos contêineres: trava as unidades de cada produto e escolhe as livres no período.
             [$inicio, $fim] = Produto::periodoAgenda($contrato['data_inicio'], $contrato['data_fim']);
+            // Ordem estável e leitura atual no serviço evitam reservas duplicadas sob REPEATABLE READ.
+            $produtosTravar = array_unique(array_column($itens, 'produto_id'));
+            sort($produtosTravar, SORT_NUMERIC);
+            foreach ($produtosTravar as $produtoTravar) UnidadeFisica::bloquearProduto((int) $produtoTravar);
             $statusAgenda   = $contrato['data_inicio'] <= $hoje ? 'EM_USO' : 'RESERVADA';
             foreach ($itens as $i => $item) {
-                UnidadeFisica::bloquearProduto($item['produto_id']);
-                $escolhidas = $unidadesEscolhidas[$i] ?? [];
+                $produtoAtivo = $pdo->prepare('SELECT ativo FROM produtos WHERE id = ? FOR UPDATE');
+                $produtoAtivo->execute([$item['produto_id']]);
+                if (!$produtoAtivo->fetchColumn()) {
+                    throw new ErroValidacao('Um produto deste rascunho foi inativado. Revise os itens.', [], 409);
+                }
+                $escolhidas = array_values(array_unique($unidadesEscolhidas[$i] ?? []));
                 if ($escolhidas) {
                     // Contêineres escolhidos na tela: todos precisam continuar livres no período.
                     $ocupadas = array_diff($escolhidas, UnidadeFisica::livresNoPeriodo($item['produto_id'], $inicio, $fim));
@@ -737,6 +745,7 @@ final class Contrato extends Modelo
 
         self::lancarSeErros($erros);
 
+        Disponibilidade::validarPeriodo($dataInicio, $dataFim);
         $valorItensC = array_sum(array_map(static fn (array $i): int => self::centavos($i['subtotal']), $itens));
         $totalC      = $valorItensC + self::centavos($valores['frete_deslocamento']) + self::centavos($valores['outros_valores']);
 

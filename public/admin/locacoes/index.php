@@ -12,8 +12,8 @@ require __DIR__ . '/../../../src/bootstrap.php';
 Autenticacao::exigirLogin();
 
 $titulo      = 'Contratos de Locação';
-$css         = ['dashboard.css', 'clientes.css', 'acoes.css', 'contratos.css'];
-$js          = ['painel.js', 'validacao.js', 'cep.js', 'acoes.js', 'contratos.js'];   // validacao/cep/acoes: formulário de edição
+$css         = ['dashboard.css', 'clientes.css', 'acoes.css', 'contratos.css', 'disponibilidade.css'];
+$js          = ['painel.js', 'validacao.js', 'cep.js', 'acoes.js', 'disponibilidade.js', 'contratos.js'];   // validacao/cep/acoes: formulário de edição
 $classeBody  = 'contracts-page';   // ajustes de layout do contratos.css
 $paginaAtual = 'locacoes';         // item destacado no menu
 
@@ -27,7 +27,7 @@ require __DIR__ . '/../../../includes/head.php';
 
     <main class="clients-main contracts-main" id="contracts-main" tabindex="-1" aria-busy="true">
       <!-- Título da seção e botão "Novo contrato" (abre cadastro.php) -->
-      <div class="page-intro"><div><h2>Contratos de Locação</h2><p>Consulte contratos, abra a prévia e acompanhe o status das locações.</p></div><a class="new-client" id="new-contract" href="<?= htmlspecialchars(BASE_URL . 'admin/locacoes/cadastro.php') ?>"><img class="icone" src="<?= $icones ?>documento-mais.svg" alt="" width="16" height="16">Novo contrato</a></div>
+      <div class="page-intro"><div><h2>Contratos de Locação</h2><p>Consulte contratos, abra a prévia e acompanhe o status das locações.</p></div><div class="contract-intro-actions"><button class="detail-action" id="open-availability" type="button" aria-haspopup="dialog" aria-controls="availability-dialog">Consultar disponibilidade</button><a class="new-client" id="new-contract" href="<?= htmlspecialchars(BASE_URL . 'admin/locacoes/cadastro.php') ?>"><img class="icone" src="<?= $icones ?>documento-mais.svg" alt="" width="16" height="16">Novo contrato</a></div></div>
 
       <!-- Filtros: pesquisa, status do contrato, data dentro do período e Limpar -->
       <form class="filter-card contracts-filters" id="contract-filters" role="search" aria-label="Pesquisar contratos">
@@ -49,4 +49,5 @@ require __DIR__ . '/../../../includes/head.php';
 
   <!-- Diálogo "Prévia do contrato" (aberto pelo número ou pelo botão "Ver" de cada linha): prévia, edição limitada e versões guardadas -->
   <dialog class="client-dialog contract-dialog" id="contract-dialog" aria-labelledby="contract-dialog-title"><div class="detail-heading"><h2 id="contract-dialog-title">Prévia do contrato</h2><form method="dialog"><button class="detail-close" aria-label="Fechar prévia">×</button></form></div><div id="contract-detail" aria-live="polite"></div></dialog>
+<?php require __DIR__ . '/../../../includes/consulta-disponibilidade.php'; ?>
 <?php require __DIR__ . '/../../../includes/footer.php'; ?>

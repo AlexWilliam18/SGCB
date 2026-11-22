@@ -8,6 +8,7 @@
 $configLocal = __DIR__ . '/../config/config.php';
 require_once is_file($configLocal) ? $configLocal : __DIR__ . '/../config/config.example.php';
 unset($configLocal);
+require_once __DIR__ . '/../config/disponibilidade.php';
 
 // Fuso do Brasil: o XAMPP vem com Europe/Berlin, o que deixaria datas e vencimentos errados.
 date_default_timezone_set('America/Sao_Paulo');

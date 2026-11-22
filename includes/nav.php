@@ -20,7 +20,7 @@ $usuario     = Autenticacao::usuario();
  */
 $itensMenu = [
     'visao-geral' => ['rotulo' => 'Visão Geral',          'destino' => 'admin/dashboard.php',       'icone' => ['visao-geral.svg', 18, 18]],
-    // A listagem mostra só clientes (CLIENTE e AMBOS); fornecedores são cadastrados pela mesma tela.
+    // Clientes e fornecedores são listados e cadastrados pela mesma tela.
     'clientes'    => ['rotulo' => 'Clientes',             'destino' => 'admin/clientes/index.php',    'icone' => ['clientes.svg', 18, 18]],
     'produtos'    => ['rotulo' => 'Produtos',             'destino' => 'admin/produtos/index.php',    'icone' => ['produtos.svg', 18, 18]],
     'locacoes'    => ['rotulo' => 'Contratos de Locação', 'destino' => 'admin/locacoes/index.php',    'icone' => ['contratos.svg', 18, 18]],

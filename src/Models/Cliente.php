@@ -27,22 +27,20 @@ final class Cliente extends Modelo
     ];
 
     /**
-     * Listagem da tela Clientes (clientes.js). Só pessoas CLIENTE ou AMBOS:
-     * fornecedores exclusivos não aparecem aqui (eles são usados no cadastro de produto).
-     * Filtros: tipo (CLIENTE|AMBOS, exato; vazio = os dois), q (nome, fantasia, CPF/CNPJ, e-mail
+     * Listagem da tela Clientes (clientes.js), incluindo fornecedores.
+     * Filtros: tipo (CLIENTE|FORNECEDOR|AMBOS, exato; vazio = todos), q (nome, fantasia, CPF/CNPJ, e-mail
      * ou telefone), situacao (ativos|inativos|todos), uf, cidade (do endereço principal) e page.
      *
      * @return array{items: array, cities: array, total: int, page: int, pages: int}
      */
     public static function listarClientes(array $filtros = []): array
     {
-        $where  = ["p.tipo_cadastro IN ('CLIENTE', 'AMBOS')"];
+        $where  = ["p.tipo_cadastro IN ('CLIENTE', 'FORNECEDOR', 'AMBOS')"];
         $params = [];
 
-        // Tipo de cadastro: filtro exato (Clientes = só CLIENTE; "Cliente e fornecedor" = só AMBOS).
-        // FORNECEDOR não é aceito: fornecedor exclusivo nunca entra na listagem de clientes.
+        // Tipo de cadastro: filtro exato entre os tipos permitidos.
         $tipo = strtoupper(trim((string) ($filtros['tipo'] ?? '')));
-        if (in_array($tipo, ['CLIENTE', 'AMBOS'], true)) {
+        if (in_array($tipo, self::TIPOS_CADASTRO, true)) {
             $where[]        = 'p.tipo_cadastro = :tipo';
             $params['tipo'] = $tipo;
         }
@@ -105,7 +103,7 @@ final class Cliente extends Modelo
     {
         $consulta = self::pdo()->prepare(
             "SELECT DISTINCT e.uf FROM enderecos_pessoa e JOIN pessoas p ON p.id = e.pessoa_id
-              WHERE p.tipo_cadastro IN ('CLIENTE', 'AMBOS') AND e.uf IS NOT NULL AND e.uf <> ''
+              WHERE p.tipo_cadastro IN ('CLIENTE', 'FORNECEDOR', 'AMBOS') AND e.uf IS NOT NULL AND e.uf <> ''
               ORDER BY e.uf"
         );
         $consulta->execute();
@@ -117,7 +115,7 @@ final class Cliente extends Modelo
     public static function listarCidades(?string $uf = null): array
     {
         $sql    = "SELECT DISTINCT e.cidade FROM enderecos_pessoa e JOIN pessoas p ON p.id = e.pessoa_id
-                    WHERE p.tipo_cadastro IN ('CLIENTE', 'AMBOS') AND e.cidade IS NOT NULL AND e.cidade <> ''";
+                    WHERE p.tipo_cadastro IN ('CLIENTE', 'FORNECEDOR', 'AMBOS') AND e.cidade IS NOT NULL AND e.cidade <> ''";
         $params = [];
         if ($uf !== null) {
             $sql         .= ' AND e.uf = :uf';

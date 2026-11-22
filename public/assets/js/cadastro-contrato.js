@@ -84,7 +84,7 @@
     let response, data;
     try {
       response = await fetch(window.SGCB_API + route, body === undefined
-        ? { cache: 'no-store', headers: { Accept: 'application/json' } }
+        ? { cache: 'no-store', signal: AbortSignal.timeout(15000), headers: { Accept: 'application/json' } }
         : { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf }, body: JSON.stringify(body) });
       data = await response.json().catch(() => null);
     } catch (_) {
@@ -236,14 +236,17 @@
     const start = field('start').value;
     const end = field('term').value === 'DETERMINADO' ? field('end').value : '';
     const keep = selectedUnits(item);
+    const request = (item.request = (item.request || 0) + 1);
     const container = itemField(item, 'units');
     item.units = [];
+    item.forecast = null;
+    item.unitsError = null;
+    item.loading = false;
     container.replaceChildren();
     if (!product || !start) {
       update();
       return;
     }
-    const request = (item.request = (item.request || 0) + 1);
     item.loading = true;
     update();
     try {
@@ -251,9 +254,12 @@
       const data = await api('contratos/unidades?' + params);
       if (request !== item.request) return;
       item.units = data.items;
-    } catch (_) {
+      item.forecast = data.disponibilidade;
+      item.preparation = data.preparacao_horas;
+    } catch (error) {
       if (request !== item.request) return;
       item.units = [];
+      item.unitsError = error.message || 'Não foi possível consultar a disponibilidade.';
     } finally {
       if (request === item.request) item.loading = false;
     }
@@ -315,6 +321,11 @@
       const next = items[Math.min(index, items.length - 1)];
       (next ? itemField(next, 'product') : $('#add-item')).focus();
     });
+    // Botão para refazer a leitura de disponibilidade do item (ex.: depois de um erro ou de outra emissão).
+    const retryUnits = document.createElement('button');
+    retryUnits.type = 'button'; retryUnits.className = 'add-item'; retryUnits.textContent = 'Atualizar disponibilidade / tentar novamente';
+    retryUnits.addEventListener('click', () => loadUnits(item));
+    itemField(item, 'availability').after(retryUnits);
     update();
     return item;
   }
@@ -484,9 +495,13 @@
       availability.textContent = !product ? 'Selecione o produto para ver os contêineres.'
         : !field('start').value ? 'Informe a data inicial para ver os contêineres livres.'
         : item.loading ? 'Carregando contêineres…'
+        : item.unitsError ? item.unitsError + ' Use Atualizar disponibilidade para tentar novamente.'
         : !item.units.length ? 'Este produto não tem contêineres ativos.'
         : chosen.length ? `${chosen.length} unidade(s) selecionada(s) de ${free} disponíveis no período.`
         : `Selecione ao menos um contêiner (${free} disponíveis no período).`;
+      if (item.forecast && !item.loading && !item.unitsError) {
+        availability.textContent += ` Previsão para todo o período: ${item.forecast.ja_livres} já livres e ${item.forecast.condicionadas} condicionadas a devolução/conclusão. Preparação: ${item.preparation} h. Selecionado: ${chosen.length}; ${chosen.length > 0 && chosen.length <= free ? 'atende à quantidade selecionada' : 'selecione a quantidade desejada'}. A emissão revalida e reserva as unidades.`;
+      }
       availability.classList.toggle('has-selection', chosen.length > 0);
     });
 

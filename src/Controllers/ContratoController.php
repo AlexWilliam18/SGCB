@@ -55,20 +55,26 @@ final class ContratoController
     /**
      * Contêineres do produto e se estão livres no período (seleção de unidades físicas da tela).
      * Parâmetros: produto_id, data_inicio (AAAA-MM-DD) e data_fim (vazio = prazo indeterminado).
+     * Também devolve a previsão para todo o período (Disponibilidade::avaliar) e as horas de preparação.
      */
     public static function unidades(): array
     {
-        Api::usuario();
+        Api::permitir('contratos', 'visualizar', false);
 
         $produtoId = filter_var($_GET['produto_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $data      = static fn (string $campo): ?string => preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) ($_GET[$campo] ?? '')) ? $_GET[$campo] : null;
+        $data      = static fn (string $campo): ?string => ($_GET[$campo] ?? '') !== '' ? (is_string($_GET[$campo]) ? $_GET[$campo] : 'inválida') : null;
         $inicio    = $data('data_inicio');
         if ($produtoId === false || $inicio === null) {
             throw new ErroValidacao('Informe o produto e a data inicial.', [], 422);
         }
         [$de, $ate] = Produto::periodoAgenda($inicio, $data('data_fim'));
 
-        return ['items' => UnidadeFisica::situacaoNoPeriodo($produtoId, $de, $ate)];
+        $produto = Api::ouNaoEncontrado(Produto::buscarProduto($produtoId));
+        if (!$produto['ativo']) throw new ErroValidacao('Selecione um produto ativo.', [], 422);
+        $previsao = Disponibilidade::avaliar(Disponibilidade::carregar($produtoId), $de, $ate);
+        unset($previsao['ids']);
+        return ['items' => UnidadeFisica::situacaoNoPeriodo($produtoId, $de, $ate), 'disponibilidade' => $previsao,
+                'preparacao_horas' => DISPONIBILIDADE_PREPARACAO_HORAS];
     }
 
     public static function salvar(): array
