@@ -65,16 +65,23 @@ $inicial = mb_strtoupper(mb_substr($usuario['nome'] ?: $usuario['email'], 0, 1))
 endforeach; ?>
     </nav>
     <!-- Usuário logado (dados da sessão gravados por Autenticacao::entrar) e botão Sair -->
-    <!-- Clicar no usuário abre o menu do perfil (painel.js): Perfil, Tema, Cor de destaque e Sair.
-         A escolha fica salva no navegador e é aplicada pelo script do head.php. -->
+    <!-- Clicar no usuário abre o menu do perfil (painel.js): Perfil e Sair.
+         Tema e cor de destaque ficam no botão flutuante do canto inferior direito (abaixo). -->
     <div class="profile-menu" id="profile-menu" role="menu" aria-label="Menu do perfil" hidden>
       <button class="profile-menu-item" type="button" role="menuitem" id="profile-info"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Perfil</button>
-<?php require __DIR__ . '/opcoes-tema.php'; ?>
       <a class="profile-menu-item danger" role="menuitem" href="<?= $urlSair ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sair</a>
     </div>
     <div class="user-box"><button class="user-profile" id="open-profile" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="profile-menu"
         data-name="<?= htmlspecialchars($usuario['nome']) ?>" data-email="<?= htmlspecialchars($usuario['email']) ?>"
         data-role="<?= htmlspecialchars($usuario['cargo_nome']) ?>"><span class="avatar"><?= htmlspecialchars($inicial) ?></span><span class="user-info"><strong><?= htmlspecialchars($usuario['nome']) ?></strong><span><?= htmlspecialchars($usuario['cargo_nome']) ?></span></span></button><a class="logout" href="<?= $urlSair ?>"><img src="<?= $iconesNav ?>sair.svg" alt="" width="16" height="16">Sair</a></div>
   </aside>
+  <!-- Botão flutuante de tema (canto inferior direito, em todas as páginas do sistema).
+       Abre o menu com Tema e Cor de destaque (tema.js); a escolha fica salva no navegador
+       e é aplicada pelo script do head.php. O ícone troca sozinho: lua no claro, sol no escuro. -->
+  <button class="theme-fab" type="button" aria-label="Tema e cor de destaque" title="Tema e cor de destaque"
+    aria-haspopup="menu" aria-expanded="false" aria-controls="theme-menu"><svg class="theme-fab-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><svg class="theme-fab-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+  <div class="profile-menu theme-menu theme-fab-menu" id="theme-menu" role="menu" aria-label="Tema e cor de destaque" hidden>
+<?php require __DIR__ . '/opcoes-tema.php'; ?>
+  </div>
   <!-- Diálogo de aviso (módulo em desenvolvimento, perfil do usuário), aberto pelo painel.js -->
   <dialog class="info-dialog" id="info-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title"></h2><p id="dialog-description"></p><form method="dialog"><button class="primary-button">Entendi</button></form></dialog>

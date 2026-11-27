@@ -56,54 +56,48 @@ $img = htmlspecialchars(BASE_URL . 'assets/img/');
 
 require __DIR__ . '/../includes/head.php';
 ?>
-  <main class="login-card">
-    <!-- Painel de boas-vindas: foto de fundo, fachada da loja e cartão com a marca -->
-    <section class="welcome" aria-labelledby="welcome-title">
-      <img class="welcome-background" src="<?= $img ?>login/background.png" alt="">
-      <div class="photo-shade"></div>
-      <img class="welcome-photo" src="<?= $img ?>logo/casa-barretto.png"
-        alt="Fachada da Casa Barretto com caminhões estacionados">
-      <div class="welcome-panel">
-        <p class="wordmark">CASA<br>BARRETTO</p>
-        <h2 id="welcome-title">Bem-vindo!</h2>
-        <p class="welcome-description">Acesse o sistema de gerenciamento de locações de contêineres com uma experiência
-          simples, organizada e elegante.</p>
-        <a class="instagram" href="https://www.instagram.com/casabarretto/" target="_blank"
-          rel="noopener noreferrer"><img src="<?= $img ?>login/instagram.svg" alt="" width="16" height="16">@casabarretto</a>
-      </div>
-    </section>
-    <!-- Painel da conta: formulário de login -->
-    <section class="account" aria-labelledby="login-title">
-      <!-- Tema e cor de destaque também no login (tema.js); a escolha vale para as outras telas -->
-      <button class="theme-button" type="button" aria-label="Tema e cor de destaque" aria-haspopup="menu"
-        aria-expanded="false" aria-controls="theme-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
-      <div class="profile-menu theme-menu" id="theme-menu" role="menu" aria-label="Tema e cor de destaque" hidden>
+  <!-- Cartão único centralizado: marca no topo e formulário logo abaixo.
+       A classe "account" posiciona o botão de tema no canto (estilo em tema.css). -->
+  <main class="login-card account" aria-labelledby="login-title">
+    <!-- Tema e cor de destaque também no login (tema.js); a escolha vale para as outras telas -->
+    <button class="theme-button" type="button" aria-label="Tema e cor de destaque" aria-haspopup="menu"
+      aria-expanded="false" aria-controls="theme-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+    <div class="profile-menu theme-menu" id="theme-menu" role="menu" aria-label="Tema e cor de destaque" hidden>
 <?php require __DIR__ . '/../includes/opcoes-tema.php'; ?>
+    </div>
+
+    <!-- Marca: logotipo (o mesmo do favicon), nome e selo da área -->
+    <header class="brand">
+      <img class="brand-logo" src="<?= $img ?>logo/favicon.svg" alt="" width="84" height="76">
+      <p class="brand-name">CASA BARRETTO</p>
+      <p class="brand-area">Área administrativa</p>
+    </header>
+
+    <h1 id="login-title">Acesse sua conta</h1>
+    <p class="subtitle">Informe seus dados para continuar.</p>
+
+    <form id="login-form" method="post" action="<?= htmlspecialchars(BASE_URL . 'login.php') ?>">
+      <input type="hidden" name="csrf" value="<?= htmlspecialchars(Autenticacao::tokenCsrf()) ?>">
+      <label class="field-label" for="email">E-mail</label>
+      <!-- Placeholder genérico: não expõe o e-mail do administrador padrão -->
+      <input id="email" name="email" type="email" autocomplete="username" placeholder="voce@empresa.com.br"
+        value="<?= htmlspecialchars($email) ?>" required>
+      <label class="field-label password-label" for="password">Senha</label>
+      <div class="password-field">
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <button class="password-toggle" id="password-toggle" type="button" aria-label="Mostrar senha"
+          aria-pressed="false"><img src="<?= $img ?>login/eye.svg" alt="" width="19" height="19"></button>
       </div>
-      <p class="eyebrow">Área administrativa</p>
-      <h1 id="login-title">Entrar na conta</h1>
-      <p class="subtitle">Informe seus dados para continuar.</p>
-        <form id="login-form" method="post" action="<?= htmlspecialchars(BASE_URL . 'login.php') ?>">
-        <input type="hidden" name="csrf" value="<?= htmlspecialchars(Autenticacao::tokenCsrf()) ?>">
-        <label class="field-label" for="email">E-mail</label>
-        <input id="email" name="email" type="email" autocomplete="username" placeholder="admin@casabarretto.local"
-          value="<?= htmlspecialchars($email) ?>" required>
-        <label class="field-label password-label" for="password">Senha</label>
-        <div class="password-field">
-          <input id="password" name="password" type="password" autocomplete="current-password" required>
-          <button class="password-toggle" id="password-toggle" type="button" aria-label="Mostrar senha"
-            aria-pressed="false"><img src="<?= $img ?>login/eye.svg" alt="" width="19" height="19"></button>
-        </div>
-        <div class="form-options">
-          <label class="remember"><input id="remember" name="remember" type="checkbox" checked><span class="checkbox-art"><img
-                src="<?= $img ?>login/check.svg" alt="" width="11" height="11"></span>Lembrar de mim</label>
-          <button class="text-button" id="forgot-password" type="button">Esqueceu a senha?</button>
-        </div>
-        <!-- Erro do servidor (e-mail/senha inválidos, banco fora do ar...) -->
-        <p id="form-message" class="form-message" role="alert"<?= $erro === null ? ' hidden' : '' ?>><?= htmlspecialchars((string) $erro) ?></p>
-        <button class="submit-button" type="submit">Entrar</button>
-      </form>
-    </section>
+      <div class="form-options">
+        <!-- Só lembra o e-mail neste navegador (login.js); a senha nunca é guardada -->
+        <label class="remember"><input id="remember" name="remember" type="checkbox" checked><span class="checkbox-art"><img
+              src="<?= $img ?>login/check.svg" alt="" width="11" height="11"></span>Lembrar e-mail</label>
+        <button class="text-button" id="forgot-password" type="button">Esqueceu a senha?</button>
+      </div>
+      <!-- Erro do servidor (e-mail/senha inválidos, banco fora do ar...) -->
+      <p id="form-message" class="form-message" role="alert"<?= $erro === null ? ' hidden' : '' ?>><?= htmlspecialchars((string) $erro) ?></p>
+      <button class="submit-button" type="submit">Entrar</button>
+    </form>
   </main>
 
   <!-- Diálogo "Esqueceu a senha?" (aberto pelo login.js) -->

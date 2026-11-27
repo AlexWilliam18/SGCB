@@ -344,6 +344,77 @@ img[src*="/img/login/instagram.svg"],    /* ícone do @casabarretto (login) */
   right: 20px;
 }
 
+/* =============================================================================
+   Páginas do sistema: botão flutuante de tema no canto inferior direito (nav.php)
+   e o menu que ele abre, logo acima dele.
+   ============================================================================= */
+.theme-fab {
+  position: fixed;
+  z-index: 55;                  /* acima do conteúdo, abaixo do menu (60) e dos diálogos */
+  right: 24px;
+  bottom: 24px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 8px 24px -8px var(--shadow);
+  cursor: pointer;
+  opacity: .85;                 /* discreto enquanto ninguém mexe nele */
+  transition: opacity .15s, transform .15s, background .15s;
+}
+
+.theme-fab:hover,
+.theme-fab[aria-expanded="true"] {
+  opacity: 1;
+  background: var(--surface-2);
+  transform: translateY(-1px);
+}
+
+.theme-fab:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.theme-fab svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Ícone indica para onde vai: lua no tema claro, sol no escuro */
+.theme-fab-sun,
+:root[data-theme="dark"] .theme-fab-moon {
+  display: none;
+}
+
+:root[data-theme="dark"] .theme-fab-sun {
+  display: block;
+}
+
+/* Respiro no fim do conteúdo das páginas do sistema (todas têm <main id="...">; o login não),
+   para o botão flutuante nunca ficar por cima dos botões finais, como "Salvar cadastro".
+   O seletor main[id] vence a classe de cada página e troca só o espaçamento de baixo. */
+main[id] {
+  padding-bottom: 88px;
+}
+
+/* Menu abre acima do botão, alinhado pela direita */
+.profile-menu.theme-fab-menu {
+  position: fixed;
+  top: auto;
+  right: 24px;
+  bottom: 78px;
+}
+
 /* O primeiro título ("Tema") não precisa da linha acima */
 .theme-menu .profile-menu-title:first-child {
   margin-top: 0;

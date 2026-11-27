@@ -1,36 +1,39 @@
 /*
- * Tela de login.
+ * Tela de login: cartão único centralizado (marca no topo + formulário).
  *
  * Organização:
  *   1. Base (as cores vêm do tema.css)
  *   2. Cartão de login
- *   3. Painel de boas-vindas (lado esquerdo, com foto)
- *   4. Painel da conta (lado direito, formulário)
- *   5. Campos, "Lembrar de mim" e botões
+ *   3. Marca (logotipo, nome e selo da área)
+ *   4. Título e subtítulo
+ *   5. Campos, "Lembrar e-mail" e botões
  *   6. Diálogo "Esqueceu a senha?"
  *   7. Responsivo
+ *
+ * O botão de tema no canto do cartão e o menu que ele abre ficam em tema.css (.theme-button).
  */
 
 /* ==========================================================================
    1. Base (as cores vêm do tema.css)
    ========================================================================== */
 
-/* Paleta da identidade Casa Barretto: as cores ficam em tema.css (claro/escuro e cor de destaque) */
-
 /* Reset: medidas incluem borda e padding */
 * {
     box-sizing: border-box
 }
 
-/* Página: cartão centralizado sobre fundo areia em degradê */
+/* Página: cartão centralizado sobre o fundo do tema, com um brilho verde
+   bem suave no topo (sem listras ou textura) */
 body {
     margin: 0;
     min-height: 100vh;
     min-height: 100svh;
-    padding: 32px;
+    padding: 24px;
     display: grid;
     place-items: center;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--line) 60%, transparent), var(--line)), var(--bg);
+    background:
+        radial-gradient(1100px 520px at 50% -12%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+        var(--bg);
     color: var(--ink);
     font-family: Figtree, Arial, sans-serif
 }
@@ -64,172 +67,99 @@ input:focus-visible {
    2. Cartão de login
    ========================================================================== */
 
-/* Cartão branco com duas colunas: boas-vindas e formulário */
+/* Cartão estreito com borda fina e sombra difusa */
 .login-card {
     width: 100%;
-    max-width: 1080px;
-    min-height: 589px;
-    display: grid;
-    grid-template-columns: 10fr 11fr;
-    overflow: hidden;
-    border-radius: 32px;
+    max-width: 420px;
+    padding: 40px 36px 36px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
     background: var(--surface);
-    box-shadow: 0 30px 70px -25px var(--shadow)
+    box-shadow: 0 30px 60px -30px var(--shadow)
 }
 
 /* ==========================================================================
-   3. Painel de boas-vindas (lado esquerdo, com foto)
+   3. Marca (logotipo, nome e selo da área)
    ========================================================================== */
 
-/* Coluna da esquerda, com o painel de vidro centralizado */
-.welcome {
-    position: relative;
-    min-height: 589px;
+/* Bloco centralizado no topo do cartão */
+.brand {
     display: grid;
-    place-items: center;
-    overflow: hidden
+    justify-items: center;
+    text-align: center;
+    margin-bottom: 28px
 }
 
-/* Foto de fundo cobrindo toda a coluna */
-.welcome-background {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover
-}
-
-/* Película escura sobre a foto, para dar contraste ao painel.
-   Cor fixa de propósito: escurece a fotografia igual nos dois temas. */
-.photo-shade {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(rgba(10, 20, 15, .25), rgba(10, 20, 15, .35))
-}
-
-/* Fachada da loja ancorada na base da coluna */
-.welcome-photo {
-    position: absolute;
-    left: calc(50% - 289.64px);
-    bottom: 0;
-    width: 547px;
-    height: 1048px;
-    object-fit: cover
-}
-
-/* Painel translúcido com desfoque (efeito vidro) */
-.welcome-panel {
-    position: relative;
-    width: 340px;
-    max-width: calc(100% - 48px);
-    padding: 32px;
-    border: 2px solid color-mix(in srgb, var(--surface) 80%, transparent);
-    border-radius: 32px;
-    background: color-mix(in srgb, var(--surface) 40%, transparent);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    text-align: center
+/* Logotipo sobre um quadro branco: o desenho tem partes cinza/verde escuras
+   que somem no tema escuro, então o fundo fica branco nos dois temas */
+.brand-logo {
+    width: 84px;
+    height: auto;
+    padding: 8px;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--line)
 }
 
 /* "CASA BARRETTO" na fonte serifada do logotipo */
-.wordmark {
-    margin: 0;
+.brand-name {
+    margin: 14px 0 0;
     font-family: 'Libre Caslon Text', Georgia, serif;
-    font-size: 36px;
-    line-height: 40px;
-    letter-spacing: .9px
+    font-size: 22px;
+    line-height: 1.2;
+    letter-spacing: .08em
 }
 
-/* Título "Bem-vindo!" */
-.welcome h2 {
-    margin: 32px 0 0;
-    font-size: 36px;
-    line-height: 40px;
-    font-weight: 800
-}
-
-/* Texto de apresentação do sistema */
-.welcome-description {
-    margin: 16px 0 0;
-    font-size: 15px;
-    line-height: 28px
-}
-
-/* Botão-pílula com o @ do Instagram */
-.instagram {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 24px;
-    padding: 12px 24px;
-    border: 1px solid color-mix(in srgb, var(--ink) 70%, transparent);
-    border-radius: 100px;
-    font-size: 15px;
-    line-height: 22.5px;
-    color: var(--ink);
-    text-decoration: none;
-    white-space: nowrap
-}
-
-.instagram:hover {
-    background: color-mix(in srgb, var(--surface) 30%, transparent)
-}
-
-/* ==========================================================================
-   4. Painel da conta (lado direito, formulário)
-   ========================================================================== */
-
-/* Coluna da direita, com o conteúdo centralizado na vertical */
-.account {
-    padding: 56px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-width: 0
-}
-
-/* "ÁREA ADMINISTRATIVA": texto pequeno em caixa alta acima do título */
-.eyebrow {
-    margin: 0;
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 16px;
-    letter-spacing: 2.4px;
+/* Selo "ÁREA ADMINISTRATIVA" em pílula verde clara */
+.brand-area {
+    margin: 10px 0 0;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
     text-transform: uppercase
 }
 
-/* Título "Entrar na conta" */
+/* ==========================================================================
+   4. Título e subtítulo
+   ========================================================================== */
+
+/* Título "Acesse sua conta" */
 h1 {
-    margin: 12px 0 0;
-    font-size: 36px;
-    line-height: 40px;
-    letter-spacing: -.9px;
-    font-weight: 800
+    margin: 0;
+    font-size: 22px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    text-align: center
 }
 
 /* Texto de apoio abaixo do título */
 .subtitle {
     margin: 8px 0 0;
-    font-size: 16px;
-    line-height: 24px
+    color: var(--muted);
+    font-size: 15px;
+    text-align: center
 }
 
 /* Espaço entre o cabeçalho e o formulário */
 #login-form {
-    margin-top: 36px
+    margin-top: 24px
 }
 
 /* ==========================================================================
-   5. Campos, "Lembrar de mim" e botões
+   5. Campos, "Lembrar e-mail" e botões
    ========================================================================== */
 
 /* Rótulo dos campos (E-mail, Senha) */
 .field-label {
     display: block;
-    font-size: 12px;
-    line-height: 16px;
-    font-weight: 700;
-    margin-bottom: 8px
+    margin-bottom: 7px;
+    font-size: 13px;
+    font-weight: 600
 }
 
 /* Campos de texto: altura, borda e cantos arredondados */
@@ -237,23 +167,31 @@ input:not([type=checkbox]) {
     display: block;
     width: 100%;
     height: 48px;
-    border: 1px solid var(--line);
+    padding: 0 14px;
+    border: 1px solid var(--line-strong);
     border-radius: 12px;
     background: var(--surface);
-    padding: 0 16px;
+    color: var(--ink);
     font-size: 15px;
-    color: var(--ink)
+    transition: border-color .15s, box-shadow .15s
 }
 
-/* Exemplo dentro do campo com a mesma cor do texto */
+/* Foco no campo: borda verde e halo suave no lugar do contorno padrão */
+input:not([type=checkbox]):focus-visible {
+    outline: none;
+    border-color: var(--accent-ink);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent)
+}
+
+/* Exemplo dentro do campo em cor fraca, para não parecer valor preenchido */
 input::placeholder {
-    color: var(--ink);
+    color: var(--subtle);
     opacity: 1
 }
 
 /* Espaço acima do rótulo da senha */
 .password-label {
-    margin-top: 20px
+    margin-top: 16px
 }
 
 /* Campo de senha: serve de referência para o botão do olho */
@@ -275,10 +213,10 @@ input::placeholder {
 /* Botão do olho (mostrar/ocultar senha) dentro do campo */
 .password-toggle {
     position: absolute;
-    right: 8px;
-    top: 4px;
+    right: 6px;
+    top: 6px;
     width: 36px;
-    height: 40px;
+    height: 36px;
     display: grid;
     place-items: center;
     background: transparent;
@@ -290,23 +228,32 @@ input::placeholder {
     background: var(--surface-2)
 }
 
-/* Linha com "Lembrar de mim" à esquerda e "Esqueceu a senha?" à direita */
+/* Ícone do olho é escuro: no tema escuro inverte para ficar claro */
+.password-toggle img {
+    opacity: .7
+}
+
+:root[data-theme="dark"] .password-toggle img {
+    filter: invert(1)
+}
+
+/* Linha com "Lembrar e-mail" à esquerda e "Esqueceu a senha?" à direita */
 .form-options {
     margin-top: 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    font-size: 12px;
-    line-height: 16px
+    font-size: 14px
 }
 
-/* "Lembrar de mim": caixa personalizada + texto */
+/* "Lembrar e-mail": caixa personalizada + texto */
 .remember {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     position: relative;
+    color: var(--muted);
     cursor: pointer
 }
 
@@ -314,8 +261,8 @@ input::placeholder {
 .remember input {
     position: absolute;
     left: 0;
-    width: 13px;
-    height: 13px;
+    width: 16px;
+    height: 16px;
     opacity: 0;
     margin: 0
 }
@@ -324,10 +271,10 @@ input::placeholder {
 .checkbox-art {
     display: grid;
     place-items: center;
-    width: 13px;
-    height: 13px;
-    border: 1px solid var(--subtle);
-    border-radius: 2px;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
     background: var(--surface)
 }
 
@@ -336,10 +283,10 @@ input::placeholder {
     visibility: hidden
 }
 
-/* Marcado: caixa azul com o check visível */
+/* Marcado: caixa na cor de destaque com o check visível */
 .remember input:checked+.checkbox-art {
-    background: var(--info);
-    border-color: var(--info)
+    background: var(--accent);
+    border-color: var(--accent)
 }
 
 .remember input:checked+.checkbox-art img {
@@ -352,14 +299,14 @@ input::placeholder {
     outline-offset: 3px
 }
 
-/* Botão com aparência de texto ("Esqueceu a senha?") */
+/* Botão com aparência de link ("Esqueceu a senha?") */
 .text-button {
     padding: 0;
     border: 0;
     background: none;
-    color: var(--ink);
-    font-size: 12px;
-    line-height: 16px
+    color: var(--accent-ink);
+    font-size: 14px;
+    font-weight: 600
 }
 
 .text-button:hover {
@@ -370,19 +317,15 @@ input::placeholder {
 .submit-button {
     display: block;
     width: 100%;
-    height: 56px;
+    height: 50px;
     margin-top: 24px;
     border: 0;
     border-radius: 12px;
     background: var(--accent);
     color: var(--on-accent);
-    font-size: 14px;
-    font-weight: 800;
-    line-height: 20px;
-    letter-spacing: .35px;
-    text-transform: uppercase;
-    box-shadow: 0 10px 15px -3px var(--shadow-soft), 0 4px 6px -4px var(--shadow-soft);
-    transition: background .15s, transform .15s
+    font-size: 15px;
+    font-weight: 700;
+    transition: background .15s, transform .05s
 }
 
 .submit-button:hover {
@@ -394,20 +337,15 @@ input::placeholder {
     transform: translateY(1px)
 }
 
-/* Nota de rodapé do formulário (texto pequeno e discreto) */
-.development-note {
-    margin: 20px 0 0;
-    color: var(--muted);
-    font-size: 11px;
-    line-height: 16.5px
-}
-
-/* Mensagem de erro do login (e-mail ou senha inválidos) */
+/* Mensagem de erro do login (e-mail ou senha inválidos, banco fora do ar) */
 .form-message {
-    margin: 12px 0 0;
+    margin: 16px 0 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--danger-soft);
     color: var(--danger);
-    font-size: 12px;
-    line-height: 18px
+    font-size: 13px;
+    line-height: 1.45
 }
 
 .form-message[hidden] {
@@ -420,7 +358,7 @@ input::placeholder {
 
 /* Caixa do diálogo */
 dialog {
-    width: min(460px, calc(100% - 32px));
+    width: min(420px, calc(100% - 32px));
     padding: 32px;
     border: 1px solid var(--line);
     border-radius: 24px;
@@ -437,10 +375,11 @@ dialog::backdrop {
 
 dialog h2 {
     margin: 0;
-    font-size: 26px
+    font-size: 22px
 }
 
 dialog p {
+    color: var(--muted);
     line-height: 1.6
 }
 
@@ -448,81 +387,20 @@ dialog p {
    7. Responsivo
    ========================================================================== */
 
-/* Tablets: reduz espaçamentos e tamanhos de texto */
-@media(max-width:900px) {
-    .account {
-        padding: 36px
-    }
-
-    .welcome-panel {
-        padding: 24px
-    }
-
-    .welcome h2 {
-        font-size: 30px
-    }
-
-    .wordmark {
-        font-size: 32px
-    }
-
-    .welcome-description {
-        font-size: 14px
-    }
-
-    .development-note {
-        max-width: 100%
-    }
-}
-
-/* Celulares: cartão em uma coluna só (boas-vindas em cima, formulário embaixo) */
-@media(max-width:680px) {
+/* Celulares: menos respiro em volta e dentro do cartão */
+@media(max-width:480px) {
     body {
-        padding: 20px
+        padding: 16px
     }
 
     .login-card {
-        grid-template-columns: 1fr;
-        max-width: 480px;
-        border-radius: 24px
+        padding: 32px 22px 28px;
+        border-radius: 20px
     }
 
-    .welcome {
-        min-height: 380px
-    }
-
-    .welcome-panel {
-        width: 340px;
-        padding: 24px
-    }
-
-    .welcome h2 {
-        margin-top: 20px
-    }
-
-    .welcome-description {
-        margin-top: 12px;
-        line-height: 24px
-    }
-
-    .instagram {
-        margin-top: 16px;
-        padding: 8px 20px
-    }
-
-    .account {
-        padding: 32px 24px
-    }
-
-    h1 {
-        font-size: 32px
-    }
-
-    .eyebrow {
-        font-size: 11px
-    }
-
-    #login-form {
-        margin-top: 28px
+    /* Botão de tema um pouco mais para o canto, longe do logotipo */
+    .theme-button {
+        top: 14px;
+        right: 14px
     }
 }

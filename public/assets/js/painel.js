@@ -57,7 +57,7 @@
   );
 
   // ---------------------------------------------------------------------------
-  // Menu do perfil (nav.php): Perfil, Tema, Cor de destaque e Sair
+  // Menu do perfil (nav.php): Perfil e Sair (o tema fica no botão flutuante, tema.js)
   // ---------------------------------------------------------------------------
   const profile = $('open-profile'),
     menu = $('profile-menu');
@@ -97,5 +97,5 @@
     showInfo(profile.dataset.name, `${profile.dataset.email} · ${profile.dataset.role}`);
   });
 
-  // Tema e cor de destaque (itens do menu): comportamento no tema.js, carregado em todas as páginas.
+  // Tema e cor de destaque: botão flutuante do nav.php, com o comportamento no tema.js.
 })();
