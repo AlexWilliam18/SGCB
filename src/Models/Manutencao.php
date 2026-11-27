@@ -100,12 +100,17 @@ final class Manutencao extends Modelo
     {
         // "agendadas" = previstas de hoje até 30 dias (o que o card promete); "atrasadas" = agendadas
         // com a data prevista já passada, contadas à parte para virar uma lista de ação.
+        // urgentes / altas / medias / baixas = manutenções em aberto (agendadas ou em andamento) de cada
+        // prioridade: o card de prioridade da tela troca entre elas pela seta (manutencoes.js).
         $hoje     = self::hoje();
         $consulta = self::pdo()->prepare(
             "SELECT COALESCE(SUM(status = 'EM_ANDAMENTO'), 0) AS em_manutencao,
                     COALESCE(SUM(status = 'AGENDADA' AND data_prevista >= :hoje1 AND data_prevista < :limite), 0) AS agendadas,
                     COALESCE(SUM(status = 'AGENDADA' AND data_prevista < :hoje2), 0) AS atrasadas,
                     COALESCE(SUM(prioridade = 'URGENTE' AND status IN ('AGENDADA', 'EM_ANDAMENTO')), 0) AS urgentes,
+                    COALESCE(SUM(prioridade = 'ALTA' AND status IN ('AGENDADA', 'EM_ANDAMENTO')), 0) AS altas,
+                    COALESCE(SUM(prioridade = 'MEDIA' AND status IN ('AGENDADA', 'EM_ANDAMENTO')), 0) AS medias,
+                    COALESCE(SUM(prioridade = 'BAIXA' AND status IN ('AGENDADA', 'EM_ANDAMENTO')), 0) AS baixas,
                     COALESCE(SUM(status = 'CONCLUIDA' AND concluida_em >= :mes1 AND concluida_em < :mes2), 0) AS concluidas
                FROM manutencoes"
         );
