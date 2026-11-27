@@ -62,12 +62,22 @@
   const profile = $('open-profile'),
     menu = $('profile-menu');
 
-  // O menu fica "position: fixed" (a sidebar tem rolagem e cortaria um menu absoluto):
-  // abre logo acima do botão do usuário, alinhado à esquerda dele.
+  // O menu fica "position: fixed" (a sidebar tem rolagem e cortaria um menu absoluto).
+  // Barra à esquerda/direita: abre logo acima do botão do usuário, alinhado à esquerda dele.
+  // Barra no topo (data-nav="topo", tema.js): abre logo abaixo, alinhado pela direita.
   function placeMenu() {
     const box = profile.getBoundingClientRect();
-    menu.style.left = box.left + 'px';
-    menu.style.bottom = window.innerHeight - box.top + 8 + 'px';
+    if (document.documentElement.dataset.nav === 'topo' && window.innerWidth > 760) {
+      menu.style.left = 'auto';
+      menu.style.bottom = 'auto';
+      menu.style.top = box.bottom + 12 + 'px';
+      menu.style.right = Math.max(8, window.innerWidth - box.right) + 'px';
+    } else {
+      menu.style.top = 'auto';
+      menu.style.right = 'auto';
+      menu.style.left = box.left + 'px';
+      menu.style.bottom = window.innerHeight - box.top + 8 + 'px';
+    }
   }
   function setProfileMenu(open) {
     menu.hidden = !open;
@@ -92,7 +102,9 @@
   $('primary-sidebar').addEventListener('scroll', () => setProfileMenu(false));
 
   // Perfil: dados do usuário logado vêm dos atributos data-* preenchidos pelo PHP.
-  $('profile-info').addEventListener('click', () => {
+  // Só existe para quem não pode editar usuários; quem pode recebe um link para a
+  // própria edição no lugar deste botão (nav.php), por isso o "?.".
+  $('profile-info')?.addEventListener('click', () => {
     setProfileMenu(false);
     showInfo(profile.dataset.name, `${profile.dataset.email} · ${profile.dataset.role}`);
   });

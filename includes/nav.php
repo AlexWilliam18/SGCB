@@ -42,13 +42,21 @@ $iconesNav = htmlspecialchars(BASE_URL . 'assets/img/nav/');
 $urlInicio = htmlspecialchars(BASE_URL . 'admin/dashboard.php');
 $urlSair   = htmlspecialchars(BASE_URL . 'logout.php?csrf=' . urlencode(Autenticacao::tokenCsrf()));
 
+// "Perfil" no menu do usuário: quem pode editar usuários vai direto para a edição do próprio
+// cadastro (admin/usuarios/cadastro.php?id=...). Quem não pode (ex.: Operador) continua vendo
+// só o aviso com nome, e-mail e cargo (painel.js), para não cair numa tela de "sem permissão".
+// A API confere a permissão de novo ao salvar (UsuarioController: usuarios/editar).
+$podeEditarPerfil = Usuario::temPermissao((int) $usuario['id'], 'usuarios', 'editar');
+$urlPerfil        = htmlspecialchars(BASE_URL . 'admin/usuarios/cadastro.php?id=' . (int) $usuario['id']);
+
 // Inicial do nome para o avatar.
 $inicial = mb_strtoupper(mb_substr($usuario['nome'] ?: $usuario['email'], 0, 1));
 ?>
   <button class="nav-backdrop" id="nav-backdrop" type="button" aria-label="Fechar menu" tabindex="-1" hidden></button>
   <aside class="sidebar" id="primary-sidebar" aria-label="Menu principal">
-    <!-- Logotipo (volta para a Visão Geral) e botão × do menu no celular -->
-    <div class="brand-wrap"><a class="brand" href="<?= $urlInicio ?>" aria-label="Casa Barretto — Visão Geral"><span class="brand-name">CASA<br>BARRETTO</span><span class="brand-description">Gestão de Locações</span></a><button class="close-menu" id="close-menu" type="button" aria-label="Fechar menu">×</button></div>
+    <!-- Logotipo (volta para a Visão Geral) e botão × do menu no celular.
+         O espaço depois do <br> só aparece com o menu no topo, quando o <br> é escondido (dashboard.css). -->
+    <div class="brand-wrap"><a class="brand" href="<?= $urlInicio ?>" aria-label="Casa Barretto — Visão Geral"><span class="brand-name">CASA<br> BARRETTO</span><span class="brand-description">Gestão de Locações</span></a><button class="close-menu" id="close-menu" type="button" aria-label="Fechar menu">×</button></div>
     <nav class="navigation" aria-label="Navegação do sistema">
 <?php foreach ($itensMenu as $chave => $item):
     [$arquivoIcone, $larguraIcone, $alturaIcone] = $item['icone'];
@@ -68,20 +76,27 @@ endforeach; ?>
     <!-- Clicar no usuário abre o menu do perfil (painel.js): Perfil e Sair.
          Tema e cor de destaque ficam no botão flutuante do canto inferior direito (abaixo). -->
     <div class="profile-menu" id="profile-menu" role="menu" aria-label="Menu do perfil" hidden>
+<?php if ($podeEditarPerfil): ?>
+      <!-- Perfil: abre a edição do usuário logado -->
+      <a class="profile-menu-item" role="menuitem" href="<?= $urlPerfil ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Meu perfil</a>
+<?php else: ?>
+      <!-- Perfil sem permissão de editar usuários: só mostra os dados (aviso do painel.js) -->
       <button class="profile-menu-item" type="button" role="menuitem" id="profile-info"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Perfil</button>
+<?php endif; ?>
       <a class="profile-menu-item danger" role="menuitem" href="<?= $urlSair ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sair</a>
     </div>
     <div class="user-box"><button class="user-profile" id="open-profile" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="profile-menu"
         data-name="<?= htmlspecialchars($usuario['nome']) ?>" data-email="<?= htmlspecialchars($usuario['email']) ?>"
-        data-role="<?= htmlspecialchars($usuario['cargo_nome']) ?>"><span class="avatar"><?= htmlspecialchars($inicial) ?></span><span class="user-info"><strong><?= htmlspecialchars($usuario['nome']) ?></strong><span><?= htmlspecialchars($usuario['cargo_nome']) ?></span></span></button><a class="logout" href="<?= $urlSair ?>"><img src="<?= $iconesNav ?>sair.svg" alt="" width="16" height="16">Sair</a></div>
+        data-role="<?= htmlspecialchars($usuario['cargo_nome']) ?>"><span class="avatar"><?= htmlspecialchars($inicial) ?></span><span class="user-info"><strong><?= htmlspecialchars($usuario['nome']) ?></strong><span><?= htmlspecialchars($usuario['cargo_nome']) ?></span></span></button><a class="logout" href="<?= $urlSair ?>" title="Sair"><img src="<?= $iconesNav ?>sair.svg" alt="" width="16" height="16">Sair</a></div>
   </aside>
-  <!-- Botão flutuante de tema (canto inferior direito, em todas as páginas do sistema).
-       Abre o menu com Tema e Cor de destaque (tema.js); a escolha fica salva no navegador
-       e é aplicada pelo script do head.php. O ícone troca sozinho: lua no claro, sol no escuro. -->
-  <button class="theme-fab" type="button" aria-label="Tema e cor de destaque" title="Tema e cor de destaque"
+  <!-- Botão flutuante de aparência (canto inferior direito, em todas as páginas do sistema).
+       Abre o menu com Tema, Cor de destaque e Posição do menu (tema.js); a escolha fica salva no
+       navegador e é aplicada pelo script do head.php. O ícone troca sozinho: lua no claro, sol no escuro. -->
+  <button class="theme-fab" type="button" aria-label="Aparência: tema, cor e posição do menu" title="Aparência"
     aria-haspopup="menu" aria-expanded="false" aria-controls="theme-menu"><svg class="theme-fab-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><svg class="theme-fab-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
-  <div class="profile-menu theme-menu theme-fab-menu" id="theme-menu" role="menu" aria-label="Tema e cor de destaque" hidden>
-<?php require __DIR__ . '/opcoes-tema.php'; ?>
+  <div class="profile-menu theme-menu theme-fab-menu" id="theme-menu" role="menu" aria-label="Aparência" hidden>
+<?php $mostrarPosicaoMenu = true; // só nas páginas do sistema (o login não tem menu)
+require __DIR__ . '/opcoes-tema.php'; ?>
   </div>
   <!-- Diálogo de aviso (módulo em desenvolvimento, perfil do usuário), aberto pelo painel.js -->
   <dialog class="info-dialog" id="info-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title"></h2><p id="dialog-description"></p><form method="dialog"><button class="primary-button">Entendi</button></form></dialog>
