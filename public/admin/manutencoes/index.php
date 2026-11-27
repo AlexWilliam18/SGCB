@@ -33,9 +33,18 @@ require __DIR__ . '/../../../includes/head.php';
       <section class="stats-grid" aria-label="Indicadores gerais de manutenção">
         <article class="stat-card"><div class="stat-heading"><h2>Em manutenção</h2><span class="stat-icon ongoing"><span class="metric-image"><img src="<?= $img ?>manutencoes/27de2.png" alt=""></span></span></div><p class="stat-value" id="metric-em_manutencao">—</p><p class="stat-caption">Contêineres atualmente</p></article>
         <article class="stat-card"><div class="stat-heading"><h2>Manutenções agendadas</h2><span class="stat-icon scheduled"><span class="metric-image"><img src="<?= $icones ?>calendario-relogio.png" alt=""></span></span></div><p class="stat-value" id="metric-agendadas">—</p><p class="stat-caption" id="caption-agendadas">nos próximos 30 dias</p></article>
-        <article class="stat-card"><div class="stat-heading"><h2>Urgentes</h2><span class="stat-icon urgent"><span class="metric-image"><img src="<?= $img ?>manutencoes/51c13.png" alt=""></span></span></div><p class="stat-value" id="metric-urgentes">—</p><p class="stat-caption">necessitam de atenção</p></article>
+        <!-- Prioridade: clicar no card (seta no título) abre a lista de prioridades (popover #priority-menu).
+             Começa em "Urgentes"; o manutencoes.js troca título, número e legenda pela prioridade escolhida. -->
+        <article class="stat-card priority-card"><button class="priority-trigger" id="priority-trigger" type="button" popovertarget="priority-menu" aria-haspopup="menu" aria-expanded="false" title="Clique para ver outra prioridade"><span class="sr-only">Escolher a prioridade exibida</span></button><div class="stat-heading"><h2><span id="priority-title">Urgentes</span><img class="icone icone--seta priority-caret" src="<?= $icones ?>seta-baixo.svg" alt="" width="10" height="6"></h2><span class="stat-icon urgent"><span class="metric-image"><img src="<?= $img ?>manutencoes/51c13.png" alt=""></span></span></div><p class="stat-value" id="metric-prioridade">—</p><p class="stat-caption" id="caption-prioridade">necessitam de atenção</p></article>
         <article class="stat-card"><div class="stat-heading"><h2>Concluídas no mês</h2><span class="stat-icon completed"><img class="icone icone--ok" src="<?= $icones ?>ok.svg" alt="" width="28" height="24"></span></div><p class="stat-value" id="metric-concluidas">—</p><p class="stat-caption">manutenções realizadas</p></article>
       </section>
+      <!-- Lista de prioridades do card acima: cada opção mostra quantas manutenções em aberto tem (manutencoes.js) -->
+      <div class="priority-menu" id="priority-menu" popover role="menu" aria-label="Prioridade exibida no card">
+        <button type="button" role="menuitemradio" aria-checked="true" data-prioridade="urgentes">Urgente<span class="priority-count" data-count="urgentes"></span></button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-prioridade="altas">Alta<span class="priority-count" data-count="altas"></span></button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-prioridade="medias">Média<span class="priority-count" data-count="medias"></span></button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-prioridade="baixas">Baixa<span class="priority-count" data-count="baixas"></span></button>
+      </div>
       <!-- Filtros: pesquisa, prioridade, status, localidade (as localidades vêm da API), data prevista e Limpar -->
       <form class="filter-card maintenance-filters" id="maintenance-filters" role="search" aria-label="Pesquisar manutenções">
         <div class="search-field"><img src="<?= $icones ?>pesquisar.svg" alt="" width="17" height="17"><label class="sr-only" for="maintenance-search">Pesquisar contêiner por nome ou código</label><input id="maintenance-search" type="search" name="q" placeholder="Pesquisar contêiner" maxlength="200" autocomplete="off"></div>
