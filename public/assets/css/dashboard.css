@@ -1230,3 +1230,135 @@ td {
 .stock-name { display: block; font-size: 11px; color: var(--muted); }
 .stock-count { font-weight: 700; white-space: nowrap; color: var(--accent-ink); }
 .stock-empty { padding: 12px 0; font-size: 12px; line-height: 18px; color: var(--muted); }
+
+/* ==========================================================================
+   Posição do menu: à esquerda (padrão), à direita ou no topo.
+   Escolhida no botão de aparência (tema.js) e aplicada no <html data-nav="...">
+   pelo head.php. Só no desktop: abaixo de 760px o menu continua sendo a gaveta.
+   ========================================================================== */
+@media (min-width: 761px) {
+
+  /* ---------- À direita: a barra troca de lado ---------- */
+  :root[data-nav="direita"] .sidebar {
+    left: auto;
+    right: 0;
+  }
+
+  :root[data-nav="direita"] .workspace {
+    margin-left: 0;
+    margin-right: 270px;
+  }
+
+  /* Marcador dourado do item ativo passa para a borda direita */
+  :root[data-nav="direita"] .nav-link.active:before {
+    left: auto;
+    right: -18px;
+    border-radius: 4px 0 0 4px;
+  }
+
+  /* Botão de aparência e o menu dele saem de cima da barra: ficam no canto do conteúdo */
+  :root[data-nav="direita"] .theme-fab,
+  :root[data-nav="direita"] .profile-menu.theme-fab-menu {
+    right: calc(270px + 24px);
+  }
+
+  /* ---------- No topo: a barra vira uma faixa horizontal ---------- */
+  :root[data-nav="topo"] .sidebar {
+    right: 0;
+    bottom: auto;
+    width: auto;
+    height: 64px;
+    flex-direction: row;
+    align-items: center;
+    overflow: visible;
+  }
+
+  :root[data-nav="topo"] .workspace {
+    margin-left: 0;
+    padding-top: 64px;
+  }
+
+  /* Logotipo em uma linha, sem a descrição e sem a linha divisória */
+  :root[data-nav="topo"] .brand-wrap {
+    flex-shrink: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0 24px;
+    border-bottom: 0;
+    border-right: 1px solid var(--sidebar-line);
+  }
+
+  :root[data-nav="topo"] .brand-name {
+    font-size: 17px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  :root[data-nav="topo"] .brand-name br,
+  :root[data-nav="topo"] .brand-description {
+    display: none;
+  }
+
+  /* Links lado a lado; se não couberem, a faixa rola na horizontal */
+  :root[data-nav="topo"] .navigation {
+    flex-direction: row;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    height: 100%;
+    padding: 0 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  :root[data-nav="topo"] .nav-link {
+    width: auto;
+    padding: 8px 12px;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  /* Marcador dourado do item ativo vira um traço embaixo do link */
+  :root[data-nav="topo"] .nav-link.active:before {
+    left: 12px;
+    right: 12px;
+    top: auto;
+    bottom: -12px;
+    width: auto;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+  }
+
+  /* Usuário compacto à direita: só o avatar (nome e cargo ficam no menu Perfil) e Sair só com ícone */
+  :root[data-nav="topo"] .user-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    height: 100%;
+    padding: 0 20px;
+    border-top: 0;
+    border-left: 1px solid var(--sidebar-line);
+  }
+
+  :root[data-nav="topo"] .user-profile {
+    width: auto;
+  }
+
+  :root[data-nav="topo"] .user-info {
+    display: none;
+  }
+
+  :root[data-nav="topo"] .logout {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    font-size: 0; /* esconde o texto "Sair"; fica o ícone (aria-label/title no nav.php) */
+  }
+
+  /* Resumo fixo do cadastro de contrato não pode ficar atrás da faixa do topo */
+  :root[data-nav="topo"] .contract-summary {
+    top: calc(64px + 24px);
+    max-height: calc(100dvh - 64px - 48px);
+  }
+}

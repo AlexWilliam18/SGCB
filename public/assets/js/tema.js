@@ -29,6 +29,9 @@
     document.querySelectorAll('[data-accent-option]').forEach(item =>
       item.setAttribute('aria-checked', String(item.dataset.accentOption === root.dataset.accent))
     );
+    document.querySelectorAll('[data-nav-option]').forEach(item =>
+      item.setAttribute('aria-checked', String(item.dataset.navOption === root.dataset.nav))
+    );
   }
 
   // Tema: escuro | claro | sistema ("sistema" segue o Windows/celular).
@@ -47,6 +50,16 @@
     item.addEventListener('click', () => {
       root.dataset.accent = item.dataset.accentOption;
       save('sgcb-destaque', item.dataset.accentOption);
+      markChoices();
+    })
+  );
+
+  // Posição do menu (páginas do sistema): esquerda | direita | topo. O CSS (dashboard.css)
+  // reposiciona a barra a partir do atributo data-nav do <html>.
+  document.querySelectorAll('[data-nav-option]').forEach(item =>
+    item.addEventListener('click', () => {
+      root.dataset.nav = item.dataset.navOption;
+      save('sgcb-menu', item.dataset.navOption);
       markChoices();
     })
   );
