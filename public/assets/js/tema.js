@@ -6,8 +6,8 @@
  *  - As opções vêm do includes/opcoes-tema.php (botões com data-theme-option e data-accent-option).
  *  - A escolha fica salva no navegador (localStorage) e o script do head.php a aplica ao carregar,
  *    antes de desenhar a página. Aqui ela é aplicada na hora em que a pessoa clica.
- *  - No login há um botão próprio (.theme-button) que abre o menu de tema; no admin quem abre
- *    é o menu do perfil (painel.js).
+ *  - No login o botão (.theme-button) fica no canto do card; nas páginas do sistema é o botão
+ *    flutuante (.theme-fab) no canto inferior direito (nav.php). Os dois abrem o mesmo tipo de menu.
  */
 (() => {
   const root = document.documentElement;
@@ -54,9 +54,9 @@
   markChoices();
 
   // ---------------------------------------------------------------------------
-  // Login: botão de tema no canto do card, que abre o menu logo abaixo dele.
+  // Botão que abre o menu de tema: no canto do card (login) ou flutuante (sistema).
   // ---------------------------------------------------------------------------
-  const button = document.querySelector('.theme-button');
+  const button = document.querySelector('.theme-button, .theme-fab');
   if (!button) return;
   const menu = document.getElementById(button.getAttribute('aria-controls'));
 
