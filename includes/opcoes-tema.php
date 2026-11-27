@@ -3,7 +3,11 @@
  * Opções de "Tema" e "Cor de destaque", iguais no menu do perfil (nav.php) e no login.
  * O comportamento (marcar a escolha, gravar no navegador e aplicar) fica no tema.js;
  * as cores ficam no tema.css; o head.php aplica a preferência ao carregar a página.
+ *
+ * @var bool $mostrarPosicaoMenu (opcional) true inclui o grupo "Posição do menu" (só no nav.php).
  */
+
+$mostrarPosicaoMenu = $mostrarPosicaoMenu ?? false;
 
 $iconeOk = htmlspecialchars(BASE_URL . 'assets/img/icones/ok.svg');
 // Visto (ok.svg) que aparece só na opção escolhida (aria-checked="true").
@@ -17,3 +21,10 @@ $visto = '<img class="icone profile-menu-check" src="' . $iconeOk . '" alt="" wi
       <button class="profile-menu-item" type="button" role="menuitemradio" data-accent-option="floresta"><span class="profile-menu-swatch" data-swatch="floresta"></span>Verde floresta<?= $visto ?></button>
       <button class="profile-menu-item" type="button" role="menuitemradio" data-accent-option="folha"><span class="profile-menu-swatch" data-swatch="folha"></span>Verde folha<?= $visto ?></button>
       <button class="profile-menu-item" type="button" role="menuitemradio" data-accent-option="musgo"><span class="profile-menu-swatch" data-swatch="musgo"></span>Verde musgo<?= $visto ?></button>
+<?php if ($mostrarPosicaoMenu): ?>
+      <!-- Posição do menu: os ícones desenham a tela com a barra no lugar escolhido -->
+      <p class="profile-menu-title">Posição do menu</p>
+      <button class="profile-menu-item" type="button" role="menuitemradio" data-nav-option="esquerda"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>À esquerda<?= $visto ?></button>
+      <button class="profile-menu-item" type="button" role="menuitemradio" data-nav-option="direita"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg>À direita<?= $visto ?></button>
+      <button class="profile-menu-item" type="button" role="menuitemradio" data-nav-option="topo"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>No topo<?= $visto ?></button>
+<?php endif; ?>

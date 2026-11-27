@@ -26,19 +26,23 @@ $urlFontes = 'https://fonts.googleapis.com/css2?family=' . implode('&family=', $
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1b4332">
-  <!-- Tema e cor de destaque: aplica a preferência salva (menu do perfil, painel.js) ANTES de
-       desenhar a página, para não piscar o tema claro. "sistema" segue o Windows/celular. -->
+  <!-- Tema, cor de destaque e posição do menu: aplica a preferência salva (botão de aparência, tema.js)
+       ANTES de desenhar a página, para não piscar o tema claro nem o menu no lugar errado.
+       "sistema" segue o Windows/celular. -->
   <script>
     (function () {
-      var raiz = document.documentElement, tema = 'sistema', destaque = 'floresta';
+      var raiz = document.documentElement, tema = 'sistema', destaque = 'floresta', menu = 'esquerda';
       try {
         tema = localStorage.getItem('sgcb-tema') || tema;
         destaque = localStorage.getItem('sgcb-destaque') || destaque;
+        menu = localStorage.getItem('sgcb-menu') || menu;
       } catch (e) {}
       var escuroDoSistema = window.matchMedia('(prefers-color-scheme: dark)');
       raiz.dataset.themePreference = tema;
       raiz.dataset.theme = tema === 'escuro' || (tema === 'sistema' && escuroDoSistema.matches) ? 'dark' : 'light';
       raiz.dataset.accent = destaque;
+      // Posição do menu das páginas do sistema: esquerda | direita | topo (no login não faz nada).
+      raiz.dataset.nav = menu;
       // Se o sistema trocar de tema com a página aberta, acompanha (só no modo "Do sistema").
       escuroDoSistema.addEventListener('change', function (ev) {
         if (raiz.dataset.themePreference === 'sistema') raiz.dataset.theme = ev.matches ? 'dark' : 'light';
