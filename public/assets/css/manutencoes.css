@@ -536,3 +536,126 @@
         align-items: flex-start
     }
 }
+
+/* ==========================================================================
+   Card de prioridade (Urgentes / Alta / Média / Baixa)
+   Mesmo visual do card "Faturamento" do financeiro.css: o card inteiro é clicável
+   (botão transparente por cima), tem uma seta no título e abre a lista logo abaixo.
+   ========================================================================== */
+.priority-card {
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s
+}
+
+.priority-card:hover,
+.priority-card:has(.priority-trigger:focus-visible) {
+    border-color: var(--accent-line);
+    box-shadow: 0 10px 28px -16px var(--shadow)
+}
+
+/* Botão invisível cobrindo o card todo */
+.priority-trigger {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border: 0;
+    border-radius: inherit;
+    background: none;
+    cursor: pointer
+}
+
+.priority-trigger:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px
+}
+
+.priority-card h2 {
+    display: flex;
+    align-items: center;
+    gap: 6px
+}
+
+/* Cor do fundo do ícone conforme a prioridade exibida (data-prioridade, manutencoes.js),
+   na mesma escala das etiquetas da tabela: urgente vermelho, alta laranja, média amarelo, baixa verde.
+   Urgente usa a regra .stat-icon.urgent acima. */
+.maintenance-page .priority-card[data-prioridade="altas"] .stat-icon {
+    background: color-mix(in srgb, var(--tint-red), var(--tint-yellow))
+}
+
+.maintenance-page .priority-card[data-prioridade="medias"] .stat-icon {
+    background: var(--tint-yellow)
+}
+
+.maintenance-page .priority-card[data-prioridade="baixas"] .stat-icon {
+    background: var(--tint-green)
+}
+
+/* Seta gira para cima com a lista aberta */
+.priority-caret {
+    transition: transform .15s
+}
+
+.priority-card:has(.priority-trigger[aria-expanded=true]) .priority-caret {
+    transform: rotate(180deg)
+}
+
+/* Lista de prioridades: abre logo abaixo do card (posição calculada no manutencoes.js) */
+.priority-menu {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    min-width: 220px;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: 0 16px 40px -12px var(--shadow);
+    color: var(--ink)
+}
+
+/* Opção: nome da prioridade à esquerda, quantidade em aberto à direita */
+.priority-menu button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 9px;
+    background: none;
+    color: var(--ink);
+    text-align: left;
+    font: inherit;
+    font-size: 13px;
+    line-height: 18px;
+    cursor: pointer
+}
+
+.priority-menu button:hover,
+.priority-menu button:focus-visible {
+    background: var(--surface-2);
+    outline: none
+}
+
+/* Prioridade exibida no card: fundo verde-claro e texto em negrito */
+.priority-menu button[aria-checked=true] {
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    font-weight: 700
+}
+
+.priority-count {
+    min-width: 24px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--surface-3);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center
+}
+
+.priority-count:empty {
+    display: none
+}

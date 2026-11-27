@@ -23,7 +23,25 @@
   };
   const statusLabels = { AGENDADA: 'Agendada', EM_MANUTENCAO: 'Em manutenção', CONCLUIDA: 'Concluída', CANCELADA: 'Cancelada' };
   const priorityLabels = { BAIXA: 'Baixa', MEDIA: 'Média', ALTA: 'Alta', URGENTE: 'Urgente' };
-  const metricKeys = ['em_manutencao', 'agendadas', 'urgentes', 'concluidas'];
+  const metricKeys = ['em_manutencao', 'agendadas', 'concluidas'];
+  // Card de prioridade: chave do indicador na API → título e legenda do card.
+  // Todas contam manutenções em aberto (agendadas ou em andamento) daquela prioridade.
+  const priorityCards = {
+    urgentes: { titulo: 'Urgentes', legenda: 'necessitam de atenção' },
+    altas: { titulo: 'Prioridade alta', legenda: 'em aberto com prioridade alta' },
+    medias: { titulo: 'Prioridade média', legenda: 'em aberto com prioridade média' },
+    baixas: { titulo: 'Prioridade baixa', legenda: 'em aberto com prioridade baixa' },
+  };
+  const priorityKeys = Object.keys(priorityCards);
+  // Prioridade escolhida no card: lembrada neste navegador (se não der para gravar, volta para Urgentes).
+  let cardPriority = 'urgentes';
+  try {
+    const saved = localStorage.getItem('sgcb-manutencao-card-prioridade');
+    if (priorityKeys.includes(saved)) cardPriority = saved;
+  } catch (_) {
+    /* sem armazenamento: usa o padrão */
+  }
+  let lastMetrics = null; // indicadores da última resposta da API (o card troca de prioridade sem recarregar)
   // Chave do filtro no state/URL → id do campo no formulário.
   const fields = {
     q: 'maintenance-search',
@@ -178,7 +196,7 @@
         !Number.isInteger(data.total) ||
         !Number.isInteger(data.page) ||
         !Number.isInteger(data.pages) ||
-        !metricKeys.every(key => Number.isInteger(data.metrics?.[key]) && data.metrics[key] >= 0)
+        ![...metricKeys, ...priorityKeys].every(key => Number.isInteger(data.metrics?.[key]) && data.metrics[key] >= 0)
       )
         throw Error('O servidor retornou dados inválidos. Tente novamente.');
       if (id !== requestId) return;
@@ -186,6 +204,8 @@
       renderRows(data.items);
       renderPages();
       metricKeys.forEach(key => ($('metric-' + key).textContent = new Intl.NumberFormat('pt-BR').format(data.metrics[key])));
+      lastMetrics = data.metrics;
+      renderPriorityCard();
       // Card "Agendadas": conta só os próximos 30 dias; as vencidas aparecem à parte na legenda
       // (o filtro Status → "Atrasada" lista essas manutenções).
       const atrasadas = Number(data.metrics.atrasadas) || 0;
@@ -209,6 +229,8 @@
       if (id !== requestId) return;
       emptyRow('Não foi possível carregar as manutenções.');
       metricKeys.forEach(key => ($('metric-' + key).textContent = '—'));
+      lastMetrics = null;
+      renderPriorityCard();
       $('maintenance-message').textContent =
         error.name === 'AbortError'
           ? 'A consulta demorou mais que o esperado. Tente novamente.'
@@ -384,6 +406,74 @@
     detailController?.abort();
   });
 
+  // ---------------------------------------------------------------------------
+  // Card de prioridade: a seta abre a lista (Urgente, Alta, Média, Baixa) e o card mostra a escolhida.
+  // Mesmo padrão do card "Faturamento" do financeiro.js. Trocar de prioridade não recarrega a página:
+  // os números de todas já vêm em data.metrics.
+  // ---------------------------------------------------------------------------
+  const priorityMenu = $('priority-menu');
+
+  // Título, número e legenda do card + quantidade ao lado de cada opção da lista.
+  function renderPriorityCard() {
+    const card = priorityCards[cardPriority];
+    const format = new Intl.NumberFormat('pt-BR');
+    // data-prioridade no card troca a cor do fundo do ícone (manutencoes.css)
+    $('priority-trigger').closest('.priority-card').dataset.prioridade = cardPriority;
+    $('priority-title').textContent = card.titulo;
+    $('caption-prioridade').textContent = card.legenda;
+    $('metric-prioridade').textContent = lastMetrics ? format.format(lastMetrics[cardPriority]) : '—';
+    priorityMenu.querySelectorAll('[data-prioridade]').forEach(item =>
+      item.setAttribute('aria-checked', String(item.dataset.prioridade === cardPriority))
+    );
+    priorityMenu.querySelectorAll('[data-count]').forEach(count => {
+      count.textContent = lastMetrics ? format.format(lastMetrics[count.dataset.count]) : '';
+    });
+  }
+
+  // Ao abrir: posiciona logo abaixo do card, sem passar da borda direita da tela.
+  priorityMenu.addEventListener('toggle', event => {
+    const open = event.newState === 'open';
+    $('priority-trigger').setAttribute('aria-expanded', String(open));
+    if (!open) return;
+    const card = $('priority-trigger').getBoundingClientRect();
+    priorityMenu.style.top = card.bottom + 6 + 'px';
+    priorityMenu.style.left = Math.max(8, Math.min(card.left, innerWidth - priorityMenu.offsetWidth - 8)) + 'px';
+    (priorityMenu.querySelector('[aria-checked=true]') || priorityMenu.querySelector('button')).focus();
+  });
+
+  // Escolher uma prioridade: troca o card e lembra a escolha neste navegador.
+  priorityMenu.querySelectorAll('[data-prioridade]').forEach(item =>
+    item.addEventListener('click', () => {
+      priorityMenu.hidePopover();
+      $('priority-trigger').focus();
+      cardPriority = item.dataset.prioridade;
+      try {
+        localStorage.setItem('sgcb-manutencao-card-prioridade', cardPriority);
+      } catch (_) {
+        /* sem armazenamento: vale só até recarregar */
+      }
+      renderPriorityCard();
+    })
+  );
+
+  // A lista fica fixa na tela: se a janela mudar de tamanho ou a página rolar, ela fecha
+  // (senão ficaria solta, longe do card).
+  const closePriorityMenu = () => {
+    if (priorityMenu.matches(':popover-open')) priorityMenu.hidePopover();
+  };
+  window.addEventListener('resize', closePriorityMenu);
+  window.addEventListener('scroll', closePriorityMenu, { passive: true });
+
+  // Setas ↑/↓ andam pela lista.
+  priorityMenu.addEventListener('keydown', event => {
+    if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return;
+    event.preventDefault();
+    const items = [...priorityMenu.querySelectorAll('button')];
+    const index = items.indexOf(document.activeElement);
+    items[(index + (event.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus();
+  });
+
+  renderPriorityCard();
   updateFilters();
   load();
 })();
