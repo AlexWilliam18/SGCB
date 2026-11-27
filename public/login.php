@@ -66,9 +66,10 @@ require __DIR__ . '/../includes/head.php';
 <?php require __DIR__ . '/../includes/opcoes-tema.php'; ?>
     </div>
 
-    <!-- Marca: logotipo (o mesmo do favicon), nome e selo da área -->
+    <!-- Marca: logotipo do sistema SGCB (cubo verde, PNG sem fundo), nome e selo da área.
+         Imagem quadrada (360x360), exibida com 84px de largura como o logotipo anterior (login.css). -->
     <header class="brand">
-      <img class="brand-logo" src="<?= $img ?>logo/favicon.svg" alt="" width="84" height="76">
+      <img class="brand-logo" src="<?= $img ?>logo/sgcb.png" alt="SGCB" width="84" height="84">
       <p class="brand-name">CASA BARRETTO</p>
       <p class="brand-area">Área administrativa</p>
     </header>

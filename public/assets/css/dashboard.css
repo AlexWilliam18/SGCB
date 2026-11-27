@@ -1262,20 +1262,80 @@ td {
     right: calc(270px + 24px);
   }
 
-  /* ---------- No topo: a barra vira uma faixa horizontal ---------- */
+  /* ---------- No topo: a barra vira uma faixa horizontal ----------
+     Cores próprias (opção "grafite"): no claro a barra é branca, no escuro é grafite,
+     e só o item ativo fica verde. Redefinir as variáveis --sidebar-* aqui faz o logotipo,
+     os links, as linhas e o botão Sair seguirem essas cores sem repetir cada regra. */
   :root[data-nav="topo"] .sidebar {
+    --sidebar-bg: var(--surface);
+    --sidebar-ink: var(--ink);
+    --sidebar-muted: var(--muted);
+    --sidebar-line: var(--line);
+    --sidebar-hover: var(--surface-2);
     right: 0;
     bottom: auto;
     width: auto;
-    height: 64px;
+    height: 56px;
     flex-direction: row;
     align-items: center;
     overflow: visible;
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 1px 2px #0000000a; /* separa de leve a barra branca do fundo areia */
+  }
+
+  /* Tema escuro: barra grafite (quase preta), um degrau abaixo do fundo da página */
+  :root[data-theme="dark"][data-nav="topo"] .sidebar {
+    --sidebar-bg: #0b0e0c;
+    --sidebar-ink: #ffffff;
+    --sidebar-muted: #ffffffb3;
+    --sidebar-hover: #ffffff12;
+    box-shadow: none;
   }
 
   :root[data-nav="topo"] .workspace {
     margin-left: 0;
-    padding-top: 64px;
+    padding-top: 56px;
+  }
+
+  /* No claro o nome da empresa fica na cor de destaque; no escuro, branco */
+  :root[data-nav="topo"] .brand-name {
+    color: var(--accent-ink);
+  }
+
+  :root[data-theme="dark"][data-nav="topo"] .brand-name {
+    color: #ffffff;
+  }
+
+  /* Ícones do menu são brancos: na barra clara ficam cinza-escuros (menos no item ativo, que é verde) */
+  :root[data-nav="topo"] .nav-link:not(.active) img,
+  :root[data-nav="topo"] .logout img {
+    filter: brightness(0);
+    opacity: .65;
+  }
+
+  :root[data-theme="dark"][data-nav="topo"] .nav-link:not(.active) img,
+  :root[data-theme="dark"][data-nav="topo"] .logout img {
+    filter: none;
+    opacity: .8;
+  }
+
+  /* Módulos ainda em desenvolvimento (botões, não links) com a mesma cor dos outros itens */
+  :root[data-nav="topo"] .nav-link[data-module] {
+    color: var(--sidebar-muted);
+  }
+
+  /* Página atual: fundo verde e texto branco, nos dois temas */
+  :root[data-nav="topo"] .nav-link.active,
+  :root[data-nav="topo"] .nav-link.active:hover {
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 600;
+  }
+
+  /* Avatar em verde, como o item ativo */
+  :root[data-nav="topo"] .avatar {
+    background: var(--accent);
+    color: var(--on-accent);
   }
 
   /* Logotipo em uma linha, sem a descrição e sem a linha divisória */
@@ -1313,20 +1373,15 @@ td {
 
   :root[data-nav="topo"] .nav-link {
     width: auto;
-    padding: 8px 12px;
+    padding: 7px 12px;
     gap: 8px;
     font-size: 14px;
+    border-radius: 10px;
   }
 
-  /* Marcador dourado do item ativo vira um traço embaixo do link */
+  /* No topo o fundo verde já marca a página atual: sem o marcador dourado */
   :root[data-nav="topo"] .nav-link.active:before {
-    left: 12px;
-    right: 12px;
-    top: auto;
-    bottom: -12px;
-    width: auto;
-    height: 3px;
-    border-radius: 3px 3px 0 0;
+    display: none;
   }
 
   /* Usuário compacto à direita: só o avatar (nome e cargo ficam no menu Perfil) e Sair só com ícone */
@@ -1350,15 +1405,16 @@ td {
   }
 
   :root[data-nav="topo"] .logout {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
+    border-color: var(--line);
     margin: 0;
     font-size: 0; /* esconde o texto "Sair"; fica o ícone (aria-label/title no nav.php) */
   }
 
   /* Resumo fixo do cadastro de contrato não pode ficar atrás da faixa do topo */
   :root[data-nav="topo"] .contract-summary {
-    top: calc(64px + 24px);
-    max-height: calc(100dvh - 64px - 48px);
+    top: calc(56px + 24px);
+    max-height: calc(100dvh - 56px - 48px);
   }
 }
