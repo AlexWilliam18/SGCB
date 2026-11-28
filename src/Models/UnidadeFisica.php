@@ -63,20 +63,29 @@ final class UnidadeFisica extends Modelo
     /** Unidades de um produto (opcionalmente de um estado), para a tela de detalhes. */
     public static function listarPorProduto(int $produtoId, ?string $estado = null): array
     {
-        $sql    = 'SELECT id, codigo, estado_operacional, localidade, ultima_vistoria_em, observacoes, criado_em
-                     FROM unidades_fisicas WHERE produto_id = :id';
-        $params = ['id' => $produtoId];
-        if ($estado !== null) {
-            $sql            .= ' AND estado_operacional = :estado';
-            $params['estado'] = $estado;
+        // Usa a procedure BuscarUnidadesPorProdutoEstado (database/procedures/sp_com_parametros.sql),
+        // que filtra por produto + estado. Sem estado informado, chama uma vez para cada estado.
+        $estados  = $estado !== null ? [$estado] : ['DISPONIVEL', 'LOCADA', 'MANUTENCAO', 'INATIVA'];
+        $consulta = self::pdo()->prepare('CALL BuscarUnidadesPorProdutoEstado(:id, :estado)');
+        $unidades = [];
+        foreach ($estados as $e) {
+            $consulta->execute(['id' => $produtoId, 'estado' => $e]);
+            $unidades = array_merge($unidades, $consulta->fetchAll());
+            $consulta->closeCursor(); // CALL devolve mais de um resultado; libera antes da próxima chamada
         }
-        $consulta = self::pdo()->prepare($sql . ' ORDER BY codigo');
-        $consulta->execute($params);
 
-        return array_map(static function (array $u): array {
-            $u['id'] = (int) $u['id'];
-            return $u;
-        }, $consulta->fetchAll());
+        // Mesma ordem e mesmos campos que a tela de detalhes já usava.
+        usort($unidades, static fn (array $a, array $b): int => strcmp($a['codigo'], $b['codigo']));
+
+        return array_map(static fn (array $u): array => [
+            'id'                 => (int) $u['id'],
+            'codigo'             => $u['codigo'],
+            'estado_operacional' => $u['estado_operacional'],
+            'localidade'         => $u['localidade'],
+            'ultima_vistoria_em' => $u['ultima_vistoria_em'],
+            'observacoes'        => $u['observacoes'],
+            'criado_em'          => $u['criado_em'],
+        ], $unidades);
     }
 
     /**
@@ -86,11 +95,13 @@ final class UnidadeFisica extends Modelo
      */
     public static function listarParaManutencao(): array
     {
+        // A view vw_unidades_fisicas (database/views/vw_unidades_fisicas.sql) já traz o JOIN
+        // unidade → produto → categoria; aqui só renomeamos as colunas para o que a tela espera.
         $linhas = self::pdo()->query(
-            "SELECT u.id, u.codigo, p.nome AS produto
-               FROM unidades_fisicas u JOIN produtos p ON p.id = u.produto_id
-              WHERE u.estado_operacional = 'DISPONIVEL'
-              ORDER BY u.codigo"
+            "SELECT unidade_id AS id, codigo_unidade AS codigo, produto
+               FROM vw_unidades_fisicas
+              WHERE estado_operacional = 'DISPONIVEL'
+              ORDER BY codigo_unidade"
         )->fetchAll();
 
         return array_map(static function (array $u): array {
