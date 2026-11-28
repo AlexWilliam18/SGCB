@@ -441,3 +441,66 @@ main[id] {
 .cep-status[data-tipo="erro"] {
   color: var(--danger);
 }
+
+/* Colunas ajustáveis (colunas.js), em todas as tabelas.
+   Linha fina entre os títulos (cor das bordas); ao apontar ou arrastar ela fica na cor de destaque
+   e desce pela tabela inteira (--guia = altura da tabela), separando as duas colunas por completo. */
+th.col-resizable {
+  position: relative;
+}
+.col-resizer {
+  position: absolute;
+  top: 0;
+  right: -6px;
+  z-index: 2;
+  width: 12px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+}
+.col-resizer::before,
+.col-resizer::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+/* Divisor sempre visível, só no cabeçalho */
+.col-resizer::before {
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: var(--line-strong);
+}
+/* Guia de destaque pela tabela inteira (aparece no hover, foco e arraste) */
+.col-resizer::after {
+  top: 0;
+  width: 2px;
+  height: var(--guia, 100%);
+  background: var(--accent-ink);
+  opacity: 0;
+  transition: opacity .15s;
+}
+.col-resizer:hover::after,
+.col-resizer:focus-visible::after,
+.col-resizer.is-dragging::after {
+  opacity: 1;
+}
+.col-resizer:hover::before,
+.col-resizer.is-dragging::before {
+  opacity: 0;
+}
+.col-resizer:focus-visible {
+  outline: none;
+}
+/* A última coluna não tem vizinha à direita: a alça fica para dentro, sem sair da tabela */
+th.col-resizable:last-child .col-resizer {
+  right: 0;
+}
+/* Durante o arraste: cursor de redimensionar na página toda e sem selecionar texto */
+html.is-resizing-col,
+html.is-resizing-col * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
