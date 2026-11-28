@@ -43,7 +43,7 @@ $urlInicio = htmlspecialchars(BASE_URL . 'admin/dashboard.php');
 $urlSair   = htmlspecialchars(BASE_URL . 'logout.php?csrf=' . urlencode(Autenticacao::tokenCsrf()));
 
 // "Perfil" no menu do usuário: quem pode editar usuários vai direto para a edição do próprio
-// cadastro (admin/usuarios/cadastro.php?id=...). Quem não pode (ex.: Operador) continua vendo
+// cadastro (admin/usuarios/cadastro.php?id=...). Quem não pode (ex.: Gerente) continua vendo
 // só o aviso com nome, e-mail e cargo (painel.js), para não cair numa tela de "sem permissão".
 // A API confere a permissão de novo ao salvar (UsuarioController: usuarios/editar).
 $podeEditarPerfil = Usuario::temPermissao((int) $usuario['id'], 'usuarios', 'editar');

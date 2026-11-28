@@ -1,7 +1,7 @@
 'use strict';
 /*
  * Cadastro de usuário: carrega os cargos, valida os campos e grava pela API.
- *   GET  /api/usuarios/opcoes → cargos ativos (ligam os cards Operador/Dono ao id do cargo) e token CSRF
+ *   GET  /api/usuarios/opcoes → cargos ativos (ligam os cards Gerente/Administrador Master ao id do cargo) e token CSRF
  *   POST /api/usuarios        → cria o usuário (UsuarioController::salvar → Usuario::cadastrarUsuario)
  * Modo edição (cadastro.php?id=5, data-edit-id no <main>):
  *   GET  /api/usuarios/5        → preenche o formulário
@@ -111,7 +111,7 @@
   }
   $('reload-options').addEventListener('click', loadOptions);
 
-  // Perfil Dono (cargo ADMIN): por segurança o status fica sempre "Ativo" (o servidor também recusa).
+  // Perfil Administrador Master (cargo ADMIN): por segurança o status fica sempre "Ativo" (o servidor também recusa).
   // A opção "Inativo" fica desabilitada e aparece a explicação abaixo do campo.
   function syncAdminStatus() {
     const admin = form.querySelector('input[name="perfil"]:checked')?.dataset.cargo === 'ADMIN';

@@ -126,6 +126,18 @@ final class Produto extends Modelo
                   'total', 'disponivel', 'alugado', 'manutencao', 'inativa'] as $campo) {
             $p[$campo] = $p[$campo] !== null ? (int) $p[$campo] : null;
         }
+        // Disponíveis no pátio pela procedure ConsultarUnidadesDisponiveis
+        // (database/procedures/sp_consultar_unidades_disponiveis.sql): parâmetro IN = produto,
+        // parâmetro OUT @qtd = quantidade. A lista que ela devolve não é usada aqui, só o OUT.
+        $pdo  = self::pdo();
+        $proc = $pdo->prepare('CALL ConsultarUnidadesDisponiveis(:id, @qtd)');
+        $proc->execute(['id' => $id]);
+        do {
+            $proc->fetchAll(); // descarta os resultados do CALL antes de ler o OUT
+        } while ($proc->nextRowset());
+        $proc->closeCursor();
+        $p['disponivel'] = (int) $pdo->query('SELECT @qtd')->fetchColumn();
+
         $p['ativo']           = (bool) $p['ativo'];
         $p['valor_total_bem'] = $p['valor_total_bem'] !== null ? (float) $p['valor_total_bem'] : null;
         $p['reservado']       = (int) $reservas->fetchColumn();

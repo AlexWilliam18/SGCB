@@ -56,7 +56,7 @@ final class Api
     }
 
     /**
-     * Só o cargo ADMIN (acesso geral) + token válido. Usado em exclusões definitivas: nem um operador
+     * Só o cargo ADMIN (acesso geral) + token válido. Usado em exclusões definitivas: nem um gerente
      * com permissões extras passa aqui, porque a checagem é pelo cargo e não pela tabela de permissões.
      *
      * @return array o usuário logado.
@@ -66,7 +66,7 @@ final class Api
         $usuario = self::usuario();
         self::verificarToken();
         if (!self::ehAdmin($usuario)) {
-            throw new ErroValidacao('Somente o dono pode excluir.', [], 403);
+            throw new ErroValidacao('Somente o Administrador Master pode excluir.', [], 403);
         }
 
         return $usuario;

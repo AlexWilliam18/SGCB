@@ -548,8 +548,14 @@ final class Contrato extends Modelo
              c.periodicidade, p.nome_razao_social AS cliente, p.cpf_cnpj,
              (SELECT COALESCE(SUM(i.quantidade), 0) FROM contrato_itens i WHERE i.contrato_id = c.id) AS itens,
              (SELECT COALESCE(SUM(i.subtotal), 0) FROM contrato_itens i WHERE i.contrato_id = c.id)
-               + COALESCE(c.frete_deslocamento, 0) + COALESCE(c.outros_valores, 0) AS valor_total',
-            'FROM contratos c JOIN pessoas p ON p.id = c.cliente_id WHERE ' . implode(' AND ', $where),
+               + COALESCE(c.frete_deslocamento, 0) + COALESCE(c.outros_valores, 0) AS valor_total,
+             COALESCE(r.total_parcelas, 0) AS total_parcelas, r.ultimo_vencimento',
+            // vw_resumo_parcelas_contratos (database/views/vw_resumo_parcelas_contratos.sql): view complexa
+            // com uma linha por contrato (parcelas não canceladas, total e vencimentos). LEFT JOIN porque
+            // rascunho e contrato com todas as parcelas canceladas não aparecem na view.
+            'FROM contratos c JOIN pessoas p ON p.id = c.cliente_id
+             LEFT JOIN vw_resumo_parcelas_contratos r ON r.contrato_id = c.id
+             WHERE ' . implode(' AND ', $where),
             $params,
             // Padrão: mais recentes primeiro; com o filtro "Ordem", pelo nome do cliente.
             self::ordemAlfabetica($filtros, 'p.nome_razao_social', 'c.criado_em DESC, c.id DESC', 'c.id'),
@@ -559,6 +565,7 @@ final class Contrato extends Modelo
             $c['id']          = (int) $c['id'];
             $c['itens']       = (int) $c['itens'];
             $c['valor_total'] = (float) $c['valor_total'];
+            $c['total_parcelas'] = (int) $c['total_parcelas'];
             return $c;
         }, $resultado['items']);
 

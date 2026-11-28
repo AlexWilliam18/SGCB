@@ -162,13 +162,22 @@
       button.addEventListener('click', () => showContract(contrato.id));
       actions.append(button);
 
+      // Valor com o resumo das parcelas abaixo (vem da view vw_resumo_parcelas_contratos).
+      const valueCell = cell(money.format(contrato.valor_total || 0), 'contract-value');
+      if (contrato.total_parcelas) {
+        const parcelas = document.createElement('small');
+        parcelas.textContent = contrato.total_parcelas + (contrato.total_parcelas === 1 ? ' parcela' : ' parcelas')
+          + (contrato.ultimo_vencimento ? ' · até ' + date(contrato.ultimo_vencimento) : '');
+        valueCell.append(parcelas);
+      }
+
       tr.append(
         numberCell,
         clientCell,
         cell(date(contrato.data_inicio)),
         cell(contrato.data_fim ? date(contrato.data_fim) : 'Indeterminado'),
         cell(String(contrato.itens ?? 0)),
-        cell(money.format(contrato.valor_total || 0), 'contract-value'),
+        valueCell,
         statusCell,
         actions
       );

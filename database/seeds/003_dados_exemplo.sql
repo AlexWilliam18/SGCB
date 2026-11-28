@@ -91,7 +91,7 @@ SET @snap_empresa = (SELECT JSON_OBJECT('id', id, 'razao_social', razao_social, 
 -- =============================================================================
 
 INSERT INTO cargos (codigo, nome, nivel, descricao, ativo)
-VALUES ('OPERADOR', 'Operador', 10, 'Cadastros e acompanhamento das locações', TRUE)
+VALUES ('OPERADOR', 'Gerente', 10, 'Acesso a todas as telas, exceto Usuários', TRUE)
 ON DUPLICATE KEY UPDATE id = id;
 
 SET @cargo_op = (SELECT id FROM cargos WHERE codigo = 'OPERADOR');
