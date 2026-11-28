@@ -64,7 +64,7 @@
       });
       $('user-role').value = state.cargo;
     } catch (_) {
-      // Sem a lista de cargos, o filtro continua com Dono e Operador.
+      // Sem a lista de cargos, o filtro continua com Administrador Master e Gerente.
     }
   }
 
@@ -344,7 +344,7 @@
       else {
         const aviso = document.createElement('p');
         aviso.className = 'user-admin-note';
-        aviso.textContent = 'Dono: por segurança, não pode ser inativado.';
+        aviso.textContent = 'Administrador Master: por segurança, não pode ser inativado.';
         container.append(aviso);
       }
       SGCBAcoes.barra(container, acoes);

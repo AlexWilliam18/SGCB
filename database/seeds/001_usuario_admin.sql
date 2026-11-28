@@ -1,5 +1,5 @@
 -- =============================================================================
--- SGCB - Seed 001: cargo Dono (ADMIN) e usuário admin padrão, para o primeiro login
+-- SGCB - Seed 001: cargo Administrador Master (ADMIN) e usuário admin padrão, para o primeiro login
 -- depois de montar o banco do zero. Rode depois da migração 001.
 -- Compatível com MySQL 8.0+ e MariaDB 10.4+ (XAMPP).
 --
@@ -19,10 +19,10 @@ USE sgcb;
 
 SET NAMES utf8mb4;
 
--- Cargo Dono (código ADMIN, acesso total): o usuário depende dele (usuarios.cargo_id é obrigatório).
+-- Cargo Administrador Master (código ADMIN, acesso total): o usuário depende dele (usuarios.cargo_id é obrigatório).
 -- Se o cargo já existir (mesmo código), só mantém o registro atual.
 INSERT INTO cargos (codigo, nome, nivel, descricao, ativo)
-VALUES ('ADMIN', 'Dono', 100, 'Acesso total ao sistema', TRUE)
+VALUES ('ADMIN', 'Administrador Master', 100, 'Acesso total, incluindo a gestão de usuários', TRUE)
 ON DUPLICATE KEY UPDATE id = id;
 
 -- Usuário admin padrão. A senha fica em texto puro aqui e é convertida para hash bcrypt

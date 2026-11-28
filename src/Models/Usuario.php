@@ -127,7 +127,7 @@ final class Usuario extends Modelo
         $deveAlterar = array_key_exists('deve_alterar_senha', $dados) ? self::campoBool($dados, 'deve_alterar_senha') : 1;
         // Segurança: administrador nunca fica inativo (nem já nasce inativo).
         if (!$ativo && self::cargoEhAdmin($campos['cargo_id'])) {
-            throw new ErroValidacao('O dono não pode ser cadastrado como inativo.', ['status' => 'O dono não pode ficar inativo.']);
+            throw new ErroValidacao('O Administrador Master não pode ser cadastrado como inativo.', ['status' => 'O Administrador Master não pode ficar inativo.']);
         }
 
         return self::transacao(static function (PDO $pdo) use ($campos, $senha, $ativo, $deveAlterar, $criadoPor): int {
@@ -165,8 +165,8 @@ final class Usuario extends Modelo
         if ($atual['cargo_codigo'] === self::CARGO_ADMIN && $atual['ativo'] && !self::cargoEhAdmin($campos['cargo_id'])
             && self::adminsAtivos() <= 1) {
             throw new ErroValidacao(
-                'Este é o único dono ativo: ele não pode deixar de ser dono.',
-                ['cargo_id' => 'Mantenha o perfil Dono (é o único dono ativo).'],
+                'Este é o único Administrador Master ativo: ele não pode deixar de ser Master.',
+                ['cargo_id' => 'Mantenha o perfil Administrador Master (é o único Master ativo).'],
                 409
             );
         }
@@ -191,7 +191,7 @@ final class Usuario extends Modelo
             throw new ErroValidacao('Você não pode desativar o seu próprio usuário.');
         }
         if (!$ativo && self::buscarPorId($id)['cargo_codigo'] === self::CARGO_ADMIN) {
-            throw new ErroValidacao('O dono não pode ser desativado.', ['status' => 'O dono não pode ficar inativo.'], 409);
+            throw new ErroValidacao('O Administrador Master não pode ser desativado.', ['status' => 'O Administrador Master não pode ficar inativo.'], 409);
         }
 
         self::transacao(static function (PDO $pdo) use ($id, $ativo, $alteradoPor): void {
