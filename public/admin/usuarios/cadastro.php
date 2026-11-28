@@ -67,11 +67,11 @@ require __DIR__ . '/../../../includes/head.php';
           <section class="user-create-section" aria-labelledby="user-role-title">
             <h3 id="user-role-title">Perfil de acesso</h3>
             <fieldset class="user-role-options"><legend class="sr-only">Escolha o perfil de acesso</legend>
-              <label class="user-role-card" for="perfil-operador"><span class="user-role-title"><input id="perfil-operador" type="radio" name="perfil" data-cargo="OPERADOR" value="" checked required><strong>Operador</strong></span><span class="user-role-description">Acesso às rotinas de clientes, produtos e locações.</span></label>
-              <label class="user-role-card user-admin-card" for="perfil-administrador"><span class="user-role-title"><input id="perfil-administrador" type="radio" name="perfil" data-cargo="ADMIN" value="" required><strong>Dono</strong></span><span class="user-role-description">Acesso completo, incluindo financeiro e gestão de usuários.</span></label>
+              <label class="user-role-card" for="perfil-operador"><span class="user-role-title"><input id="perfil-operador" type="radio" name="perfil" data-cargo="OPERADOR" value="" checked required><strong>Gerente</strong></span><span class="user-role-description">Acesso a todas as telas, da Visão Geral ao Financeiro. Não acessa Usuários.</span></label>
+              <label class="user-role-card user-admin-card" for="perfil-administrador"><span class="user-role-title"><input id="perfil-administrador" type="radio" name="perfil" data-cargo="ADMIN" value="" required><strong>Administrador Master</strong></span><span class="user-role-description">Acesso completo, incluindo a gestão de usuários e permissões.</span></label>
             </fieldset>
             <p class="user-error" id="error-cargo_id" hidden></p>
-            <p class="user-help" id="role-help">O perfil Operador não permite cadastrar usuários ou alterar permissões.</p>
+            <p class="user-help" id="role-help">O perfil Gerente não acessa a tela de Usuários: não cadastra usuários nem altera permissões.</p>
           </section>
           <!-- Rodapé: Cancelar volta para a listagem; Salvar fica desabilitado até os cargos carregarem -->
           <div class="user-create-actions"><p>* Campos obrigatórios</p><div><a class="user-outline" href="<?= $urlLista ?>">Cancelar</a><button class="user-save" id="save-user" type="submit" disabled><?= $editando ? 'Salvar alterações' : 'Salvar usuário' ?></button></div></div>

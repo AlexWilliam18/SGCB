@@ -2,7 +2,7 @@
 -- SGCB - Seed 002: dados básicos para os módulos de contrato e financeiro funcionarem.
 --   - condições de pagamento padrão (o cadastro de cliente exige uma);
 --   - empresa (locadora) com as preferências de contrato padrão (numeração CT-000001);
---   - matriz de permissões: módulos, ações e o que o cargo Operador pode fazer.
+--   - matriz de permissões: módulos, ações e o que o cargo Gerente (código OPERADOR) pode fazer.
 --
 -- Rode depois do 001_usuario_admin.sql. Pode ser executado de novo sem duplicar nada.
 -- A empresa é criada só com o nome: complete CNPJ, endereço e contato depois.
@@ -40,18 +40,18 @@ SELECT e.id, TRUE, 'CT-', 1, 'LOC-', 1, 'DATA_INICIO', 7, 'CORRIDOS', 'BRL', 2, 
 
 
 -- =============================================================================
--- Matriz de permissões (módulos, ações e o que o cargo Operador pode fazer).
--- O Dono (cargo ADMIN) pode tudo e não depende desta lista (Usuario::temPermissao).
+-- Matriz de permissões (módulos, ações e o que o cargo Gerente (código OPERADOR) pode fazer).
+-- O Administrador Master (cargo ADMIN) pode tudo e não depende desta lista (Usuario::temPermissao).
 -- Os códigos são os mesmos usados nos controllers: Api::permitir('modulo', 'acao').
 -- Exceções por usuário (conceder/negar) ficam em usuario_permissoes.
 -- =============================================================================
 
--- Cargo Operador (código UNIQUE: se já existir, não duplica).
+-- Cargo Gerente, código OPERADOR (código UNIQUE: se já existir, não duplica).
 INSERT INTO cargos (codigo, nome, nivel, descricao, ativo)
-VALUES ('OPERADOR', 'Operador', 10, 'Cadastros e acompanhamento das locações', TRUE)
+VALUES ('OPERADOR', 'Gerente', 10, 'Acesso a todas as telas, exceto Usuários', TRUE)
 ON DUPLICATE KEY UPDATE id = id;
 
--- Módulos. exclusivo_adm = TRUE: só o Dono acessa, mesmo com permissão no cargo.
+-- Módulos. exclusivo_adm = TRUE: só o Administrador Master acessa, mesmo com permissão no cargo.
 INSERT INTO modulos (codigo, nome, exclusivo_adm)
 VALUES ('clientes',      'Clientes e fornecedores', FALSE),
        ('produtos',      'Produtos e estoque',      FALSE),
@@ -93,15 +93,14 @@ SELECT m.id, a.acao, a.descricao
   JOIN modulos m ON m.codigo = a.modulo
  WHERE NOT EXISTS (SELECT 1 FROM permissoes p WHERE p.modulo_id = m.id AND p.acao = a.acao);
 
--- O que o Operador pode fazer: rotinas de clientes, produtos, contratos e manutenções.
--- Financeiro: só consulta (registrar, ajustar e estornar pagamentos ficam com o Dono).
--- Cancelar contrato também fica com o Dono, porque cancela as parcelas em aberto.
+-- O que o Gerente (código OPERADOR) pode fazer: todas as ações dos módulos que não são
+-- exclusivos do Administrador Master (clientes, produtos, contratos, manutenções e financeiro).
+-- Usuários e Configurações ficam só com o Master (exclusivo_adm = TRUE).
 INSERT INTO cargo_permissoes (cargo_id, permissao_id)
 SELECT c.id, p.id
   FROM cargos c
   JOIN permissoes p
   JOIN modulos m ON m.id = p.modulo_id
  WHERE c.codigo = 'OPERADOR'
-   AND (   (m.codigo IN ('clientes', 'produtos', 'contratos', 'manutencoes') AND p.acao IN ('visualizar', 'cadastrar', 'editar'))
-        OR (m.codigo = 'financeiro' AND p.acao = 'visualizar'))
+   AND m.exclusivo_adm = FALSE
 ON DUPLICATE KEY UPDATE cargo_id = cargo_id;

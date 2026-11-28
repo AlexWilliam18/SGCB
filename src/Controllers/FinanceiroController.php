@@ -16,7 +16,7 @@ final class FinanceiroController
 {
     /*
      * Leituras (listagem, parcela e recibo) exigem a permissão "visualizar" do financeiro.
-     * O Dono sempre tem; o Operador recebe pela matriz do seed 002 e o Dono pode negar por usuário.
+     * O Administrador Master sempre tem; o Gerente recebe pela matriz dos seeds 002/004 e o Master pode negar por usuário.
      * Antes bastava estar logado (achado A02 do relatório de testes de 14/11/2026).
      */
     public static function listar(): array
