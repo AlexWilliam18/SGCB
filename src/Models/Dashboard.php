@@ -128,10 +128,11 @@ final class Dashboard extends Modelo
     public static function ultimasLocacoes(int $limite = 15, bool $comValores = false): array
     {
         $limite   = max(1, min($limite, 100));
+        // Valor total vem da function fn_valor_total_contrato (database/functions/fn_funcoes_sgcb.sql):
+        // soma dos itens + frete/deslocamento + outros valores, a mesma regra que antes ficava aqui no SQL.
         $consulta = self::pdo()->prepare(
             "SELECT c.id, c.numero_contrato, p.nome_razao_social AS cliente, c.data_inicio, c.data_fim, c.status,
-                    (SELECT COALESCE(SUM(i.subtotal), 0) FROM contrato_itens i WHERE i.contrato_id = c.id)
-                      + COALESCE(c.frete_deslocamento, 0) + COALESCE(c.outros_valores, 0) AS valor
+                    fn_valor_total_contrato(c.id) AS valor
                FROM contratos c JOIN pessoas p ON p.id = c.cliente_id
               WHERE c.status <> 'RASCUNHO'
               ORDER BY c.criado_em DESC, c.id DESC
